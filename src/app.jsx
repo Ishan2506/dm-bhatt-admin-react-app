@@ -1,43 +1,50 @@
-import { useState } from 'preact/hooks'
-import preactLogo from './assets/preact.svg'
-import viteLogo from '/vite.svg'
-import './app.css'
+import { useState } from 'preact/hooks';
+import { LoginPage } from './pages/LoginPage.jsx';
+import './pages/LoginPage.css';
 
 export function App() {
-  const [count, setCount] = useState(0)
+  const [user, setUser] = useState(() => {
+    try {
+      const stored = localStorage.getItem('user');
+      return stored ? JSON.parse(stored) : null;
+    } catch {
+      return null;
+    }
+  });
 
+  const handleLoginSuccess = (userData) => {
+    setUser(userData);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    setUser(null);
+  };
+
+  // Not logged in → show login page
+  if (!user) {
+    return <LoginPage onLoginSuccess={handleLoginSuccess} />;
+  }
+
+  // Logged in → show dashboard placeholder
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} class="logo" alt="Vite logo" />
-        </a>
-        <a href="https://preactjs.com" target="_blank">
-          <img src={preactLogo} class="logo preact" alt="Preact logo" />
-        </a>
-      </div>
-      <h1>Vite + Preact</h1>
-      <div class="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
+    <div class="dashboard-wrapper">
+      <header class="dashboard-header">
+        <h2>
+          🛡️ <span>DM Bhatt</span> Admin
+        </h2>
+        <button class="logout-btn" onClick={handleLogout}>
+          Logout
         </button>
-        <p>
-          Edit <code>src/app.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p>
-        Check out{' '}
-        <a
-          href="https://preactjs.com/guide/v10/getting-started#create-a-vite-powered-preact-app"
-          target="_blank"
-        >
-          create-preact
-        </a>
-        , the official Preact + Vite starter
-      </p>
-      <p class="read-the-docs">
-        Click on the Vite and Preact logos to learn more
-      </p>
-    </>
-  )
+      </header>
+      <main class="dashboard-content">
+        <div class="dashboard-placeholder">
+          <div class="welcome-emoji">👋</div>
+          <h1>Welcome, {user.firstName || 'Admin'}!</h1>
+          <p>Your admin dashboard is ready to be built.</p>
+        </div>
+      </main>
+    </div>
+  );
 }
