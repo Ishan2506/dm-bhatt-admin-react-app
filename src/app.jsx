@@ -1,5 +1,13 @@
+import { h } from 'preact';
 import { useState } from 'preact/hooks';
+import { Router, route } from 'preact-router';
 import { LoginPage } from './pages/LoginPage.jsx';
+import { Layout } from './components/Layout';
+import { Dashboard } from './pages/Dashboard';
+import { Standards } from './pages/Standards';
+import { Subjects } from './pages/Subjects';
+import { Chapters } from './pages/Chapters';
+import { Payments } from './pages/Payments';
 import './pages/LoginPage.css';
 
 export function App() {
@@ -12,6 +20,8 @@ export function App() {
     }
   });
 
+  const [currentPath, setCurrentPath] = useState('/');
+
   const handleLoginSuccess = (userData) => {
     setUser(userData);
   };
@@ -20,6 +30,11 @@ export function App() {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     setUser(null);
+    route('/');
+  };
+
+  const handleRoute = (e) => {
+    setCurrentPath(e.url);
   };
 
   // Not logged in → show login page
@@ -27,24 +42,16 @@ export function App() {
     return <LoginPage onLoginSuccess={handleLoginSuccess} />;
   }
 
-  // Logged in → show dashboard placeholder
+  // Logged in → show full admin dashboard
   return (
-    <div class="dashboard-wrapper">
-      <header class="dashboard-header">
-        <h2>
-          🛡️ <span>DM Bhatt</span> Admin
-        </h2>
-        <button class="logout-btn" onClick={handleLogout}>
-          Logout
-        </button>
-      </header>
-      <main class="dashboard-content">
-        <div class="dashboard-placeholder">
-          <div class="welcome-emoji">👋</div>
-          <h1>Welcome, {user.firstName || 'Admin'}!</h1>
-          <p>Your admin dashboard is ready to be built.</p>
-        </div>
-      </main>
-    </div>
+    <Layout currentPath={currentPath} user={user} onLogout={handleLogout}>
+      <Router onChange={handleRoute}>
+        <Dashboard path="/" />
+        <Standards path="/standards" />
+        <Subjects path="/subjects" />
+        <Chapters path="/chapters" />
+        <Payments path="/payments" />
+      </Router>
+    </Layout>
   );
 }
