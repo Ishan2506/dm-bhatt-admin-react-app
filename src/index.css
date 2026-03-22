@@ -182,25 +182,35 @@ a:hover {
 }
 
 .sidebar-brand {
-  padding: var(--space-xl) var(--space-xl) var(--space-lg);
+  padding: var(--space-lg) var(--space-lg);
   border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: var(--space-lg);
 }
 
-.sidebar-brand h2 {
+.sidebar-logo {
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+}
+
+.brand-details h2 {
   font-size: var(--font-lg);
   font-weight: 800;
   color: var(--text-heading);
   letter-spacing: -0.5px;
+  margin: 0;
+  line-height: 1.1;
 }
 
-.sidebar-brand span {
+.brand-details span {
   font-size: var(--font-xs);
-  font-weight: 500;
+  font-weight: 600;
   color: var(--accent);
   text-transform: uppercase;
-  letter-spacing: 2px;
+  letter-spacing: 1px;
   display: block;
-  margin-top: 2px;
 }
 
 .sidebar-nav {

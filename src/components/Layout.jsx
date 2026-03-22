@@ -17,8 +17,11 @@ export function Layout({ children, currentPath, user, onLogout }) {
         <div class="layout">
             <aside class="sidebar">
                 <div class="sidebar-brand">
-                    <h2>Padhaku</h2>
-                    <span>Super Admin</span>
+                    <img src="/assets/logo.png" alt="Padhaku Logo" class="sidebar-logo" />
+                    <div class="brand-details">
+                        <h2>Padhaku</h2>
+                        <span>Super Admin</span>
+                    </div>
                 </div>
                 <nav class="sidebar-nav">
                     <div class="nav-label">Management</div>

@@ -12,6 +12,7 @@ export function LandingPage() {
       <nav className="lp-nav">
         <div className="lp-container lp-nav-content">
           <div className="lp-logo">
+            <img src="/assets/logo.png" alt="Padhaku Logo" className="lp-logo-img" />
             <span className="lp-logo-text">Padhaku</span>
           </div>
           <div className={`lp-nav-links ${isMenuOpen ? 'lp-nav-open' : ''}`}>
@@ -180,6 +181,7 @@ export function LandingPage() {
               {/* Brand Column */}
               <div className="lp-footer-brand-col">
                 <div className="lp-logo">
+                  <img src="/assets/logo.png" alt="Padhaku Logo" className="lp-logo-img" />
                   <span className="lp-logo-text">Padhaku.</span>
                 </div>
                 <p className="lp-brand-tagline">
