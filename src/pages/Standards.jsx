@@ -2,6 +2,7 @@ import { h } from 'preact';
 import { useState, useEffect } from 'preact/hooks';
 import { api } from '../api';
 import { Modal } from '../components/Modal';
+import { Icons } from '../components/Icons';
 
 export function Standards() {
     const [standards, setStandards] = useState([]);
@@ -66,14 +67,16 @@ export function Standards() {
         <div>
             <div class="table-container">
                 <div class="table-header">
-                    <h3>📋 All Standards</h3>
-                    <button id="add-standard-btn" class="btn btn-primary" onClick={openAdd}>+ Add Standard</button>
+                    <h3><Icons.Clipboard /> All Standards</h3>
+                    <button id="add-standard-btn" class="btn btn-primary" onClick={openAdd}>
+                        <Icons.Plus /> Add Standard
+                    </button>
                 </div>
                 {loading ? (
                     <div class="loading-spinner" />
                 ) : standards.length === 0 ? (
                     <div class="table-empty">
-                        <p>🏫</p>
+                        <div class="empty-icon"><Icons.Standards /></div>
                         <p>No standards yet. Add your first standard!</p>
                     </div>
                 ) : (
@@ -100,8 +103,12 @@ export function Standards() {
                                     </td>
                                     <td>
                                         <div class="td-actions">
-                                            <button class="btn btn-outline btn-sm" onClick={() => openEdit(std)}>✏️ Edit</button>
-                                            <button class="btn btn-danger btn-sm" onClick={() => setDeleteConfirm(std)}>🗑️</button>
+                                            <button class="btn btn-outline btn-sm" onClick={() => openEdit(std)}>
+                                                <Icons.Edit /> Edit
+                                            </button>
+                                            <button class="btn btn-danger btn-sm" onClick={() => setDeleteConfirm(std)}>
+                                                <Icons.Trash />
+                                            </button>
                                         </div>
                                     </td>
                                 </tr>

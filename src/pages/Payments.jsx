@@ -1,8 +1,8 @@
-import { h } from 'preact';
 import { useState, useEffect } from 'preact/hooks';
 import { api } from '../api';
+import { Icons } from '../components/Icons';
 
-export function Payments() {
+export function Payments({ type }) {
     const [activeTab, setActiveTab] = useState('payments');
     const [data, setData] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -30,35 +30,26 @@ export function Payments() {
     useEffect(() => { setPage(1); }, [activeTab]);
     useEffect(() => { loadData(); }, [activeTab, page]);
 
+    useEffect(() => {
+        const typeMap = {
+            'all': 'payments',
+            'purchases': 'purchases',
+            'upgrades': 'upgrades'
+        };
+        setActiveTab(typeMap[type] || 'payments');
+    }, [type]);
+
     const formatAmount = (amt) => '₹' + (amt || 0).toLocaleString('en-IN');
     const formatDate = (d) => d ? new Date(d).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
 
-    const tabs = [
-        { key: 'payments', label: '💳 All Payments' },
-        { key: 'purchases', label: '🛍️ Product Purchases' },
-        { key: 'upgrades', label: '🚀 Plan Upgrades' },
-    ];
-
     return (
         <div>
-            <div class="tabs">
-                {tabs.map(t => (
-                    <button
-                        key={t.key}
-                        class={`tab ${activeTab === t.key ? 'active' : ''}`}
-                        onClick={() => setActiveTab(t.key)}
-                    >
-                        {t.label}
-                    </button>
-                ))}
-            </div>
-
             <div class="table-container">
                 {loading ? (
                     <div class="loading-spinner" />
                 ) : data.length === 0 ? (
                     <div class="table-empty">
-                        <p>💳</p>
+                        <div class="empty-icon"><Icons.Payments /></div>
                         <p>No {activeTab} data found</p>
                     </div>
                 ) : (

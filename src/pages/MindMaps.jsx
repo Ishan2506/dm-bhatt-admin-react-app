@@ -2,6 +2,7 @@ import { h } from 'preact';
 import { useState, useEffect } from 'preact/hooks';
 import { api } from '../api';
 import { AcademicConstants } from '../utils/constants';
+import { Icons } from '../components/Icons';
 
 const NodeEditor = ({ node, onUpdate, onDelete, isRoot = false }) => {
     const addChild = () => {
@@ -30,8 +31,14 @@ const NodeEditor = ({ node, onUpdate, onDelete, isRoot = false }) => {
                     value={node.name}
                     onInput={(e) => onUpdate({ ...node, name: e.target.value })}
                 />
-                <button type="button" class="btn btn-sm btn-outline" onClick={addChild} title="Add Child">➕</button>
-                {!isRoot && <button type="button" class="btn btn-sm btn-outline btn-danger" onClick={onDelete} title="Remove Node">✖️</button>}
+                <button type="button" class="btn btn-sm btn-outline" onClick={addChild} title="Add Child">
+                    <Icons.Plus />
+                </button>
+                {!isRoot && (
+                    <button type="button" class="btn btn-sm btn-outline btn-danger" onClick={onDelete} title="Remove Node">
+                        <Icons.X />
+                    </button>
+                )}
             </div>
             <div class="node-children" style={{ marginTop: '0.5rem' }}>
                 {node.children.map((child, index) => (
@@ -169,8 +176,9 @@ export function MindMaps() {
         <div class="materials-page">
             {toast && (
                 <div class="toast-container">
-                    <div class={`toast toast-${toast.type}`}>
-                        {toast.message}
+                    <div class={`toast toast-${toast.type || 'info'}`}>
+                        {toast.type === 'error' ? <Icons.Error /> : toast.type === 'success' ? <Icons.Success /> : <Icons.Info />}
+                        <span>{toast.message}</span>
                     </div>
                 </div>
             )}
@@ -180,13 +188,13 @@ export function MindMaps() {
                     class={`tab ${activeTab === 'Create' ? 'active' : ''}`}
                     onClick={() => { setActiveTab('Create'); if (editing) resetForm(); }}
                 >
-                    {editing ? '📝 Edit Mind Map' : '🆕 Create Mind Map'}
+                    {editing ? <Icons.Edit /> : <Icons.Sparkles />} {editing ? 'Edit Mind Map' : 'Create Mind Map'}
                 </button>
                 <button 
                     class={`tab ${activeTab === 'History' ? 'active' : ''}`}
                     onClick={() => { setActiveTab('History'); if (editing) resetForm(); }}
                 >
-                    📜 History
+                    <Icons.History /> History
                 </button>
             </div>
 
@@ -296,9 +304,9 @@ export function MindMaps() {
                 ) : (
                     <div class="table-container">
                         <div class="table-header">
-                            <h3>🧠 Mind Map Repository</h3>
+                            <h3><Icons.MindMaps /> Mind Map Repository</h3>
                             <button class="btn btn-outline btn-sm" onClick={loadMindMaps} disabled={loading}>
-                                {loading ? 'Refresing...' : '🔄 Refresh'}
+                                {loading ? <div class="loading-spinner-xs" /> : <Icons.Refresh />} {loading ? 'Refresing...' : 'Refresh'}
                             </button>
                         </div>
                     {loading ? (
@@ -308,7 +316,7 @@ export function MindMaps() {
                         </div>
                     ) : mindMaps.length === 0 ? (
                         <div class="empty-state">
-                            <div class="empty-icon">🧠</div>
+                            <div class="empty-icon"><Icons.MindMaps /></div>
                             <p>No mind maps found. Create your first one!</p>
                         </div>
                     ) : (
@@ -333,20 +341,20 @@ export function MindMaps() {
                                             <td>{item.unit}</td>
                                             <td class="font-mono text-xs">{new Date(item.createdAt).toLocaleDateString()}</td>
                                             <td>
-                                                <div class="table-actions">
+                                                <div class="td-actions">
                                                     <button 
-                                                        class="btn btn-icon btn-outline" 
+                                                        class="btn btn-icon btn-outline btn-sm" 
                                                         title="Edit"
                                                         onClick={() => handleEdit(item)}
                                                     >
-                                                        ✏️
+                                                        <Icons.Edit />
                                                     </button>
                                                     <button 
-                                                        class="btn btn-icon btn-outline btn-danger" 
+                                                        class="btn btn-icon btn-outline btn-danger btn-sm" 
                                                         title="Delete"
                                                         onClick={() => handleDelete(item._id)}
                                                     >
-                                                        🗑️
+                                                        <Icons.Trash />
                                                     </button>
                                                 </div>
                                             </td>

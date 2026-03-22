@@ -3,8 +3,9 @@ import { useState, useEffect, useRef } from 'preact/hooks';
 import { api } from '../api';
 import { AcademicConstants } from '../utils/constants';
 import { Modal } from '../components/Modal';
+import { Icons } from '../components/Icons';
 
-export function Materials() {
+export function Materials({ type }) {
     const [activeTab, setActiveTab] = useState('BoardPaper');
     const [materials, setMaterials] = useState([]);
     const [loading, setLoading] = useState(false);
@@ -40,11 +41,11 @@ export function Materials() {
     const fileInputRef = useRef(null);
 
     const tabs = [
-        { id: 'BoardPaper', label: 'Board Paper', icon: '📝' },
-        { id: 'SchoolPaper', label: 'School Paper', icon: '🏫' },
-        { id: 'Notes', label: 'Notes', icon: '📚' },
-        { id: 'ImageMaterial', label: 'Images', icon: '🖼️' },
-        { id: 'History', label: 'History', icon: '📜' }
+        { id: 'BoardPaper', label: 'Board Paper', icon: <Icons.Paper /> },
+        { id: 'SchoolPaper', label: 'School Paper', icon: <Icons.Standards /> },
+        { id: 'Notes', label: 'Notes', icon: <Icons.Subjects /> },
+        { id: 'ImageMaterial', label: 'Images', icon: <Icons.Image /> },
+        { id: 'History', label: 'History', icon: <Icons.History /> }
     ];
 
     const loadMaterials = () => {
@@ -56,11 +57,23 @@ export function Materials() {
     };
 
     useEffect(() => {
+        const typeMap = {
+            'board-paper': 'BoardPaper',
+            'school-paper': 'SchoolPaper',
+            'notes': 'Notes',
+            'images': 'ImageMaterial',
+            'history': 'History'
+        };
+        const newTab = typeMap[type] || 'BoardPaper';
+        setActiveTab(newTab);
+        if (editing) resetForm();
+    }, [type]);
+
+    useEffect(() => {
         if (activeTab === 'History') {
             loadMaterials();
         }
         
-        // Reset standard if not valid for BoardPaper
         if (activeTab === 'BoardPaper' && !['10', '12'].includes(form.standard)) {
             setForm(prev => ({ ...prev, standard: '' }));
         }
@@ -259,14 +272,16 @@ export function Materials() {
     const renderHistory = () => (
         <div class="table-container">
             <div class="table-header">
-                <h3>📜 Material Upload History</h3>
-                <button class="btn btn-outline btn-sm" onClick={loadMaterials}>🔄 Refresh</button>
+                <h3><Icons.History /> Material Upload History</h3>
+                <button class="btn btn-outline btn-sm" onClick={loadMaterials}>
+                    <Icons.Refresh /> Refresh
+                </button>
             </div>
             {loading ? (
                 <div style="padding: 2rem; text-align: center;"><div class="loading-spinner" /></div>
             ) : materials.length === 0 ? (
                 <div class="table-empty">
-                    <p>📭</p>
+                    <div class="empty-icon"><Icons.Paper /></div>
                     <p>No materials found.</p>
                 </div>
             ) : (
@@ -291,8 +306,12 @@ export function Materials() {
                                 <td>{item.year}</td>
                                 <td>
                                     <div class="td-actions">
-                                        <button class="btn btn-outline btn-sm" onClick={() => handleEdit(item)}>✏️</button>
-                                        <button class="btn btn-danger btn-sm" onClick={() => setDeleteConfirm(item)}>🗑️</button>
+                                        <button class="btn btn-outline btn-sm" onClick={() => handleEdit(item)}>
+                                            <Icons.Edit />
+                                        </button>
+                                        <button class="btn btn-danger btn-sm" onClick={() => setDeleteConfirm(item)}>
+                                            <Icons.Trash />
+                                        </button>
                                     </div>
                                 </td>
                             </tr>
@@ -305,19 +324,7 @@ export function Materials() {
 
     return (
         <div class="materials-page">
-            <div class="tabs">
-                {tabs.map(tab => (
-                    <button
-                        key={tab.id}
-                        class={`tab ${activeTab === tab.id ? 'active' : ''}`}
-                        onClick={() => { setActiveTab(tab.id); if (editing) resetForm(); }}
-                    >
-                        {tab.icon} {tab.label}
-                    </button>
-                ))}
-            </div>
-
-            <div class="tab-content">
+            <div class="tab-content" style="margin-top: 0;">
                 {activeTab === 'History' ? renderHistory() : renderForm()}
             </div>
 
@@ -339,7 +346,7 @@ export function Materials() {
             {toast && (
                 <div class="toast-container">
                     <div class={`toast toast-${toast.type || 'success'}`}>
-                        {toast.type === 'error' ? '❌' : toast.type === 'info' ? 'ℹ️' : '✅'}
+                        {toast.type === 'error' ? <Icons.Error /> : toast.type === 'info' ? <Icons.Info /> : <Icons.Success />}
                         <span>{toast.message}</span>
                     </div>
                 </div>

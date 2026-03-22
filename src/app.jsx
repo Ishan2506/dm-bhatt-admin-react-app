@@ -66,9 +66,9 @@ function AdminContainer({ user, currentPath, handleLoginSuccess, handleLogout })
         <Standards path="/admin/standards" />
         <Subjects path="/admin/subjects" />
         <Chapters path="/admin/chapters" />
-        <Materials path="/admin/materials" />
+        <Materials path="/admin/materials/:type?" />
         <MindMaps path="/admin/mindmaps" />
-        <Payments path="/admin/payments" />
+        <Payments path="/admin/payments/:type?" />
       </Router>
     </Layout>
   );

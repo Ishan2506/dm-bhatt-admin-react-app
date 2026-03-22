@@ -2,6 +2,7 @@ import { h } from 'preact';
 import { useState, useEffect } from 'preact/hooks';
 import { api } from '../api';
 import { Modal } from '../components/Modal';
+import { Icons } from '../components/Icons';
 
 export function Chapters() {
     const [chapters, setChapters] = useState([]);
@@ -99,7 +100,7 @@ export function Chapters() {
         <div>
             <div class="table-container">
                 <div class="table-header">
-                    <h3>📋 All Chapters / Units</h3>
+                    <h3><Icons.Clipboard /> All Chapters / Units</h3>
                     <div class="table-filters">
                         <select
                             id="chapter-filter-standard"
@@ -124,14 +125,16 @@ export function Chapters() {
                                 <option key={s._id} value={s._id}>{s.name}</option>
                             ))}
                         </select>
-                        <button id="add-chapter-btn" class="btn btn-primary" onClick={openAdd}>+ Add Chapter</button>
+                        <button id="add-chapter-btn" class="btn btn-primary" onClick={openAdd}>
+                            <Icons.Plus /> Add Chapter
+                        </button>
                     </div>
                 </div>
                 {loading ? (
                     <div class="loading-spinner" />
                 ) : chapters.length === 0 ? (
                     <div class="table-empty">
-                        <p>📖</p>
+                        <div class="empty-icon"><Icons.Chapters /></div>
                         <p>No chapters found. Add your first chapter!</p>
                     </div>
                 ) : (
@@ -166,8 +169,12 @@ export function Chapters() {
                                     </td>
                                     <td>
                                         <div class="td-actions">
-                                            <button class="btn btn-outline btn-sm" onClick={() => openEdit(ch)}>✏️ Edit</button>
-                                            <button class="btn btn-danger btn-sm" onClick={() => setDeleteConfirm(ch)}>🗑️</button>
+                                            <button class="btn btn-outline btn-sm" onClick={() => openEdit(ch)}>
+                                                <Icons.Edit /> Edit
+                                            </button>
+                                            <button class="btn btn-danger btn-sm" onClick={() => setDeleteConfirm(ch)}>
+                                                <Icons.Trash />
+                                            </button>
                                         </div>
                                     </td>
                                 </tr>
