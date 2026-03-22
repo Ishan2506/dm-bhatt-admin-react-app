@@ -65,7 +65,7 @@ export function LoginPage({ onLoginSuccess }) {
         {/* Branding */}
         <div class="login-brand">
           <div class="login-brand-icon">🛡️</div>
-          <h1>DM Bhatt Admin</h1>
+          <h1>Padhaku Admin</h1>
           <p>Sign in to manage your dashboard</p>
         </div>
 

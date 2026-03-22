@@ -1,5 +1,5 @@
 import { h } from 'preact';
-import { useState } from 'preact/hooks';
+import { useState, useEffect } from 'preact/hooks';
 import { Router, route } from 'preact-router';
 import { LoginPage } from './pages/LoginPage.jsx';
 import { Layout } from './components/Layout';
@@ -7,9 +7,10 @@ import { Dashboard } from './pages/Dashboard';
 import { Standards } from './pages/Standards';
 import { Subjects } from './pages/Subjects';
 import { Chapters } from './pages/Chapters';
-import { Payments } from './pages/Payments';
 import { Materials } from './pages/Materials';
 import { MindMaps } from './pages/MindMaps';
+import { Payments } from './pages/Payments';
+import { LandingPage } from './pages/LandingPage';
 import './pages/LoginPage.css';
 
 export function App() {
@@ -22,39 +23,52 @@ export function App() {
     }
   });
 
-  const [currentPath, setCurrentPath] = useState('/');
+  const [currentPath, setCurrentPath] = useState(window.location.pathname);
 
   const handleLoginSuccess = (userData) => {
     setUser(userData);
+    route('/admin');
   };
 
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     setUser(null);
-    route('/');
+    route('/admin');
   };
 
   const handleRoute = (e) => {
     setCurrentPath(e.url);
   };
 
-  // Not logged in → show login page
+  return (
+    <Router onChange={handleRoute}>
+      {/* Landing Page at / */}
+      <LandingPage path="/" />
+
+      {/* Admin Routes */}
+      <AdminContainer path="/admin/:id*" user={user} currentPath={currentPath} handleLoginSuccess={handleLoginSuccess} handleLogout={handleLogout} />
+    </Router>
+  );
+}
+
+function AdminContainer({ user, currentPath, handleLoginSuccess, handleLogout }) {
   if (!user) {
     return <LoginPage onLoginSuccess={handleLoginSuccess} />;
   }
 
-  // Logged in → show full admin dashboard
+  // Ensure path is correctly handled for sub-routes
   return (
     <Layout currentPath={currentPath} user={user} onLogout={handleLogout}>
-      <Router onChange={handleRoute}>
-        <Dashboard path="/" />
-        <Standards path="/standards" />
-        <Subjects path="/subjects" />
-        <Chapters path="/chapters" />
-        <Materials path="/materials" />
-        <MindMaps path="/mindmaps" />
-        <Payments path="/payments" />
+      <Router>
+        <Dashboard path="/admin" />
+        <Dashboard path="/admin/dashboard" />
+        <Standards path="/admin/standards" />
+        <Subjects path="/admin/subjects" />
+        <Chapters path="/admin/chapters" />
+        <Materials path="/admin/materials" />
+        <MindMaps path="/admin/mindmaps" />
+        <Payments path="/admin/payments" />
       </Router>
     </Layout>
   );

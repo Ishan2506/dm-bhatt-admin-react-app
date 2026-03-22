@@ -2,13 +2,14 @@ import { h } from 'preact';
 import { Router, route } from 'preact-router';
 
 const navItems = [
-    { path: '/', label: 'Dashboard', icon: '📊' },
-    { path: '/standards', label: 'Standards', icon: '🏫' },
-    { path: '/subjects', label: 'Subjects', icon: '📚' },
-    { path: '/chapters', label: 'Chapters', icon: '📖' },
-    { path: '/materials', label: 'Materials', icon: '📂' },
-    { path: '/mindmaps', label: 'Mind Maps', icon: '🧠' },
-    { path: '/payments', label: 'Payments', icon: '💳' },
+
+    { path: '/admin', label: 'Dashboard', icon: '📊' },
+    { path: '/admin/standards', label: 'Standards', icon: '🏫' },
+    { path: '/admin/subjects', label: 'Subjects', icon: '📚' },
+    { path: '/admin/chapters', label: 'Chapters', icon: '📖' },
+    { path: '/admin/materials', label: 'Materials', icon: '📂' },
+    { path: '/admin/mindmaps', label: 'Mind Maps', icon: '🧠' },
+    { path: '/admin/payments', label: 'Payments', icon: '💳' },
 ];
 
 export function Layout({ children, currentPath, user, onLogout }) {
@@ -16,7 +17,7 @@ export function Layout({ children, currentPath, user, onLogout }) {
         <div class="layout">
             <aside class="sidebar">
                 <div class="sidebar-brand">
-                    <h2>DM Bhatt</h2>
+                    <h2>Padhaku</h2>
                     <span>Super Admin</span>
                 </div>
                 <nav class="sidebar-nav">
@@ -40,7 +41,7 @@ export function Layout({ children, currentPath, user, onLogout }) {
             <main class="main-content">
                 <header class="topbar">
                     <h1 class="topbar-title">
-                        {navItems.find(n => n.path === currentPath)?.label || 'Dashboard'}
+                        {navItems.find(n => n.path === currentPath || (n.path === '/admin' && currentPath === '/admin/dashboard'))?.label || 'Dashboard'}
                     </h1>
                     <div class="topbar-right">
                         <span style="color: var(--text-secondary); font-size: var(--font-sm); margin-right: 1rem;">👤 {user?.firstName || 'Admin'}</span>
