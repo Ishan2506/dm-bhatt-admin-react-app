@@ -8,6 +8,7 @@ import { Standards } from './pages/Standards';
 import { Subjects } from './pages/Subjects';
 import { Chapters } from './pages/Chapters';
 import { Payments } from './pages/Payments';
+import { Materials } from './pages/Materials';
 import './pages/LoginPage.css';
 
 export function App() {
@@ -50,6 +51,7 @@ export function App() {
         <Standards path="/standards" />
         <Subjects path="/subjects" />
         <Chapters path="/chapters" />
+        <Materials path="/materials" />
         <Payments path="/payments" />
       </Router>
     </Layout>

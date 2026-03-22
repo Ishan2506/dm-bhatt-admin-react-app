@@ -6,6 +6,7 @@ const navItems = [
     { path: '/standards', label: 'Standards', icon: '🏫' },
     { path: '/subjects', label: 'Subjects', icon: '📚' },
     { path: '/chapters', label: 'Chapters', icon: '📖' },
+    { path: '/materials', label: 'Materials', icon: '📂' },
     { path: '/payments', label: 'Payments', icon: '💳' },
 ];
 
