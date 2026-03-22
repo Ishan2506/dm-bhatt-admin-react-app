@@ -143,11 +143,11 @@ export function Dashboard() {
     if (loading) return <div class="loading-state">Loading dashboard...</div>;
     if (error) return <div class="error-state">{error}</div>;
 
-    const totalRevenue = stats?.totalRevenue ?? (stats?.totalPaymentAmount || 0);
+    const totalRevenue = stats?.totalRevenue || 0;
 
     const cards = [
-        { title: 'Total Standards', value: stats?.totalStandards || 0, icon: <Icons.Standards />, color: '#4f46e5', trend: '12%', up: true },
-        { title: 'Total Subjects', value: stats?.totalSubjects || 0, icon: <Icons.Subjects />, color: '#10b981', trend: '5%', up: true },
+        { title: 'Total Students', value: stats?.totalStudents || 0, icon: <Icons.User />, color: '#4f46e5', trend: '12%', up: true },
+        { title: 'Total Products', value: stats?.totalProducts || 0, icon: <Icons.Materials />, color: '#10b981', trend: '5%', up: true },
         { title: 'Total Chapters', value: stats?.totalChapters || 0, icon: <Icons.Chapters />, color: '#f59e0b', trend: '2%', up: false },
         { title: 'Total Revenue', value: `₹${totalRevenue.toLocaleString()}`, icon: <Icons.Revenue />, color: '#ef4444', trend: '25%', up: true },
     ];

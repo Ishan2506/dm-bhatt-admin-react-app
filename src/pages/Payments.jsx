@@ -3,7 +3,7 @@ import { api } from '../api';
 import { Icons } from '../components/Icons';
 
 export function Payments({ type }) {
-    const [activeTab, setActiveTab] = useState('payments');
+    const [activeTab, setActiveTab] = useState('upgrades');
     const [data, setData] = useState([]);
     const [loading, setLoading] = useState(true);
     const [page, setPage] = useState(1);
@@ -12,14 +12,12 @@ export function Payments({ type }) {
     const loadData = () => {
         setLoading(true);
         let endpoint;
-        if (activeTab === 'payments') endpoint = `/payments?page=${page}&limit=15`;
-        else if (activeTab === 'purchases') endpoint = `/product-purchases?page=${page}&limit=15`;
+        if (activeTab === 'purchases') endpoint = `/product-purchases?page=${page}&limit=15`;
         else endpoint = `/plan-upgrades?page=${page}&limit=15`;
 
         api.get(endpoint)
             .then(res => {
-                if (activeTab === 'payments') setData(res.payments);
-                else if (activeTab === 'purchases') setData(res.purchases);
+                if (activeTab === 'purchases') setData(res.purchases);
                 else setData(res.upgrades);
                 setTotalPages(res.totalPages || 1);
             })
@@ -32,11 +30,10 @@ export function Payments({ type }) {
 
     useEffect(() => {
         const typeMap = {
-            'all': 'payments',
             'purchases': 'purchases',
             'upgrades': 'upgrades'
         };
-        setActiveTab(typeMap[type] || 'payments');
+        setActiveTab(typeMap[type] || 'upgrades');
     }, [type]);
 
     const formatAmount = (amt) => '₹' + (amt || 0).toLocaleString('en-IN');
@@ -45,47 +42,22 @@ export function Payments({ type }) {
     return (
         <div>
             <div class="table-container">
+                <div class="table-header">
+                    <h3>
+                        <Icons.Payments /> 
+                        {activeTab === 'purchases' ? 'Product Purchases' : 'Plan Purchases'}
+                    </h3>
+                </div>
                 {loading ? (
-                    <div class="loading-spinner" />
+                    <div style="padding: 2rem; text-align: center;">Loading...</div>
                 ) : data.length === 0 ? (
                     <div class="table-empty">
                         <div class="empty-icon"><Icons.Payments /></div>
-                        <p>No {activeTab} data found</p>
+                        <p>No {activeTab === 'purchases' ? 'Product' : 'Plan'} data found</p>
                     </div>
                 ) : (
                     <>
-                        {activeTab === 'payments' && (
-                            <table>
-                                <thead>
-                                    <tr>
-                                        <th>#</th>
-                                        <th>Student</th>
-                                        <th>Phone</th>
-                                        <th>Standard</th>
-                                        <th>Amount</th>
-                                        <th>Status</th>
-                                        <th>Date</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {data.map((item, i) => (
-                                        <tr key={item._id}>
-                                            <td>{(page - 1) * 15 + i + 1}</td>
-                                            <td style="font-weight: 600;">{item.studentName || '—'}</td>
-                                            <td class="text-muted">{item.studentPhone || '—'}</td>
-                                            <td><span class="badge badge-info">{item.standard || '—'}</span></td>
-                                            <td><span class="amount text-success">{formatAmount(item.amount)}</span></td>
-                                            <td>
-                                                <span class={`badge ${item.status === 'captured' ? 'badge-success' : item.status === 'refunded' ? 'badge-warning' : 'badge-danger'}`}>
-                                                    {item.status}
-                                                </span>
-                                            </td>
-                                            <td class="text-muted">{formatDate(item.createdAt)}</td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        )}
+
 
                         {activeTab === 'purchases' && (
                             <table>

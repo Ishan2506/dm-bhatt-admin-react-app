@@ -7,9 +7,14 @@ import { Dashboard } from './pages/Dashboard';
 import { Standards } from './pages/Standards';
 import { Subjects } from './pages/Subjects';
 import { Chapters } from './pages/Chapters';
+import { Students } from './pages/Students';
+import { Admins } from './pages/Admins';
 import { Materials } from './pages/Materials';
 import { MindMaps } from './pages/MindMaps';
 import { Payments } from './pages/Payments';
+import { PaymentConfig } from './pages/PaymentConfig';
+import { NotificationConfig } from './pages/NotificationConfig';
+import { Products } from './pages/Products';
 import { LandingPage } from './pages/LandingPage';
 import './pages/LoginPage.css';
 
@@ -63,12 +68,17 @@ function AdminContainer({ user, currentPath, handleLoginSuccess, handleLogout })
       <Router>
         <Dashboard path="/admin" />
         <Dashboard path="/admin/dashboard" />
+        <Students path="/admin/students" />
+        <Admins path="/admin/admins" />
         <Standards path="/admin/standards" />
         <Subjects path="/admin/subjects" />
         <Chapters path="/admin/chapters" />
+        <Products path="/admin/products" />
         <Materials path="/admin/materials/:type?" />
         <MindMaps path="/admin/mindmaps" />
         <Payments path="/admin/payments/:type?" />
+        <PaymentConfig path="/admin/config/payment" />
+        <NotificationConfig path="/admin/config/notification" />
       </Router>
     </Layout>
   );

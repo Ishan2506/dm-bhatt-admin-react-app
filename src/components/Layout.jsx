@@ -8,8 +8,16 @@ const navigation = [
         items: [
             { path: '/admin', label: 'Dashboard', icon: <Icons.Dashboard /> },
             { path: '/admin/standards', label: 'Standards', icon: <Icons.Standards /> },
+            { path: '/admin/products', label: 'Products', icon: <Icons.Materials /> },
             { path: '/admin/subjects', label: 'Subjects', icon: <Icons.Subjects /> },
             { path: '/admin/chapters', label: 'Chapters', icon: <Icons.Chapters /> },
+        ]
+    },
+    {
+        title: 'USERS',
+        items: [
+            { path: '/admin/students', label: 'Students', icon: <Icons.User /> },
+            { path: '/admin/admins', label: 'Admin', icon: <Icons.Shield /> },
         ]
     },
     {
@@ -33,26 +41,50 @@ const navigation = [
     {
         title: 'PAYMENTS',
         items: [
-            { 
-                label: 'Payments', 
-                icon: <Icons.Payments />,
-                path: '/admin/payments',
-                children: [
-                    { path: '/admin/payments/all', label: 'All Payments' },
-                    { path: '/admin/payments/purchases', label: 'Product Purchases' },
-                    { path: '/admin/payments/upgrades', label: 'Plan Upgrades' },
-                ]
-            },
+            { path: '/admin/payments/upgrades', label: 'Plan Purchases', icon: <Icons.Payments /> },
+            { path: '/admin/payments/purchases', label: 'Product Purchases', icon: <Icons.Payments /> },
+        ]
+    },
+    {
+        title: 'CONFIGURATION',
+        items: [
+            { path: '/admin/config/payment', label: 'Payment', icon: <Icons.Gear /> },
+            { path: '/admin/config/notification', label: 'Notification', icon: <Icons.Notification /> },
         ]
     }
 ];
 
 export function Layout({ children, currentPath, user, onLogout }) {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    const [isDarkMode, setIsDarkMode] = useState(false);
 
     useEffect(() => {
         setIsSidebarOpen(false);
     }, [currentPath]);
+
+    useEffect(() => {
+        const savedTheme = localStorage.getItem('theme');
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+            setIsDarkMode(true);
+            document.documentElement.setAttribute('data-theme', 'dark');
+        } else {
+            setIsDarkMode(false);
+            document.documentElement.removeAttribute('data-theme');
+        }
+    }, []);
+
+    const toggleTheme = () => {
+        const newMode = !isDarkMode;
+        setIsDarkMode(newMode);
+        if (newMode) {
+            document.documentElement.setAttribute('data-theme', 'dark');
+            localStorage.setItem('theme', 'dark');
+        } else {
+            document.documentElement.removeAttribute('data-theme');
+            localStorage.setItem('theme', 'light');
+        }
+    };
 
     return (
         <div class="layout">
@@ -115,21 +147,6 @@ export function Layout({ children, currentPath, user, onLogout }) {
                     ))}
                 </nav>
 
-                <div class="sidebar-footer">
-                    <div class="profile-card">
-                        <div class="profile-avatar">
-                            <Icons.User />
-                        </div>
-                        <div class="profile-info">
-                            <span class="profile-name">{user?.firstName || 'Admin'}</span>
-                            <span class="profile-role">Super Admin</span>
-                        </div>
-                    </div>
-                    <a href="#" class="logout-link" onClick={(e) => { e.preventDefault(); onLogout(); }}>
-                        <span class="logout-icon"><Icons.Logout /></span>
-                        Logout
-                    </a>
-                </div>
             </aside>
             <main class="main-content">
                 <header class="topbar">
@@ -143,9 +160,25 @@ export function Layout({ children, currentPath, user, onLogout }) {
                     </div>
                     <div class="topbar-right">
                         <div class="topbar-actions">
-                             <button class="topbar-btn">
-                                <Icons.Bell />
+                             <button class="topbar-btn theme-toggle" onClick={toggleTheme} aria-label="Toggle Dark Mode">
+                                {isDarkMode ? <Icons.Sun /> : <Icons.Moon />}
                              </button>
+                             <div class="topbar-profile">
+                                 <button class="profile-toggle-btn">
+                                     <div class="profile-avatar-small"><Icons.User /></div>
+                                     <div class="profile-info-small">
+                                         <span class="profile-name">{user?.firstName || 'Admin'}</span>
+                                         <span class="profile-role">Super Admin</span>
+                                     </div>
+                                 </button>
+                                 <div class="profile-dropdown">
+                                     <div class="profile-dropdown-inner">
+                                         <a href="#" class="dropdown-item" onClick={(e) => { e.preventDefault(); onLogout(); }}>
+                                             <Icons.Logout /> Logout
+                                         </a>
+                                     </div>
+                                 </div>
+                             </div>
                         </div>
                     </div>
                 </header>
