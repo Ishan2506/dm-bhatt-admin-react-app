@@ -1021,3 +1021,62 @@ tr:hover td {
   border: 1px solid var(--border-light);
   white-space: nowrap;
 }
+
+/* --- Mind Map Tree Builder --- */
+.tree-builder-section {
+    background: #f8fafc;
+    padding: 1.5rem;
+    border-radius: 0.75rem;
+    border: 1px solid var(--border-color);
+    max-height: 600px;
+    overflow-y: auto;
+    margin-top: 1rem;
+}
+
+.node-editor {
+    position: relative;
+    transition: all 0.2s ease;
+}
+
+.node-input-group {
+    background: white;
+    padding: 0.5rem;
+    border-radius: 0.5rem;
+    border: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+.node-input-group:focus-within {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.node-input-group input {
+    flex: 1;
+    border: none !important;
+    outline: none !important;
+    padding: 0.25rem 0.5rem !important;
+    font-size: 0.9rem !important;
+    background: transparent !important;
+    color: #1e293b !important;
+}
+
+.node-children {
+    position: relative;
+    padding-left: 1.5rem;
+    margin-top: 0.5rem;
+}
+
+.node-children::before {
+    content: '';
+    position: absolute;
+    left: 0.5rem;
+    top: 0;
+    bottom: 0.5rem;
+    width: 2px;
+    background: var(--border-color);
+}
+

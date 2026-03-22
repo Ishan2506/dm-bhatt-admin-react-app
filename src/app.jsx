@@ -9,6 +9,7 @@ import { Subjects } from './pages/Subjects';
 import { Chapters } from './pages/Chapters';
 import { Payments } from './pages/Payments';
 import { Materials } from './pages/Materials';
+import { MindMaps } from './pages/MindMaps';
 import './pages/LoginPage.css';
 
 export function App() {
@@ -52,6 +53,7 @@ export function App() {
         <Subjects path="/subjects" />
         <Chapters path="/chapters" />
         <Materials path="/materials" />
+        <MindMaps path="/mindmaps" />
         <Payments path="/payments" />
       </Router>
     </Layout>
