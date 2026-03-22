@@ -22,8 +22,8 @@ const NodeEditor = ({ node, onUpdate, onDelete, isRoot = false }) => {
     };
 
     return (
-        <div class="node-editor" style={{ marginLeft: isRoot ? '0' : '1.5rem', marginBottom: '0.5rem', borderLeft: isRoot ? 'none' : '2px solid var(--border-color)', paddingLeft: isRoot ? '0' : '1rem' }}>
-            <div class="node-input-group" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+        <div class="node-editor" style={{ marginLeft: isRoot ? '0' : '1.5rem', marginBottom: '0.5rem', borderLeft: isRoot ? 'none' : '2px solid var(--border)', paddingLeft: isRoot ? '0' : '1rem' }}>
+            <div class="node-input-group">
                 <input
                     type="text"
                     class="form-control"
@@ -286,7 +286,7 @@ export function MindMaps() {
                             </div>
 
                             <div class="tree-builder-section">
-                                <h4 class="form-label" style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem', marginBottom: '1rem' }}>🌳 Tree Builder</h4>
+                                <h4 class="form-label" style={{ borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem', marginBottom: '1rem' }}>🌳 Tree Builder</h4>
                                 <NodeEditor 
                                     node={form.data} 
                                     onUpdate={handleTreeUpdate} 
