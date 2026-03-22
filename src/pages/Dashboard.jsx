@@ -13,7 +13,7 @@ export function Dashboard() {
     
     const revenueChartRef = useRef(null);
     const studentChartRef = useRef(null);
-    const contentChartRef = useRef(null);
+    const productChartRef = useRef(null);
     
     const chartInstances = useRef({});
 
@@ -119,7 +119,39 @@ export function Dashboard() {
                                         color: '#6b7280', 
                                         padding: 20, 
                                         usePointStyle: true,
-                                        font: { size: 12 }
+                                        font: { size: 11 }
+                                    } 
+                                }
+                            },
+                            cutout: '75%'
+                        }
+                    });
+                }
+
+                // 3. Product Distribution
+                if (productChartRef.current && stats.productEarningsByProduct?.length > 0) {
+                    chartInstances.current.products = new Chart(productChartRef.current, {
+                        type: 'doughnut',
+                        data: {
+                            labels: stats.productEarningsByProduct.map(p => p.label),
+                            datasets: [{
+                                data: stats.productEarningsByProduct.map(p => p.value),
+                                backgroundColor: ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#4f46e5'],
+                                borderWidth: 0,
+                                hoverOffset: 12
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: { 
+                                    position: 'bottom', 
+                                    labels: { 
+                                        color: '#6b7280', 
+                                        padding: 20, 
+                                        usePointStyle: true,
+                                        font: { size: 11 }
                                     } 
                                 }
                             },
@@ -192,27 +224,20 @@ export function Dashboard() {
                     <div class="chart-header">
                         <h2 class="chart-title">Student Distribution</h2>
                     </div>
-                    <div class="chart-container">
+                    <div class="chart-container" style={{ height: '300px' }}>
                         <canvas ref={studentChartRef}></canvas>
                     </div>
                 </div>
 
                 <div class="chart-card">
                     <div class="chart-header">
-                        <h2 class="chart-title">Top Standards by Activity</h2>
+                        <h2 class="chart-title">Product Distribution</h2>
                     </div>
-                    <div class="top-list">
-                        {(stats.studentsByStd || []).slice(0, 6).map((item, idx) => (
-                            <div key={idx} class="list-item">
-                                <div class="item-info">
-                                    <span class="item-flag"><Icons.Standards /></span>
-                                    <span class="item-name">Standard {item.label}</span>
-                                </div>
-                                <span class="item-value">{Math.round(item.value / stats.totalStandards * 100) || 15}%</span>
-                            </div>
-                        ))}
+                    <div class="chart-container" style={{ height: '300px' }}>
+                        <canvas ref={productChartRef}></canvas>
                     </div>
                 </div>
+
             </div>
         </div>
     );
