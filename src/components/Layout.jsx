@@ -14,6 +14,23 @@ const navigation = [
         ]
     },
     {
+        title: 'REPORTS',
+        items: [
+            { 
+                label: 'Exam Reports', 
+                icon: <Icons.Reports />,
+                path: '/admin/reports/exams',
+                children: [
+                    { path: '/admin/reports/exams/regular', label: 'Regular Exams' },
+                    { path: '/admin/reports/exams/quiz', label: 'Quiz' },
+                    { path: '/admin/reports/exams/oneliner', label: 'One Liner' },
+                    { path: '/admin/reports/exams/combined', label: 'Combined' },
+                ]
+            },
+            { path: '/admin/reports/students', label: 'Student Reports', icon: <Icons.User /> },
+        ]
+    },
+    {
         title: 'USERS',
         items: [
             { path: '/admin/students', label: 'Students', icon: <Icons.User /> },

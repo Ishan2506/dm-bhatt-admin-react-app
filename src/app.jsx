@@ -15,6 +15,7 @@ import { Payments } from './pages/Payments';
 import { PaymentConfig } from './pages/PaymentConfig';
 import { NotificationConfig } from './pages/NotificationConfig';
 import { Products } from './pages/Products';
+import { ReportsPage } from './pages/ReportsPage';
 import { LandingPage } from './pages/LandingPage';
 import './pages/LoginPage.css';
 
@@ -79,6 +80,8 @@ function AdminContainer({ user, currentPath, handleLoginSuccess, handleLogout })
         <Payments path="/admin/payments/:type?" />
         <PaymentConfig path="/admin/config/payment" />
         <NotificationConfig path="/admin/config/notification" />
+        <ReportsPage path="/admin/reports/students" type="students" />
+        <ReportsPage path="/admin/reports/exams/:type?" />
       </Router>
     </Layout>
   );
