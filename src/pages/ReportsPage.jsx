@@ -37,6 +37,22 @@ export function ReportsPage({ type: initialType }) {
     }, []);
 
     useEffect(() => {
+        if (initialType?.includes('students')) {
+            setView('students');
+        } else {
+            setView('exams');
+            // Normalize type to uppercase to match EXAM_TYPES IDs
+            const normalizedType = (initialType || 'COMBINED').toUpperCase();
+            // Only set if it's a valid exam type, otherwise default to COMBINED
+            if (EXAM_TYPES.some(t => t.id === normalizedType)) {
+                setExamType(normalizedType);
+            } else {
+                setExamType('COMBINED');
+            }
+        }
+    }, [initialType]);
+
+    useEffect(() => {
         loadData();
     }, [view, examType, filters]);
 
