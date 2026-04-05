@@ -94,8 +94,7 @@ export function Exams() {
                                         {item.createdBy ? (
                                             <div style={{ lineHeight: '1.2' }}>
                                                 {item.createdBy.firstName}<br />
-                                                {item.createdBy.email && <small style={{ color: 'var(--text-secondary)' }}>{item.createdBy.email}<br /></small>}
-                                                {item.createdBy.phoneNum && <small style={{ color: 'var(--text-secondary)' }}>{item.createdBy.phoneNum}</small>}
+                                                {item.createdBy.email && <small style={{ color: 'var(--text-secondary)' }}>{item.createdBy.email}</small>}
                                             </div>
                                         ) : 'System'}
                                     </td>
@@ -103,14 +102,12 @@ export function Exams() {
                                         {item.updatedBy ? (
                                             <div style={{ lineHeight: '1.2' }}>
                                                 {item.updatedBy.firstName}<br />
-                                                {item.updatedBy.email && <small style={{ color: 'var(--text-secondary)' }}>{item.updatedBy.email}<br /></small>}
-                                                {item.updatedBy.phoneNum && <small style={{ color: 'var(--text-secondary)' }}>{item.updatedBy.phoneNum}</small>}
+                                                {item.updatedBy.email && <small style={{ color: 'var(--text-secondary)' }}>{item.updatedBy.email}</small>}
                                             </div>
                                         ) : (item.createdBy ? (
                                             <div style={{ lineHeight: '1.2' }}>
                                                 {item.createdBy.firstName}<br />
-                                                {item.createdBy.email && <small style={{ color: 'var(--text-secondary)' }}>{item.createdBy.email}<br /></small>}
-                                                {item.createdBy.phoneNum && <small style={{ color: 'var(--text-secondary)' }}>{item.createdBy.phoneNum}</small>}
+                                                {item.createdBy.email && <small style={{ color: 'var(--text-secondary)' }}>{item.createdBy.email}</small>}
                                             </div>
                                         ) : 'System')}
                                     </td>
