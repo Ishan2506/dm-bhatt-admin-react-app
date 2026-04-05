@@ -50,34 +50,35 @@ export function App() {
   return (
     <Router onChange={handleRoute}>
       <LandingPage path="/" />
-      
-      <AdminRoute path="/admin" component={Dashboard} user={user} currentPath={currentPath} handleLoginSuccess={handleLoginSuccess} handleLogout={handleLogout} />
-      <AdminRoute path="/admin/dashboard" component={Dashboard} user={user} currentPath={currentPath} handleLoginSuccess={handleLoginSuccess} handleLogout={handleLogout} />
-      <AdminRoute path="/admin/students" component={Students} user={user} currentPath={currentPath} handleLoginSuccess={handleLoginSuccess} handleLogout={handleLogout} />
-      <AdminRoute path="/admin/admins" component={Admins} user={user} currentPath={currentPath} handleLoginSuccess={handleLoginSuccess} handleLogout={handleLogout} />
-      <AdminRoute path="/admin/standards" component={Standards} user={user} currentPath={currentPath} handleLoginSuccess={handleLoginSuccess} handleLogout={handleLogout} />
-      <AdminRoute path="/admin/subjects" component={Subjects} user={user} currentPath={currentPath} handleLoginSuccess={handleLoginSuccess} handleLogout={handleLogout} />
-      <AdminRoute path="/admin/chapters" component={Chapters} user={user} currentPath={currentPath} handleLoginSuccess={handleLoginSuccess} handleLogout={handleLogout} />
-      <AdminRoute path="/admin/products" component={Products} user={user} currentPath={currentPath} handleLoginSuccess={handleLoginSuccess} handleLogout={handleLogout} />
-      <AdminRoute path="/admin/materials/:type?" component={Materials} user={user} currentPath={currentPath} handleLoginSuccess={handleLoginSuccess} handleLogout={handleLogout} />
-      <AdminRoute path="/admin/mindmaps" component={MindMaps} user={user} currentPath={currentPath} handleLoginSuccess={handleLoginSuccess} handleLogout={handleLogout} />
-      <AdminRoute path="/admin/payments/:type?" component={Payments} user={user} currentPath={currentPath} handleLoginSuccess={handleLoginSuccess} handleLogout={handleLogout} />
-      <AdminRoute path="/admin/config/payment" component={PaymentConfig} user={user} currentPath={currentPath} handleLoginSuccess={handleLoginSuccess} handleLogout={handleLogout} />
-      <AdminRoute path="/admin/config/notification" component={NotificationConfig} user={user} currentPath={currentPath} handleLoginSuccess={handleLoginSuccess} handleLogout={handleLogout} />
-      <AdminRoute path="/admin/reports/students" component={ReportsPage} type="students" user={user} currentPath={currentPath} handleLoginSuccess={handleLoginSuccess} handleLogout={handleLogout} />
-      <AdminRoute path="/admin/reports/exams/:type?" component={ReportsPage} user={user} currentPath={currentPath} handleLoginSuccess={handleLoginSuccess} handleLogout={handleLogout} />
+      <AdminArea path="/admin/:rest*" user={user} currentPath={currentPath} handleLoginSuccess={handleLoginSuccess} handleLogout={handleLogout} />
     </Router>
   );
 }
 
-function AdminRoute({ component: Component, user, currentPath, handleLoginSuccess, handleLogout, ...routeProps }) {
+function AdminArea({ user, currentPath, handleLoginSuccess, handleLogout }) {
   if (!user) {
     return <LoginPage onLoginSuccess={handleLoginSuccess} />;
   }
 
   return (
     <Layout currentPath={currentPath} user={user} onLogout={handleLogout}>
-      <Component {...routeProps} />
+      <Router>
+        <Dashboard path="/admin" />
+        <Dashboard path="/admin/dashboard" />
+        <Students path="/admin/students" />
+        <Admins path="/admin/admins" />
+        <Standards path="/admin/standards" />
+        <Subjects path="/admin/subjects" />
+        <Chapters path="/admin/chapters" />
+        <Products path="/admin/products" />
+        <Materials path="/admin/materials/:type?" />
+        <MindMaps path="/admin/mindmaps" />
+        <Payments path="/admin/payments/:type?" />
+        <PaymentConfig path="/admin/config/payment" />
+        <NotificationConfig path="/admin/config/notification" />
+        <ReportsPage path="/admin/reports/students" type="students" />
+        <ReportsPage path="/admin/reports/exams/:type?" />
+      </Router>
     </Layout>
   );
 }
