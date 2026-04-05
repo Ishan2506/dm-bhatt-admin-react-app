@@ -47,38 +47,44 @@ export function App() {
     setCurrentPath(e.url);
   };
 
-  return (
-    <Router onChange={handleRoute}>
-      <LandingPage path="/" />
-      <AdminArea path="/admin/:rest*" user={user} currentPath={currentPath} handleLoginSuccess={handleLoginSuccess} handleLogout={handleLogout} />
-    </Router>
-  );
-}
+  const isAdminPath = currentPath.startsWith('/admin');
 
-function AdminArea({ user, currentPath, handleLoginSuccess, handleLogout }) {
-  if (!user) {
-    return <LoginPage onLoginSuccess={handleLoginSuccess} />;
+  if (currentPath === '/') {
+    return <LandingPage />;
+  }
+
+  if (isAdminPath) {
+    if (!user) {
+      return <LoginPage onLoginSuccess={handleLoginSuccess} />;
+    }
+
+    return (
+      <Layout currentPath={currentPath} user={user} onLogout={handleLogout}>
+        <Router onChange={handleRoute}>
+          <Dashboard path="/admin" />
+          <Dashboard path="/admin/dashboard" />
+          <Students path="/admin/students" />
+          <Admins path="/admin/admins" />
+          <Standards path="/admin/standards" />
+          <Subjects path="/admin/subjects" />
+          <Chapters path="/admin/chapters" />
+          <Products path="/admin/products" />
+          <Materials path="/admin/materials/:type?" />
+          <MindMaps path="/admin/mindmaps" />
+          <Payments path="/admin/payments/:type?" />
+          <PaymentConfig path="/admin/config/payment" />
+          <NotificationConfig path="/admin/config/notification" />
+          <ReportsPage path="/admin/reports/students" type="students" />
+          <ReportsPage path="/admin/reports/exams/:type?" />
+        </Router>
+      </Layout>
+    );
   }
 
   return (
-    <Layout currentPath={currentPath} user={user} onLogout={handleLogout}>
-      <Router>
-        <Dashboard path="/admin" />
-        <Dashboard path="/admin/dashboard" />
-        <Students path="/admin/students" />
-        <Admins path="/admin/admins" />
-        <Standards path="/admin/standards" />
-        <Subjects path="/admin/subjects" />
-        <Chapters path="/admin/chapters" />
-        <Products path="/admin/products" />
-        <Materials path="/admin/materials/:type?" />
-        <MindMaps path="/admin/mindmaps" />
-        <Payments path="/admin/payments/:type?" />
-        <PaymentConfig path="/admin/config/payment" />
-        <NotificationConfig path="/admin/config/notification" />
-        <ReportsPage path="/admin/reports/students" type="students" />
-        <ReportsPage path="/admin/reports/exams/:type?" />
-      </Router>
-    </Layout>
+    <Router onChange={handleRoute}>
+      <LandingPage path="/" />
+      <LoginPage default onLoginSuccess={handleLoginSuccess} />
+    </Router>
   );
 }
