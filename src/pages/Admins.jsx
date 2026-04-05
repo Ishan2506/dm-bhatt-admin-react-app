@@ -174,12 +174,10 @@ export function Admins() {
                             <input type="checkbox" id="isActive" checked={form.isActive} onChange={(e) => setForm({ ...form, isActive: e.target.checked })} style="width: auto; margin: 0;" />
                             <label for="isActive" style="margin: 0; cursor: pointer;">Active Account</label>
                         </div>
-                        {!editing && (
-                            <div class="form-group">
-                                <label>Password / PIN <span style="font-weight:400;color:var(--text-muted);">(optional)</span></label>
-                                <input class="form-control" type="text" placeholder="Defaults to last 4 digits of phone" value={form.password} onInput={(e) => setForm({ ...form, password: e.target.value })} />
-                            </div>
-                        )}
+                        <div class="form-group">
+                            <label>Password / PIN <span style="font-weight:400;color:var(--text-muted);">(optional)</span></label>
+                            <input class="form-control" type="text" placeholder={editing ? "Leave blank to keep current password" : "Defaults to last 4 digits of phone"} value={form.password} onInput={(e) => setForm({ ...form, password: e.target.value })} />
+                        </div>
                     </div>
                 </Modal>
             )}

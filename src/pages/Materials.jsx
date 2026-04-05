@@ -321,8 +321,30 @@ export function Materials({ type }) {
                                 <td>{item.subject}</td>
                                 <td>{item.standard}</td>
                                 <td>{item.year}</td>
-                                <td>{item.createdBy ? `${item.createdBy.firstName} ${item.createdBy.lastName}` : 'System'}</td>
-                                <td>{item.updatedBy ? `${item.updatedBy.firstName} ${item.updatedBy.lastName}` : (item.createdBy ? `${item.createdBy.firstName} ${item.createdBy.lastName}` : 'System')}</td>
+                                <td>
+                                    {item.createdBy ? (
+                                        <div style={{ lineHeight: '1.2' }}>
+                                            {item.createdBy.firstName}<br />
+                                            {item.createdBy.email && <small style={{ color: 'var(--text-secondary)' }}>{item.createdBy.email}<br /></small>}
+                                            {item.createdBy.phoneNum && <small style={{ color: 'var(--text-secondary)' }}>{item.createdBy.phoneNum}</small>}
+                                        </div>
+                                    ) : 'System'}
+                                </td>
+                                <td>
+                                    {item.updatedBy ? (
+                                        <div style={{ lineHeight: '1.2' }}>
+                                            {item.updatedBy.firstName}<br />
+                                            {item.updatedBy.email && <small style={{ color: 'var(--text-secondary)' }}>{item.updatedBy.email}<br /></small>}
+                                            {item.updatedBy.phoneNum && <small style={{ color: 'var(--text-secondary)' }}>{item.updatedBy.phoneNum}</small>}
+                                        </div>
+                                    ) : (item.createdBy ? (
+                                        <div style={{ lineHeight: '1.2' }}>
+                                            {item.createdBy.firstName}<br />
+                                            {item.createdBy.email && <small style={{ color: 'var(--text-secondary)' }}>{item.createdBy.email}<br /></small>}
+                                            {item.createdBy.phoneNum && <small style={{ color: 'var(--text-secondary)' }}>{item.createdBy.phoneNum}</small>}
+                                        </div>
+                                    ) : 'System')}
+                                </td>
                                 <td style="font-size: var(--font-xs); color: var(--text-secondary);">{formatDateTime(item.createdAt)}</td>
                                 <td style="font-size: var(--font-xs); color: var(--text-secondary);">{formatDateTime(item.updatedAt || item.createdAt)}</td>
                                 <td>
