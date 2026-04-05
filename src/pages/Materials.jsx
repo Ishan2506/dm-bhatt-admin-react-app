@@ -24,6 +24,19 @@ export function Materials({ type }) {
         return path.split('/').pop();
     };
 
+    const formatDateTime = (dateStr) => {
+        if (!dateStr) return 'N/A';
+        const d = new Date(dateStr);
+        return d.toLocaleString('en-IN', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: true
+        });
+    };
+
     // Form states
     const [form, setForm] = useState({
         title: '',
@@ -293,6 +306,10 @@ export function Materials({ type }) {
                             <th>Subject</th>
                             <th>Std</th>
                             <th>Year</th>
+                            <th>Created By</th>
+                            <th>Updated By</th>
+                            <th>Created Time</th>
+                            <th>Updated Time</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
@@ -304,6 +321,10 @@ export function Materials({ type }) {
                                 <td>{item.subject}</td>
                                 <td>{item.standard}</td>
                                 <td>{item.year}</td>
+                                <td>{item.createdBy ? `${item.createdBy.firstName} ${item.createdBy.lastName}` : 'System'}</td>
+                                <td>{item.updatedBy ? `${item.updatedBy.firstName} ${item.updatedBy.lastName}` : (item.createdBy ? `${item.createdBy.firstName} ${item.createdBy.lastName}` : 'System')}</td>
+                                <td style="font-size: var(--font-xs); color: var(--text-secondary);">{formatDateTime(item.createdAt)}</td>
+                                <td style="font-size: var(--font-xs); color: var(--text-secondary);">{formatDateTime(item.updatedAt || item.createdAt)}</td>
                                 <td>
                                     <div class="td-actions">
                                         <button class="btn btn-outline btn-sm" onClick={() => handleEdit(item)}>

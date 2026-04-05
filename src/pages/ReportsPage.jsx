@@ -14,8 +14,8 @@ const EXAM_TYPES = [
     { id: 'ONELINER', label: 'One Liner' }
 ];
 
-export function ReportsPage({ type: initialType }) {
-    const [view, setView] = useState(initialType?.includes('students') ? 'students' : 'exams');
+export function ReportsPage({ section, type: initialType }) {
+    const [view, setView] = useState(section === 'students' ? 'students' : 'exams');
     const [examType, setExamType] = useState(initialType || 'COMBINED');
     const [standards, setStandards] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -37,7 +37,7 @@ export function ReportsPage({ type: initialType }) {
     }, []);
 
     useEffect(() => {
-        if (initialType?.includes('students')) {
+        if (section === 'students') {
             setView('students');
         } else {
             setView('exams');
@@ -50,7 +50,7 @@ export function ReportsPage({ type: initialType }) {
                 setExamType('COMBINED');
             }
         }
-    }, [initialType]);
+    }, [section, initialType]);
 
     useEffect(() => {
         loadData();

@@ -53,6 +53,7 @@ const navigation = [
                 ]
             },
             { path: '/admin/mindmaps', label: 'Mind Maps', icon: <Icons.MindMaps /> },
+            { path: '/admin/exams', label: 'Exams', icon: <Icons.Reports /> },
         ]
     },
     {

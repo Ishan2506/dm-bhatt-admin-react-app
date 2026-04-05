@@ -12,6 +12,7 @@ import { Admins } from './pages/Admins';
 import { Materials } from './pages/Materials';
 import { MindMaps } from './pages/MindMaps';
 import { Payments } from './pages/Payments';
+import { Exams } from './pages/Exams';
 import { PaymentConfig } from './pages/PaymentConfig';
 import { NotificationConfig } from './pages/NotificationConfig';
 import { Products } from './pages/Products';
@@ -71,11 +72,11 @@ export function App() {
           <Products path="/admin/products" />
           <Materials path="/admin/materials/:type?" />
           <MindMaps path="/admin/mindmaps" />
+          <Exams path="/admin/exams" />
           <Payments path="/admin/payments/:type?" />
           <PaymentConfig path="/admin/config/payment" />
           <NotificationConfig path="/admin/config/notification" />
-          <ReportsPage path="/admin/reports/students" type="students" />
-          <ReportsPage path="/admin/reports/exams/:type?" />
+          <ReportsPage path="/admin/reports/:section/:type?" />
         </Router>
       </Layout>
     );
