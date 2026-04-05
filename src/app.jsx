@@ -76,7 +76,7 @@ export function App() {
           <Payments path="/admin/payments/:type?" />
           <PaymentConfig path="/admin/config/payment" />
           <NotificationConfig path="/admin/config/notification" />
-          <ReportsPage path="/admin/reports/:section/:type?" />
+          <ReportsPage path="/admin/reports/:section/:type?" key={currentPath} />
         </Router>
       </Layout>
     );
