@@ -119,7 +119,7 @@ export function Subjects() {
                         >
                             <option value="">All Streams</option>
                             <option value="Science">Science</option>
-                            <option value="General">General</option>
+                            <option value="Commerce">Commerce</option>
                         </select>
                         <button id="add-subject-btn" class="btn btn-primary" onClick={openAdd}>
                             <Icons.Plus /> Add Subject
@@ -217,7 +217,7 @@ export function Subjects() {
                             >
                                 <option value="">Select Stream</option>
                                 <option value="Science">Science</option>
-                                <option value="General">General</option>
+                                <option value="Commerce">Commerce</option>
                             </select>
                         </div>
                     )}

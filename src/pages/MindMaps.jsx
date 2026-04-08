@@ -61,11 +61,13 @@ export function MindMaps() {
     const [saving, setSaving] = useState(false);
     const [editing, setEditing] = useState(null);
     const [toast, setToast] = useState(null);
+    const [standards, setStandards] = useState([]);
+    const [subjects, setSubjects] = useState([]);
 
     const initialForm = {
         board: 'GSEB',
         standard: '',
-        stream: '-',
+        stream: 'None',
         subject: '',
         unit: '',
         title: '',
@@ -79,6 +81,25 @@ export function MindMaps() {
             loadMindMaps();
         }
     }, [activeTab]);
+
+    useEffect(() => {
+        api.get('/standards').then(setStandards).catch(console.error);
+    }, []);
+
+    useEffect(() => {
+        if (!form.standard) {
+            setSubjects([]);
+            return;
+        }
+        const std = standards.find(s => s.name === form.standard);
+        if (std) {
+            let query = `?standardId=${std._id}`;
+            if (form.stream && form.stream !== 'None') {
+                query += `&stream=${form.stream}`;
+            }
+            api.get(`/subjects${query}`).then(setSubjects).catch(console.error);
+        }
+    }, [form.standard, form.stream, standards]);
 
     const showToast = (message, type = 'info') => {
         setToast({ message, type });
@@ -168,9 +189,8 @@ export function MindMaps() {
         }
     };
 
-    const availableStandards = AcademicConstants.standards[form.board] || [];
-    const subjectKey = `${form.board}-${form.standard}${form.stream !== 'None' ? `-${form.stream}` : ''}`;
-    const availableSubjects = AcademicConstants.subjects[subjectKey] || AcademicConstants.subjects[`${form.board}-${form.standard}`] || [];
+    const availableStandards = standards.map(s => s.name);
+    const availableSubjects = subjects.map(s => s.name);
 
     return (
         <div class="materials-page">

@@ -13,6 +13,7 @@ export function Students() {
     const [saving, setSaving] = useState(false);
     const [deleteConfirm, setDeleteConfirm] = useState(null);
     const [exporting, setExporting] = useState(false);
+    const [standards, setStandards] = useState([]);
 
     const load = (page = 1) => {
         setLoading(true);
@@ -50,7 +51,10 @@ export function Students() {
         }
     };
 
-    useEffect(() => { load(); }, []);
+    useEffect(() => { 
+        load(); 
+        api.get('/standards').then(setStandards).catch(console.error);
+    }, []);
 
     const emptyForm = { firstName: '', email: '', phoneNum: '', std: '', medium: '', stream: '', totalRewardPoints: 0, password: '' };
 
@@ -223,16 +227,30 @@ export function Students() {
                         </div>
                         <div class="form-group">
                             <label>Standard</label>
-                            <input class="form-control" value={form.std} onInput={(e) => setForm({ ...form, std: e.target.value })} />
+                            <select class="form-control" value={form.std} onChange={(e) => setForm({ ...form, std: e.target.value, stream: '' })}>
+                                <option value="">Select Standard</option>
+                                {standards.map(s => <option key={s._id} value={s.name}>{s.name}</option>)}
+                            </select>
                         </div>
                         <div class="form-group">
                             <label>Medium</label>
-                            <input class="form-control" value={form.medium} onInput={(e) => setForm({ ...form, medium: e.target.value })} />
+                            <select class="form-control" value={form.medium} onChange={(e) => setForm({ ...form, medium: e.target.value })}>
+                                <option value="">Select Medium</option>
+                                <option value="Gujarati">Gujarati</option>
+                                <option value="English">English</option>
+                                <option value="Hindi">Hindi</option>
+                            </select>
                         </div>
-                        <div class="form-group">
-                            <label>Stream</label>
-                            <input class="form-control" value={form.stream} onInput={(e) => setForm({ ...form, stream: e.target.value })} />
-                        </div>
+                        {['11', '12'].some(val => form.std.includes(val)) && (
+                            <div class="form-group">
+                                <label>Stream</label>
+                                <select class="form-control" value={form.stream} onChange={(e) => setForm({ ...form, stream: e.target.value })}>
+                                    <option value="">Select Stream</option>
+                                    <option value="Science">Science</option>
+                                    <option value="Commerce">Commerce</option>
+                                </select>
+                            </div>
+                        )}
                         <div class="form-group">
                             <label>Reward Points</label>
                             <input class="form-control" type="number" value={form.totalRewardPoints} onInput={(e) => setForm({ ...form, totalRewardPoints: parseInt(e.target.value) || 0 })} />

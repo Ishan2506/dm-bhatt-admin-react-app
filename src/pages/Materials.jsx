@@ -13,6 +13,8 @@ export function Materials({ type }) {
     const [editing, setEditing] = useState(null);
     const [deleteConfirm, setDeleteConfirm] = useState(null);
     const [toast, setToast] = useState(null);
+    const [standards, setStandards] = useState([]);
+    const [subjects, setSubjects] = useState([]);
 
     const showToast = (message, type = 'success') => {
         setToast({ message, type });
@@ -81,6 +83,25 @@ export function Materials({ type }) {
         setActiveTab(newTab);
         if (editing) resetForm();
     }, [type]);
+
+    useEffect(() => {
+        api.get('/standards').then(setStandards).catch(console.error);
+    }, []);
+
+    useEffect(() => {
+        if (!form.standard) {
+            setSubjects([]);
+            return;
+        }
+        const std = standards.find(s => s.name === form.standard);
+        if (std) {
+            let query = `?standardId=${std._id}`;
+            if (form.stream && form.stream !== 'None') {
+                query += `&stream=${form.stream}`;
+            }
+            api.get(`/subjects${query}`).then(setSubjects).catch(console.error);
+        }
+    }, [form.standard, form.stream, standards]);
 
     useEffect(() => {
         if (activeTab === 'History') {
@@ -185,14 +206,13 @@ export function Materials({ type }) {
 
     const renderForm = () => {
         const currentBoard = form.board;
-        let availableStandards = AcademicConstants.standards[currentBoard] || [];
+        let availableStandards = standards.map(s => s.name);
         
         // Filter for BoardPaper
         if (activeTab === 'BoardPaper') {
             availableStandards = availableStandards.filter(s => s === '10' || s === '12');
         }
-        const subjectKey = `${currentBoard}-${form.standard}${form.stream !== 'None' ? `-${form.stream}` : ''}`;
-        const availableSubjects = AcademicConstants.subjects[subjectKey] || AcademicConstants.subjects[`${currentBoard}-${form.standard}`] || [];
+        const availableSubjects = subjects.map(s => s.name);
 
         return (
             <div class="card">

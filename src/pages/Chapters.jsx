@@ -122,7 +122,7 @@ export function Chapters() {
                         >
                             <option value="">All Subjects</option>
                             {subjects.map(s => (
-                                <option key={s._id} value={s._id}>{s.name}</option>
+                                <option key={s._id} value={s._id}>{s.name} {s.stream && s.stream !== 'None' ? `(${s.stream})` : ''}</option>
                             ))}
                         </select>
                         <button id="add-chapter-btn" class="btn btn-primary" onClick={openAdd}>
@@ -156,7 +156,7 @@ export function Chapters() {
                                         <span class="badge badge-info">{ch.unitNo}</span>
                                     </td>
                                     <td style="font-weight: 600;">{ch.name}</td>
-                                    <td>{ch.subjectId?.name || '—'}</td>
+                                    <td>{ch.subjectId?.name ? `${ch.subjectId.name} ${ch.subjectId.stream && ch.subjectId.stream !== 'None' ? `(${ch.subjectId.stream})` : ''}` : '—'}</td>
                                     <td>
                                         <span class="badge badge-warning">
                                             {ch.subjectId?.standardId?.name || '—'}
@@ -226,7 +226,7 @@ export function Chapters() {
                         >
                             <option value="">Select Subject</option>
                             {formSubjects.map(s => (
-                                <option key={s._id} value={s._id}>{s.name}</option>
+                                <option key={s._id} value={s._id}>{s.name} {s.stream && s.stream !== 'None' ? `(${s.stream})` : ''}</option>
                             ))}
                         </select>
                     </div>
