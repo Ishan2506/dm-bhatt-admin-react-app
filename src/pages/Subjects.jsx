@@ -9,6 +9,7 @@ export function Subjects() {
     const [standards, setStandards] = useState([]);
     const [loading, setLoading] = useState(true);
     const [filterStd, setFilterStd] = useState('');
+    const [filterStream, setFilterStream] = useState('');
     const [showModal, setShowModal] = useState(false);
     const [editing, setEditing] = useState(null);
     const [form, setForm] = useState({ name: '', standardId: '', stream: '' });
@@ -19,7 +20,17 @@ export function Subjects() {
 
     const loadSubjects = () => {
         setLoading(true);
-        const query = filterStd ? `?standardId=${filterStd}` : '';
+        const queryParams = new URLSearchParams();
+        if (filterStd) queryParams.append('standardId', filterStd);
+        
+        const selectedFilterStandard = standards.find(s => s._id === filterStd);
+        const isFilterHigherSecondary = selectedFilterStandard && (selectedFilterStandard.name.includes('11') || selectedFilterStandard.name.includes('12'));
+        
+        if (isFilterHigherSecondary && filterStream) {
+            queryParams.append('stream', filterStream);
+        }
+
+        const query = queryParams.toString() ? `?${queryParams.toString()}` : '';
         api.get(`/subjects${query}`)
             .then(setSubjects)
             .catch(console.error)
@@ -27,7 +38,7 @@ export function Subjects() {
     };
 
     useEffect(() => { loadStandards(); }, []);
-    useEffect(() => { loadSubjects(); }, [filterStd]);
+    useEffect(() => { loadSubjects(); }, [filterStd, filterStream]);
 
     const openAdd = () => {
         setEditing(null);
@@ -76,6 +87,9 @@ export function Subjects() {
     const selectedStandard = standards.find(s => s._id === form.standardId);
     const isHigherSecondary = selectedStandard && (selectedStandard.name.includes('11') || selectedStandard.name.includes('12'));
 
+    const selectedFilterStandard = standards.find(s => s._id === filterStd);
+    const isFilterHigherSecondary = selectedFilterStandard && (selectedFilterStandard.name.includes('11') || selectedFilterStandard.name.includes('12'));
+
     return (
         <div>
             <div class="table-container">
@@ -86,12 +100,26 @@ export function Subjects() {
                             id="subject-filter-standard"
                             class="form-control"
                             value={filterStd}
-                            onChange={(e) => setFilterStd(e.target.value)}
+                            onChange={(e) => {
+                                setFilterStd(e.target.value);
+                                setFilterStream('');
+                            }}
                         >
                             <option value="">All Standards</option>
                             {standards.map(s => (
                                 <option key={s._id} value={s._id}>{s.name}</option>
                             ))}
+                        </select>
+                        <select
+                            id="subject-filter-stream"
+                            class="form-control"
+                            value={filterStream}
+                            onChange={(e) => setFilterStream(e.target.value)}
+                            disabled={!isFilterHigherSecondary}
+                        >
+                            <option value="">All Streams</option>
+                            <option value="Science">Science</option>
+                            <option value="General">General</option>
                         </select>
                         <button id="add-subject-btn" class="btn btn-primary" onClick={openAdd}>
                             <Icons.Plus /> Add Subject
