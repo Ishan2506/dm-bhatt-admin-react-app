@@ -7,6 +7,8 @@ const navigation = [
         title: 'MANAGEMENT',
         items: [
             { path: '/admin', label: 'Dashboard', icon: <Icons.Dashboard /> },
+            { path: '/admin/boards', label: 'Boards', icon: <Icons.Clipboard /> },
+            { path: '/admin/mediums', label: 'Mediums', icon: <Icons.Paper /> },
             { path: '/admin/standards', label: 'Standards', icon: <Icons.Standards /> },
             { path: '/admin/products', label: 'Products', icon: <Icons.Materials /> },
             { path: '/admin/subjects', label: 'Subjects', icon: <Icons.Subjects /> },

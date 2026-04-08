@@ -11,7 +11,7 @@ export function Subjects() {
     const [filterStd, setFilterStd] = useState('');
     const [showModal, setShowModal] = useState(false);
     const [editing, setEditing] = useState(null);
-    const [form, setForm] = useState({ name: '', standardId: '' });
+    const [form, setForm] = useState({ name: '', standardId: '', stream: '' });
     const [saving, setSaving] = useState(false);
     const [deleteConfirm, setDeleteConfirm] = useState(null);
 
@@ -31,7 +31,7 @@ export function Subjects() {
 
     const openAdd = () => {
         setEditing(null);
-        setForm({ name: '', standardId: filterStd || (standards[0]?._id || '') });
+        setForm({ name: '', standardId: filterStd || (standards[0]?._id || ''), stream: '' });
         setShowModal(true);
     };
 
@@ -39,7 +39,8 @@ export function Subjects() {
         setEditing(subj);
         setForm({
             name: subj.name,
-            standardId: subj.standardId?._id || subj.standardId || ''
+            standardId: subj.standardId?._id || subj.standardId || '',
+            stream: subj.stream || ''
         });
         setShowModal(true);
     };
@@ -71,6 +72,9 @@ export function Subjects() {
             alert(err.message);
         }
     };
+
+    const selectedStandard = standards.find(s => s._id === form.standardId);
+    const isHigherSecondary = selectedStandard && (selectedStandard.name.includes('11') || selectedStandard.name.includes('12'));
 
     return (
         <div>
@@ -108,6 +112,7 @@ export function Subjects() {
                                 <th>#</th>
                                 <th>Subject Name</th>
                                 <th>Standard</th>
+                                <th>Stream</th>
                                 <th>Status</th>
                                 <th>Actions</th>
                             </tr>
@@ -121,6 +126,9 @@ export function Subjects() {
                                         <span class="badge badge-info">
                                             {subj.standardId?.name || '—'}
                                         </span>
+                                    </td>
+                                    <td>
+                                        {subj.stream ? <span class="badge badge-secondary">{subj.stream}</span> : '—'}
                                     </td>
                                     <td>
                                         <span class={`badge ${subj.isActive ? 'badge-success' : 'badge-danger'}`}>
@@ -171,6 +179,20 @@ export function Subjects() {
                             ))}
                         </select>
                     </div>
+                    {isHigherSecondary && (
+                        <div class="form-group">
+                            <label>Stream</label>
+                            <select
+                                class="form-control"
+                                value={form.stream}
+                                onChange={(e) => setForm({ ...form, stream: e.target.value })}
+                            >
+                                <option value="">Select Stream</option>
+                                <option value="Science">Science</option>
+                                <option value="General">General</option>
+                            </select>
+                        </div>
+                    )}
                     <div class="form-group">
                         <label>Subject Name</label>
                         <input

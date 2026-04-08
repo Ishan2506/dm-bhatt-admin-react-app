@@ -85,7 +85,6 @@ export function Standards() {
                             <tr>
                                 <th>#</th>
                                 <th>Name</th>
-                                <th>Order</th>
                                 <th>Status</th>
                                 <th>Actions</th>
                             </tr>
@@ -95,7 +94,6 @@ export function Standards() {
                                 <tr key={std._id}>
                                     <td>{i + 1}</td>
                                     <td style="font-weight: 600;">{std.name}</td>
-                                    <td>{std.displayOrder}</td>
                                     <td>
                                         <span class={`badge ${std.isActive ? 'badge-success' : 'badge-danger'}`}>
                                             {std.isActive ? 'Active' : 'Inactive'}
@@ -139,17 +137,6 @@ export function Standards() {
                             placeholder="e.g. 10, 11 Science, 12 Commerce"
                             value={form.name}
                             onInput={(e) => setForm({ ...form, name: e.target.value })}
-                        />
-                    </div>
-                    <div class="form-group">
-                        <label>Display Order</label>
-                        <input
-                            id="standard-order-input"
-                            class="form-control"
-                            type="number"
-                            placeholder="0"
-                            value={form.displayOrder}
-                            onInput={(e) => setForm({ ...form, displayOrder: parseInt(e.target.value) || 0 })}
                         />
                     </div>
                 </Modal>
