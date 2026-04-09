@@ -28,6 +28,7 @@ const navigation = [
                 ]
             },
             { path: '/admin/reports/students', label: 'Student Reports', icon: <Icons.User /> },
+            { path: '/admin/logs', label: 'Activity Logs', icon: <Icons.Activity /> },
         ]
     },
     {

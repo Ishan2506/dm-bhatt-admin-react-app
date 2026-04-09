@@ -19,6 +19,7 @@ import { AppConfig } from './pages/AppConfig';
 import { Products } from './pages/Products';
 import { ReportsPage } from './pages/ReportsPage';
 import { LandingPage } from './pages/LandingPage';
+import { ActivityLogs } from './pages/ActivityLogs';
 import './pages/LoginPage.css';
 
 export function App() {
@@ -78,6 +79,7 @@ export function App() {
           <PaymentConfig path="/admin/config/payment" />
           <NotificationConfig path="/admin/config/notification" />
           <AppConfig path="/admin/config/app" />
+          <ActivityLogs path="/admin/logs" />
           <ReportsPage path="/admin/reports/:section/:type?" key={currentPath} />
         </Router>
       </Layout>
