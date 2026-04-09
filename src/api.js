@@ -25,7 +25,7 @@ async function request(method, path, body, options = {}) {
         if (res.status === 401) {
             localStorage.removeItem('token');
             localStorage.removeItem('user');
-            window.location.href = '/';
+            window.location.href = '/admin';
             throw new Error('Unauthorized. Please login again.');
         }
 

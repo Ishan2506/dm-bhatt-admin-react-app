@@ -52,11 +52,12 @@ export function Admins() {
     const handleSave = async () => {
         if (!form.firstName.trim() || !form.phoneNum.trim()) return;
         setSaving(true);
+        const adminName = JSON.parse(localStorage.getItem('user'))?.firstName || 'Admin';
         try {
             if (editing) {
-                await api.put(`/admins/${editing._id}`, form);
+                await api.put(`/admins/${editing._id}?performedBy=${adminName}`, form);
             } else {
-                const res = await api.post('/admins', form);
+                const res = await api.post(`/admins?performedBy=${adminName}`, form);
                 if (res.defaultPin) {
                     alert(`Admin created! Default login PIN: ${res.defaultPin}`);
                 }
@@ -71,8 +72,9 @@ export function Admins() {
     };
 
     const handleDelete = async (id) => {
+        const adminName = JSON.parse(localStorage.getItem('user'))?.firstName || 'Admin';
         try {
-            await api.del(`/admins/${id}`);
+            await api.del(`/admins/${id}?performedBy=${adminName}`);
             setDeleteConfirm(null);
             load();
         } catch (err) {

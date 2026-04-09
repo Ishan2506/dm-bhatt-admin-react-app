@@ -139,9 +139,10 @@ export function MindMaps() {
             return;
         }
 
+        const adminName = JSON.parse(localStorage.getItem('user'))?.firstName || 'Admin';
         setSaving(true);
         try {
-            const endpoint = editing ? `/mindmap/${editing}` : '/mindmap/add';
+            const endpoint = editing ? `/mindmap/${editing}?performedBy=${adminName}` : `/mindmap/add?performedBy=${adminName}`;
             const method = editing ? 'put' : 'post';
             
             // Map standard to std for backend compatibility
@@ -180,8 +181,9 @@ export function MindMaps() {
 
     const handleDelete = async (id) => {
         if (!confirm('Are you sure you want to delete this mind map?')) return;
+        const adminName = JSON.parse(localStorage.getItem('user'))?.firstName || 'Admin';
         try {
-            await api.del(`/mindmap/${id}`, { noPrefix: true });
+            await api.del(`/mindmap/${id}?performedBy=${adminName}`, { noPrefix: true });
             showToast('Mind Map deleted successfully!', 'success');
             loadMindMaps();
         } catch (err) {

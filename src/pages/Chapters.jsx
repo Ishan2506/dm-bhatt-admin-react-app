@@ -70,12 +70,13 @@ export function Chapters() {
     const handleSave = async () => {
         if (!form.unitNo || !form.name.trim() || !form.subjectId) return;
         setSaving(true);
+        const adminName = JSON.parse(localStorage.getItem('user'))?.firstName || 'Admin';
         try {
             const payload = { ...form, unitNo: parseInt(form.unitNo) };
             if (editing) {
-                await api.put(`/chapters/${editing._id}`, payload);
+                await api.put(`/chapters/${editing._id}?performedBy=${adminName}`, payload);
             } else {
-                await api.post('/chapters', payload);
+                await api.post(`/chapters?performedBy=${adminName}`, payload);
             }
             setShowModal(false);
             loadChapters();
@@ -87,8 +88,9 @@ export function Chapters() {
     };
 
     const handleDelete = async (id) => {
+        const adminName = JSON.parse(localStorage.getItem('user'))?.firstName || 'Admin';
         try {
-            await api.del(`/chapters/${id}`);
+            await api.del(`/chapters/${id}?performedBy=${adminName}`);
             setDeleteConfirm(null);
             loadChapters();
         } catch (err) {

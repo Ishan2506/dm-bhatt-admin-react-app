@@ -27,8 +27,9 @@ export function Exams() {
     }, []);
 
     const handleDelete = async (id) => {
+        const adminName = JSON.parse(localStorage.getItem('user'))?.firstName || 'Admin';
         try {
-            await api.del(`/exam/delete/${id}`, { noPrefix: true });
+            await api.del(`/exam/delete/${id}?performedBy=${adminName}`, { noPrefix: true });
             setDeleteConfirm(null);
             loadExams();
             showToast('Exam deleted successfully!');
