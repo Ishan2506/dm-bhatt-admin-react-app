@@ -68,6 +68,7 @@ const navigation = [
         items: [
             { path: '/admin/config/payment', label: 'Payment', icon: <Icons.Gear /> },
             { path: '/admin/config/notification', label: 'Notification', icon: <Icons.Notification /> },
+            { path: '/admin/config/app', label: 'App Version', icon: <Icons.Gear /> },
         ]
     }
 ];

@@ -15,6 +15,7 @@ import { Payments } from './pages/Payments';
 import { Exams } from './pages/Exams';
 import { PaymentConfig } from './pages/PaymentConfig';
 import { NotificationConfig } from './pages/NotificationConfig';
+import { AppConfig } from './pages/AppConfig';
 import { Products } from './pages/Products';
 import { ReportsPage } from './pages/ReportsPage';
 import { LandingPage } from './pages/LandingPage';
@@ -76,6 +77,7 @@ export function App() {
           <Payments path="/admin/payments/:type?" />
           <PaymentConfig path="/admin/config/payment" />
           <NotificationConfig path="/admin/config/notification" />
+          <AppConfig path="/admin/config/app" />
           <ReportsPage path="/admin/reports/:section/:type?" key={currentPath} />
         </Router>
       </Layout>
