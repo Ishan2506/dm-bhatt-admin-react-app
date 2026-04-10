@@ -3,7 +3,21 @@ const BASE_URL = API_BASE + '/superadmin';
 
 async function request(method, path, body, options = {}) {
     const token = localStorage.getItem('token');
-    const url = options.noPrefix ? `${API_BASE}${path}` : `${BASE_URL}${path}`;
+    let url = options.noPrefix ? `${API_BASE}${path}` : `${BASE_URL}${path}`;
+
+    // Auto-tag all data-modifying requests for activity logging
+    if (method !== 'GET') {
+        try {
+            const userData = JSON.parse(localStorage.getItem('user') || '{}');
+            const performer = userData.firstName || 'Admin';
+            const performerImg = userData.photoPath || '';
+            
+            const separator = url.includes('?') ? '&' : '?';
+            url += `${separator}performedBy=${encodeURIComponent(performer)}&performedByImg=${encodeURIComponent(performerImg)}`;
+        } catch (e) {
+            // Silently ignore if user data is missing
+        }
+    }
 
     const isFormData = body instanceof FormData;
 

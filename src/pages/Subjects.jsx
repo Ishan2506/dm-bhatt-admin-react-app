@@ -59,12 +59,11 @@ export function Subjects() {
     const handleSave = async () => {
         if (!form.name.trim() || !form.standardId) return;
         setSaving(true);
-        const adminName = JSON.parse(localStorage.getItem('user'))?.firstName || 'Admin';
         try {
             if (editing) {
-                await api.put(`/subjects/${editing._id}?performedBy=${adminName}`, form);
+                await api.put(`/subjects/${editing._id}`, form);
             } else {
-                await api.post(`/subjects?performedBy=${adminName}`, form);
+                await api.post(`/subjects`, form);
             }
             setShowModal(false);
             loadSubjects();
@@ -76,9 +75,8 @@ export function Subjects() {
     };
 
     const handleDelete = async (id) => {
-        const adminName = JSON.parse(localStorage.getItem('user'))?.firstName || 'Admin';
         try {
-            await api.del(`/subjects/${id}?performedBy=${adminName}`);
+            await api.del(`/subjects/${id}`);
             setDeleteConfirm(null);
             loadSubjects();
         } catch (err) {

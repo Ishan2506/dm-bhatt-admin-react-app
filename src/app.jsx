@@ -32,6 +32,54 @@ export function App() {
     }
   });
 
+  useEffect(() => {
+    // Disable right click
+    const handleContextMenu = (e) => {
+      e.preventDefault();
+    };
+
+    // Disable keyboard shortcuts
+    const handleKeyDown = (e) => {
+      if (
+        e.keyCode === 123 || // F12
+        (e.ctrlKey && e.shiftKey && (e.keyCode === 73 || e.keyCode === 74 || e.keyCode === 67)) || // Ctrl+Shift+I/J/C
+        (e.ctrlKey && e.keyCode === 85) // Ctrl+U
+      ) {
+        e.preventDefault();
+        return false;
+      }
+    };
+
+    document.addEventListener('contextmenu', handleContextMenu);
+    document.addEventListener('keydown', handleKeyDown);
+    document.onselectstart = () => false;
+    document.ondragstart = () => false;
+
+    // Continuous debugger loop to prevent inspection if DevTools is open
+    const interval = setInterval(() => {
+      (function() {
+        try {
+          (function b(i) {
+            if (("" + i / i).length !== 1 || i % 20 === 0) {
+              (function() {}).constructor("debugger")();
+            } else {
+              debugger;
+            }
+            b(++i);
+          })(0);
+        } catch (e) {}
+      })();
+    }, 1000);
+
+    return () => {
+      document.removeEventListener('contextmenu', handleContextMenu);
+      document.removeEventListener('keydown', handleKeyDown);
+      document.onselectstart = null;
+      document.ondragstart = null;
+      clearInterval(interval);
+    };
+  }, []);
+
   const [currentPath, setCurrentPath] = useState(window.location.pathname);
 
   const handleLoginSuccess = (userData) => {

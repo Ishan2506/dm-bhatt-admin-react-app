@@ -38,12 +38,11 @@ export function Standards() {
     const handleSave = async () => {
         if (!form.name.trim()) return;
         setSaving(true);
-        const admin = JSON.parse(localStorage.getItem('user'))?.firstName || 'Admin';
         try {
             if (editing) {
-                await api.put(`/standards/${editing._id}?performedBy=${admin}`, form);
+                await api.put(`/standards/${editing._id}`, form);
             } else {
-                await api.post(`/standards?performedBy=${admin}`, form);
+                await api.post(`/standards`, form);
             }
             setShowModal(false);
             load();
@@ -55,9 +54,8 @@ export function Standards() {
     };
 
     const handleDelete = async (id) => {
-        const admin = JSON.parse(localStorage.getItem('user'))?.firstName || 'Admin';
         try {
-            await api.del(`/standards/${id}?performedBy=${admin}`);
+            await api.del(`/standards/${id}`);
             setDeleteConfirm(null);
             load();
         } catch (err) {

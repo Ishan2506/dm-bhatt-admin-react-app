@@ -154,18 +154,17 @@ export function Materials({ type }) {
             }
         });
 
-        const adminName = JSON.parse(localStorage.getItem('user'))?.firstName || 'Admin';
         try {
             let endpoint = '';
             if (editing) {
-                await api.put(`/material/update/${editing._id}?performedBy=${adminName}`, formData, { noPrefix: true });
+                await api.put(`/material/update/${editing._id}`, formData, { noPrefix: true });
                 showToast('Material updated successfully!');
                 setActiveTab('History');
             } else {
-                if (activeTab === 'BoardPaper') endpoint = `/material/upload-board-paper?performedBy=${adminName}`;
-                else if (activeTab === 'SchoolPaper') endpoint = `/material/upload-school-paper?performedBy=${adminName}`;
-                else if (activeTab === 'Notes') endpoint = `/material/upload-notes?performedBy=${adminName}`;
-                else if (activeTab === 'ImageMaterial') endpoint = `/material/upload-image-material?performedBy=${adminName}`;
+                if (activeTab === 'BoardPaper') endpoint = `/material/upload-board-paper`;
+                else if (activeTab === 'SchoolPaper') endpoint = `/material/upload-school-paper`;
+                else if (activeTab === 'Notes') endpoint = `/material/upload-notes`;
+                else if (activeTab === 'ImageMaterial') endpoint = `/material/upload-image-material`;
                 
                 await api.post(endpoint, formData, { noPrefix: true });
                 showToast('Uploaded successfully!');
@@ -179,9 +178,8 @@ export function Materials({ type }) {
     };
 
     const handleDelete = async (id) => {
-        const adminName = JSON.parse(localStorage.getItem('user'))?.firstName || 'Admin';
         try {
-            await api.del(`/material/delete/${id}?performedBy=${adminName}`, { noPrefix: true });
+            await api.del(`/material/delete/${id}`, { noPrefix: true });
             setDeleteConfirm(null);
             loadMaterials();
         } catch (err) {

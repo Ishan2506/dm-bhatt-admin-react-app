@@ -113,11 +113,10 @@ export function Products() {
                 return;
             }
 
-            const adminName = JSON.parse(localStorage.getItem('user'))?.firstName || 'Admin';
             if (editingProduct) {
-                await api.put(`/products/${editingProduct._id}?performedBy=${adminName}`, data);
+                await api.put(`/products/${editingProduct._id}`, data);
             } else {
-                await api.post(`/products?performedBy=${adminName}`, data);
+                await api.post(`/products`, data);
             }
             setModalOpen(false);
             loadProducts();
@@ -129,9 +128,8 @@ export function Products() {
 
     const handleDelete = async (id) => {
         if (!confirm('Are you sure you want to delete this product?')) return;
-        const adminName = JSON.parse(localStorage.getItem('user'))?.firstName || 'Admin';
         try {
-            await api.del(`/products/${id}?performedBy=${adminName}`);
+            await api.del(`/products/${id}`);
             loadProducts();
         } catch (err) {
             console.error('Error deleting product:', err);

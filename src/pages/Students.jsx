@@ -14,10 +14,6 @@ export function Students() {
     const [deleteConfirm, setDeleteConfirm] = useState(null);
     const [exporting, setExporting] = useState(false);
     const [standards, setStandards] = useState([]);
-    
-    // Get currently logged config:
-    const adminUser = JSON.parse(localStorage.getItem('user') || '{}');
-    const performedBy = adminUser.firstName || 'Super Admin';
 
     const load = (page = 1) => {
         setLoading(true);
@@ -88,9 +84,9 @@ export function Students() {
         setSaving(true);
         try {
             if (editing) {
-                await api.put(`/students/${editing._id}?performedBy=${encodeURIComponent(performedBy)}`, form);
+                await api.put(`/students/${editing._id}`, form);
             } else {
-                const res = await api.post(`/students?performedBy=${encodeURIComponent(performedBy)}`, form);
+                const res = await api.post(`/students`, form);
                 if (res.defaultPin) {
                     alert(`Student created! Default login PIN: ${res.defaultPin}`);
                 }
@@ -106,7 +102,7 @@ export function Students() {
 
     const handleDelete = async (id) => {
         try {
-            await api.del(`/students/${id}?performedBy=${encodeURIComponent(performedBy)}`);
+            await api.del(`/students/${id}`);
             setDeleteConfirm(null);
             load(data.page);
         } catch (err) {
