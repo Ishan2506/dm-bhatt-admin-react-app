@@ -9,7 +9,7 @@ async function request(method, path, body, options = {}) {
     if (method !== 'GET') {
         try {
             const userData = JSON.parse(localStorage.getItem('user') || '{}');
-            const performer = userData.firstName || 'Admin';
+            const performer = userData.firstName || userData.name || userData.phoneNum || 'Admin App';
             const performerImg = userData.photoPath || '';
             
             const separator = url.includes('?') ? '&' : '?';
