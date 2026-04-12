@@ -18,7 +18,6 @@ const defaultForm = {
     emailUser: '',
     emailPassword: '',
     emailFromName: '',
-    fcmServerKey: '',
     notifyOnNewStudent: true,
     notifyOnPayment: true,
     notifyOnPlanUpgrade: true,
@@ -189,22 +188,6 @@ export function NotificationConfig() {
                                 </div>
                             </div>
                         )}
-                    </div>
-
-                    {/* --- Push Notification Config --- */}
-                    <div class="config-section">
-                        <div class="config-section-header">
-                            <div>
-                                <h3 class="config-section-title">Push Notification Configuration</h3>
-                                <p class="config-section-desc">Manage FCM Server Key for mobile app notifications</p>
-                            </div>
-                        </div>
-                        <div class="config-grid">
-                            <div class="form-group" style="grid-column: span 2;">
-                                <label>FCM Server Key (Legacy)</label>
-                                <input class="form-control" type="password" placeholder="AAAA..." {...f('fcmServerKey')} />
-                            </div>
-                        </div>
                     </div>
 
                     {/* --- Send Push Notification --- */}
