@@ -18,6 +18,7 @@ const defaultForm = {
     emailUser: '',
     emailPassword: '',
     emailFromName: '',
+    fcmServerKey: '',
     notifyOnNewStudent: true,
     notifyOnPayment: true,
     notifyOnPlanUpgrade: true,
@@ -28,6 +29,9 @@ export function NotificationConfig() {
     const [saving, setSaving] = useState(false);
     const [saved, setSaved] = useState(false);
     const [loading, setLoading] = useState(true);
+    const [pushForm, setPushForm] = useState({ title: '', body: '' });
+    const [sendingPush, setSendingPush] = useState(false);
+    const [pushSent, setPushSent] = useState(false);
 
     useEffect(() => {
         api.get('/config/notification')
@@ -57,6 +61,22 @@ export function NotificationConfig() {
     });
 
     const toggle = (key) => setForm(prev => ({ ...prev, [key]: !prev[key] }));
+
+    const handleSendPush = async (e) => {
+        e.preventDefault();
+        if (!pushForm.title || !pushForm.body) return alert('Please enter both title and message');
+        setSendingPush(true);
+        try {
+            await api.post('/push-notifications', pushForm);
+            setPushSent(true);
+            setPushForm({ title: '', body: '' });
+            setTimeout(() => setPushSent(false), 3000);
+        } catch (err) {
+            alert(err.message || 'Failed to send notification');
+        } finally {
+            setSendingPush(false);
+        }
+    };
 
     if (loading) return <div style="padding:2rem;text-align:center;">Loading configuration...</div>;
 
@@ -171,41 +191,62 @@ export function NotificationConfig() {
                         )}
                     </div>
 
-                    {/* --- Triggers --- */}
+                    {/* --- Push Notification Config --- */}
                     <div class="config-section">
-                        <h3 class="config-section-title">Notification Triggers</h3>
-                        <p class="config-section-desc">Choose which events send notifications to admins</p>
-                        <div class="toggle-list">
-                            <div class="toggle-row">
-                                <div>
-                                    <span class="toggle-label">New Student Registration</span>
-                                    <span class="toggle-desc">Alert when a new student signs up</span>
-                                </div>
-                                <label class="toggle-switch">
-                                    <input type="checkbox" checked={form.notifyOnNewStudent} onChange={() => toggle('notifyOnNewStudent')} />
-                                    <span class="toggle-slider"></span>
-                                </label>
+                        <div class="config-section-header">
+                            <div>
+                                <h3 class="config-section-title">Push Notification Configuration</h3>
+                                <p class="config-section-desc">Manage FCM Server Key for mobile app notifications</p>
                             </div>
-                            <div class="toggle-row">
-                                <div>
-                                    <span class="toggle-label">New Payment Received</span>
-                                    <span class="toggle-desc">Alert on every successful payment</span>
-                                </div>
-                                <label class="toggle-switch">
-                                    <input type="checkbox" checked={form.notifyOnPayment} onChange={() => toggle('notifyOnPayment')} />
-                                    <span class="toggle-slider"></span>
-                                </label>
+                        </div>
+                        <div class="config-grid">
+                            <div class="form-group" style="grid-column: span 2;">
+                                <label>FCM Server Key (Legacy)</label>
+                                <input class="form-control" type="password" placeholder="AAAA..." {...f('fcmServerKey')} />
                             </div>
-                            <div class="toggle-row">
-                                <div>
-                                    <span class="toggle-label">Plan Upgrade</span>
-                                    <span class="toggle-desc">Alert when a student upgrades their plan</span>
-                                </div>
-                                <label class="toggle-switch">
-                                    <input type="checkbox" checked={form.notifyOnPlanUpgrade} onChange={() => toggle('notifyOnPlanUpgrade')} />
-                                    <span class="toggle-slider"></span>
-                                </label>
+                        </div>
+                    </div>
+
+                    {/* --- Send Push Notification --- */}
+                    <div class="config-section">
+                        <h3 class="config-section-title">Send Push Notification</h3>
+                        <p class="config-section-desc">Write a message to send a push notification to all student apps</p>
+                        
+                        <div class="config-grid" style="margin-top: 1.5rem;">
+                            <div class="form-group" style="grid-column: span 2;">
+                                <label>Notification Title</label>
+                                <input 
+                                    class="form-control" 
+                                    type="text" 
+                                    placeholder="Enter title..." 
+                                    value={pushForm.title}
+                                    onInput={(e) => setPushForm({ ...pushForm, title: e.target.value })}
+                                />
                             </div>
+                            <div class="form-group" style="grid-column: span 2;">
+                                <label>Notification Subtitle / Message</label>
+                                <textarea 
+                                    class="form-control" 
+                                    rows="3" 
+                                    placeholder="Enter message body..." 
+                                    value={pushForm.body}
+                                    onInput={(e) => setPushForm({ ...pushForm, body: e.target.value })}
+                                />
+                            </div>
+                        </div>
+
+                        <div style="margin-top: 1.5rem; display: flex; align-items: center; gap: 1rem;">
+                            <button 
+                                type="button" 
+                                class="btn btn-primary" 
+                                onClick={handleSendPush}
+                                disabled={sendingPush}
+                            >
+                                {sendingPush ? 'Sending...' : 'Send to All Students'}
+                            </button>
+                            {pushSent && (
+                                <span class="save-success" style="margin:0;"><Icons.Success /> Notification sent!</span>
+                            )}
                         </div>
                     </div>
 
