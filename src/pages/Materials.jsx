@@ -12,6 +12,7 @@ export function Materials({ type }) {
     const [uploading, setUploading] = useState(false);
     const [editing, setEditing] = useState(null);
     const [deleteConfirm, setDeleteConfirm] = useState(null);
+    const [previewItem, setPreviewItem] = useState(null);
     const [toast, setToast] = useState(null);
     const [standards, setStandards] = useState([]);
     const [subjects, setSubjects] = useState([]);
@@ -24,6 +25,20 @@ export function Materials({ type }) {
     const getFileName = (path) => {
         if (!path) return '';
         return path.split('/').pop();
+    };
+
+    const SERVER_ROOT = (import.meta.env.API_BASE || '').replace('/api', '');
+
+    const getFileUrl = (path) => {
+        if (!path) return '';
+        if (path.startsWith('http')) return path;
+        if (path.startsWith('uploads/')) return `${SERVER_ROOT}/${path}`;
+        return path;
+    };
+
+    const isImage = (path) => {
+        if (!path) return false;
+        return /\.(png|jpe?g|gif|webp|svg)$/i.test(path);
     };
 
     const formatDateTime = (dateStr) => {
@@ -366,6 +381,11 @@ export function Materials({ type }) {
                                 <td style="font-size: var(--font-xs); color: var(--text-secondary);">{formatDateTime(item.updatedAt || item.createdAt)}</td>
                                 <td>
                                     <div class="td-actions">
+                                        {item.file && (
+                                            <button class="btn btn-outline btn-sm" title="Preview" onClick={() => setPreviewItem(item)} style="color: var(--accent);">
+                                                <Icons.Eye />
+                                            </button>
+                                        )}
                                         <button class="btn btn-outline btn-sm" onClick={() => handleEdit(item)}>
                                             <Icons.Edit />
                                         </button>
@@ -387,6 +407,92 @@ export function Materials({ type }) {
             <div class="tab-content" style="margin-top: 0;">
                 {activeTab === 'History' ? renderHistory() : renderForm()}
             </div>
+
+            {previewItem && (
+                <div
+                    style={{
+                        position: 'fixed', inset: 0, zIndex: 1000,
+                        background: 'rgba(0,0,0,0.75)',
+                        display: 'flex', flexDirection: 'column',
+                        alignItems: 'center', justifyContent: 'center',
+                        padding: '1rem'
+                    }}
+                    onClick={(e) => { if (e.target === e.currentTarget) setPreviewItem(null); }}
+                >
+                    <div style={{
+                        background: 'var(--bg-primary)', borderRadius: 'var(--radius-lg)',
+                        width: '90vw', maxWidth: '960px', height: '85vh',
+                        display: 'flex', flexDirection: 'column', overflow: 'hidden',
+                        boxShadow: '0 25px 60px rgba(0,0,0,0.5)'
+                    }}>
+                        {/* Header */}
+                        <div style={{
+                            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                            padding: '1rem 1.25rem',
+                            borderBottom: '1px solid var(--border)',
+                            background: 'var(--bg-secondary)'
+                        }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                <Icons.Eye />
+                                <div>
+                                    <div style={{ fontWeight: 700, fontSize: 'var(--font-sm)', color: 'var(--text-primary)' }}>
+                                        {previewItem.title}
+                                    </div>
+                                    <div style={{ fontSize: 'var(--font-xs)', color: 'var(--text-secondary)' }}>
+                                        {getFileName(previewItem.file)}
+                                    </div>
+                                </div>
+                            </div>
+                            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                                <a
+                                    href={getFileUrl(previewItem.file)}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    class="btn btn-outline btn-sm"
+                                    style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '4px' }}
+                                >
+                                    <Icons.ExternalLink /> Open in tab
+                                </a>
+                                <button
+                                    class="btn btn-outline btn-sm"
+                                    onClick={() => setPreviewItem(null)}
+                                    style={{ fontWeight: 700, fontSize: '1.1rem', lineHeight: 1 }}
+                                >
+                                    ✕
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Content */}
+                        <div style={{ flex: 1, overflow: 'hidden', background: '#1a1a2e' }}>
+                            {isImage(previewItem.file) ? (
+                                <div style={{
+                                    height: '100%', display: 'flex',
+                                    alignItems: 'center', justifyContent: 'center',
+                                    padding: '1.5rem'
+                                }}>
+                                    <img
+                                        src={getFileUrl(previewItem.file)}
+                                        alt={previewItem.title}
+                                        style={{
+                                            maxWidth: '100%', maxHeight: '100%',
+                                            objectFit: 'contain',
+                                            borderRadius: 'var(--radius-md)',
+                                            boxShadow: '0 4px 20px rgba(0,0,0,0.4)'
+                                        }}
+                                    />
+                                </div>
+                            ) : (
+                                <iframe
+                                    src={getFileUrl(previewItem.file)}
+                                    title={previewItem.title}
+                                    style={{ width: '100%', height: '100%', border: 'none' }}
+                                />
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {deleteConfirm && (
                 <Modal
