@@ -43,7 +43,7 @@ export function LoginPage({ onLoginSuccess }) {
       }
 
       // Verify the user is an admin
-      if (data.user?.role !== 'admin') {
+      if (data.user?.role !== 'admin' && data.user?.role !== 'super admin') {
         throw new Error('Access denied. Admin credentials required.');
       }
 
