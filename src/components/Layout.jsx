@@ -6,7 +6,7 @@ const navigation = [
     {
         title: 'MANAGEMENT',
         items: [
-            { path: '/admin', label: 'Dashboard', icon: <Icons.Dashboard /> },
+            { path: '/admin', label: 'Dashboard', icon: <Icons.Dashboard />, roles: ['super admin'] },
             { path: '/admin/standards', label: 'Standards', icon: <Icons.Standards /> },
             { path: '/admin/products', label: 'Products', icon: <Icons.Materials /> },
             { path: '/admin/subjects', label: 'Subjects', icon: <Icons.Subjects /> },
@@ -28,14 +28,14 @@ const navigation = [
                 ]
             },
             { path: '/admin/reports/students', label: 'Student Reports', icon: <Icons.User /> },
-            { path: '/admin/logs', label: 'Activity Logs', icon: <Icons.Activity /> },
+            { path: '/admin/logs', label: 'Activity Logs', icon: <Icons.Activity />, roles: ['super admin'] },
         ]
     },
     {
         title: 'USERS',
         items: [
             { path: '/admin/students', label: 'Students', icon: <Icons.User /> },
-            { path: '/admin/admins', label: 'Admin', icon: <Icons.Shield /> },
+            { path: '/admin/admins', label: 'Admin', icon: <Icons.Shield />, roles: ['super admin'] },
         ]
     },
     {
@@ -59,6 +59,7 @@ const navigation = [
     },
     {
         title: 'PAYMENTS',
+        roles: ['super admin'],
         items: [
             { path: '/admin/payments/upgrades', label: 'Plan Purchases', icon: <Icons.Payments /> },
             { path: '/admin/payments/purchases', label: 'Product Purchases', icon: <Icons.Payments /> },
@@ -66,6 +67,7 @@ const navigation = [
     },
     {
         title: 'CONFIGURATION',
+        roles: ['super admin'],
         items: [
             { path: '/admin/config/payment', label: 'Payment', icon: <Icons.Gear /> },
             { path: '/admin/config/notification', label: 'Notification', icon: <Icons.Notification /> },
@@ -77,6 +79,7 @@ const navigation = [
 export function Layout({ children, currentPath, user, onLogout }) {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [isDarkMode, setIsDarkMode] = useState(false);
+    const userRole = user?.role || 'admin';
 
     useEffect(() => {
         setIsSidebarOpen(false);
@@ -106,6 +109,14 @@ export function Layout({ children, currentPath, user, onLogout }) {
         }
     };
 
+    const filteredNavigation = navigation
+        .filter(section => !section.roles || section.roles.includes(userRole))
+        .map(section => ({
+            ...section,
+            items: section.items.filter(item => !item.roles || item.roles.includes(userRole))
+        }))
+        .filter(section => section.items.length > 0);
+
     return (
         <div class="layout">
             {isSidebarOpen && (
@@ -113,14 +124,16 @@ export function Layout({ children, currentPath, user, onLogout }) {
             )}
             <aside class={`sidebar ${isSidebarOpen ? 'open' : ''}`}>
                 <div class="sidebar-brand">
-                    <img src="/assets/logo.png" alt="Padhaku Logo" class="sidebar-logo" />
+                    <div class="sidebar-logo-container">
+                         <img src="/assets/logo.png" alt="Padhaku Logo" class="sidebar-logo" />
+                    </div>
                     <div class="brand-details">
                         <h2>Padhaku</h2>
-                        <span>Super Admin</span>
+                        <span>{userRole === 'super admin' ? 'Super Admin' : 'Admin'}</span>
                     </div>
                 </div>
                 <nav class="sidebar-nav">
-                    {navigation.map(section => (
+                    {filteredNavigation.map(section => (
                         <div key={section.title} class="nav-section">
                             <div class="nav-label">{section.title}</div>
                             {section.items.map(item => {
@@ -188,7 +201,7 @@ export function Layout({ children, currentPath, user, onLogout }) {
                                      <div class="profile-avatar-small"><Icons.User /></div>
                                      <div class="profile-info-small">
                                          <span class="profile-name">{user?.firstName || 'Admin'}</span>
-                                         <span class="profile-role">Super Admin</span>
+                                         <span class="profile-role">{userRole === 'super admin' ? 'Super Admin' : 'Admin'}</span>
                                      </div>
                                  </button>
                                  <div class="profile-dropdown">
