@@ -112,10 +112,31 @@ export function App() {
     return (
       <Layout currentPath={currentPath} user={user} onLogout={handleLogout}>
         <Router onChange={handleRoute}>
-          <Dashboard path="/admin" />
-          <Dashboard path="/admin/dashboard" />
+          {user.role === 'super admin' && <Dashboard path="/admin" />}
+          {user.role === 'super admin' && <Dashboard path="/admin/dashboard" />}
+          
+          {/* Redirect standard admin away from dashboard if they land there */}
+          {user.role !== 'super admin' && (
+            <Standards path="/admin" />
+          )}
+          {user.role !== 'super admin' && (
+            <Standards path="/admin/dashboard" />
+          )}
+
           <Students path="/admin/students" />
-          <Admins path="/admin/admins" />
+          
+          {/* Super Admin Only Paths */}
+          {user.role === 'super admin' ? (
+            <Fragment>
+              <Admins path="/admin/admins" />
+              <ActivityLogs path="/admin/logs" />
+              <Payments path="/admin/payments/:type?" />
+              <PaymentConfig path="/admin/config/payment" />
+              <NotificationConfig path="/admin/config/notification" />
+              <AppConfig path="/admin/config/app" />
+            </Fragment>
+          ) : null}
+
           <Standards path="/admin/standards" />
           <Subjects path="/admin/subjects" />
           <Chapters path="/admin/chapters" />
@@ -123,11 +144,6 @@ export function App() {
           <Materials path="/admin/materials/:type?" />
           <MindMaps path="/admin/mindmaps" />
           <Exams path="/admin/exams" />
-          <Payments path="/admin/payments/:type?" />
-          <PaymentConfig path="/admin/config/payment" />
-          <NotificationConfig path="/admin/config/notification" />
-          <AppConfig path="/admin/config/app" />
-          <ActivityLogs path="/admin/logs" />
           <ReportsPage path="/admin/reports/:section/:type?" key={currentPath} />
         </Router>
       </Layout>
