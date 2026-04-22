@@ -30,7 +30,7 @@ export function Products() {
         if (!path) return '';
         if (path.startsWith('http')) return path;
         const apiBase = (import.meta.env.API_BASE || 'http://localhost:5000/api').trim();
-        const serverBase = apiBase.replace('/api', '');
+        const serverBase = (apiBase || '').replace('/api', '');
         return `${serverBase}/${path}`;
     };
 

@@ -110,12 +110,18 @@ export function Layout({ children, currentPath, user, onLogout }) {
     };
 
     const filteredNavigation = navigation
-        .filter(section => !section.roles || section.roles.includes(userRole))
+        .filter(section => {
+            if (!section.roles) return true;
+            return Array.isArray(section.roles) && section.roles.includes(userRole);
+        })
         .map(section => ({
             ...section,
-            items: section.items.filter(item => !item.roles || item.roles.includes(userRole))
+            items: (section.items || []).filter(item => {
+                if (!item.roles) return true;
+                return Array.isArray(item.roles) && item.roles.includes(userRole);
+            })
         }))
-        .filter(section => section.items.length > 0);
+        .filter(section => section.items && section.items.length > 0);
 
     return (
         <div class="layout">
@@ -188,7 +194,7 @@ export function Layout({ children, currentPath, user, onLogout }) {
                             <Icons.Menu />
                         </button>
                         <h1 class="topbar-title">
-                            {currentPath.split('/').pop().charAt(0).toUpperCase() + currentPath.split('/').pop().slice(1) || 'Dashboard'}
+                            {(currentPath || '').split('/').filter(Boolean).pop()?.charAt(0).toUpperCase() + (currentPath || '').split('/').filter(Boolean).pop()?.slice(1) || 'Dashboard'}
                         </h1>
                     </div>
                     <div class="topbar-right">

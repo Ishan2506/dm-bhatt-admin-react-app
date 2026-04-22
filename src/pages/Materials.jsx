@@ -27,7 +27,7 @@ export function Materials({ type }) {
         return path.split('/').pop();
     };
 
-    const SERVER_ROOT = (import.meta.env.API_BASE || '').replace('/api', '');
+    const SERVER_ROOT = (import.meta.env?.API_BASE || '').replace('/api', '');
 
     const getFileUrl = (path) => {
         if (!path) return '';

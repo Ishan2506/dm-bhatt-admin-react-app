@@ -1,4 +1,4 @@
-import { h } from 'preact';
+import { h, Fragment } from 'preact';
 import { useState, useEffect } from 'preact/hooks';
 import { Router, route } from 'preact-router';
 import { LoginPage } from './pages/LoginPage.jsx';
@@ -126,16 +126,12 @@ export function App() {
           <Students path="/admin/students" />
           
           {/* Super Admin Only Paths */}
-          {user.role === 'super admin' ? (
-            <Fragment>
-              <Admins path="/admin/admins" />
-              <ActivityLogs path="/admin/logs" />
-              <Payments path="/admin/payments/:type?" />
-              <PaymentConfig path="/admin/config/payment" />
-              <NotificationConfig path="/admin/config/notification" />
-              <AppConfig path="/admin/config/app" />
-            </Fragment>
-          ) : null}
+          {user.role === 'super admin' && <Admins path="/admin/admins" />}
+          {user.role === 'super admin' && <ActivityLogs path="/admin/logs" />}
+          {user.role === 'super admin' && <Payments path="/admin/payments/:type?" />}
+          {user.role === 'super admin' && <PaymentConfig path="/admin/config/payment" />}
+          {user.role === 'super admin' && <NotificationConfig path="/admin/config/notification" />}
+          {user.role === 'super admin' && <AppConfig path="/admin/config/app" />}
 
           <Standards path="/admin/standards" />
           <Subjects path="/admin/subjects" />
