@@ -308,25 +308,33 @@ a:hover {
     display: flex;
     align-items: center;
     gap: 0.75rem;
-    padding: 0.75rem 1rem;
-    border-radius: var(--radius-md);
+    padding: 0.7rem 1.25rem;
+    border-radius: 50px; /* Pill design */
     color: var(--text-secondary);
     text-decoration: none;
     font-size: var(--font-sm);
     font-weight: 500;
-    transition: all 0.2s;
-    margin-bottom: 0.25rem;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    margin-bottom: 0.5rem;
+    margin-left: 0.75rem;
+    margin-right: 0.75rem;
     position: relative;
 }
 
 .nav-item:hover {
-    background: var(--bg-secondary);
-    color: var(--text-primary);
+    background: var(--accent-light);
+    color: var(--accent);
+    transform: translateX(4px);
 }
 
 .nav-item.active {
-    background: #e6f7f1;
-    color: var(--accent);
+    background: var(--accent);
+    color: #ffffff;
+    box-shadow: 0 4px 12px var(--accent-glow);
+}
+
+.nav-item.active .nav-icon {
+    color: #ffffff;
 }
 
 .nav-item .nav-chevron {
@@ -340,30 +348,32 @@ a:hover {
 }
 
 .nav-submenu {
-    margin-left: 2.25rem;
+    margin-left: 1.5rem;
     margin-top: 0.25rem;
     margin-bottom: 0.75rem;
-    border-left: 1px solid var(--border);
     padding-left: 0.5rem;
 }
 
 .nav-subitem {
     display: block;
-    padding: 0.5rem 0.75rem;
+    padding: 0.5rem 1rem;
     color: var(--text-secondary);
     text-decoration: none;
     font-size: var(--font-xs);
-    border-radius: var(--radius-sm);
+    border-radius: 50px;
     transition: all 0.2s;
+    margin-bottom: 0.25rem;
 }
 
 .nav-subitem:hover {
-    color: var(--text-primary);
-    background: var(--bg-secondary);
+    color: var(--accent);
+    background: var(--accent-light);
+    transform: translateX(4px);
 }
 
 .nav-subitem.active {
-    color: var(--accent);
+    color: #ffffff;
+    background: var(--accent);
     font-weight: 600;
 }
 .nav-icon {
