@@ -54,7 +54,16 @@ const navigation = [
                 ]
             },
             { path: '/admin/mindmaps', label: 'Mind Maps', icon: <Icons.MindMaps /> },
-            { path: '/admin/exams', label: 'Exams', icon: <Icons.Reports /> },
+            { 
+                label: 'Exams', 
+                icon: <Icons.Reports />,
+                path: '/admin/exams',
+                children: [
+                    { path: '/admin/exams/online', label: 'Online Exams' },
+                    { path: '/admin/exams/quiz', label: '5 Min Quiz' },
+                    { path: '/admin/exams/oneliner', label: 'One Liner Exams' },
+                ]
+            },
         ]
     },
     {

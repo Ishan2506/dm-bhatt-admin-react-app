@@ -13,6 +13,9 @@ import { Materials } from './pages/Materials';
 import { MindMaps } from './pages/MindMaps';
 import { Payments } from './pages/Payments';
 import { Exams } from './pages/Exams';
+import { OnlineExams } from './pages/OnlineExams';
+import { FiveMinQuiz } from './pages/FiveMinQuiz';
+import { OneLinerExams } from './pages/OneLinerExams';
 import { PaymentConfig } from './pages/PaymentConfig';
 import { NotificationConfig } from './pages/NotificationConfig';
 import { AppConfig } from './pages/AppConfig';
@@ -140,6 +143,9 @@ export function App() {
           <Materials path="/admin/materials/:type?" />
           <MindMaps path="/admin/mindmaps" />
           <Exams path="/admin/exams" />
+          <OnlineExams path="/admin/exams/online" />
+          <FiveMinQuiz path="/admin/exams/quiz" />
+          <OneLinerExams path="/admin/exams/oneliner" />
           <ReportsPage path="/admin/reports/:section/:type?" key={currentPath} />
         </Router>
       </Layout>
