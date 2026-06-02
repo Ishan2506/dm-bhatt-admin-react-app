@@ -420,81 +420,98 @@ export function OnlineExams() {
                         </div>
                         <div class="modal-body">
                             {!reviewMode ? (
-                                <div class="exam-form">
-                                    <div class="form-grid">
-                                        <div class="form-group">
-                                            <label>Exam Title *</label>
-                                            <input type="text" name="title" value={formData.title} onInput={handleInputChange} placeholder="e.g. Weekly Test - 1" />
-                                        </div>
-                                        <div class="form-group">
-                                            <label>Board *</label>
-                                            <select name="board" value={formData.board} onChange={handleInputChange}>
-                                                {AcademicConstants.boards.map(b => <option value={b}>{b}</option>)}
-                                            </select>
-                                        </div>
-                                        <div class="form-group">
-                                            <label>Standard *</label>
-                                            <select name="std" value={formData.std} onChange={handleInputChange}>
-                                                <option value="">Select Standard</option>
-                                                {AcademicConstants.standards[formData.board]?.map(s => <option value={s}>{s}</option>)}
-                                            </select>
-                                        </div>
-                                        <div class="form-group">
-                                            <label>Medium *</label>
-                                            <select name="medium" value={formData.medium} onChange={handleInputChange}>
-                                                {AcademicConstants.mediums.map(m => <option value={m}>{m}</option>)}
-                                            </select>
-                                        </div>
-                                        {(formData.std === '11' || formData.std === '12') && (
+                                <div class="exam-form" style="display: flex; flex-direction: column; gap: 2rem;">
+                                    <div style="background: var(--bg-secondary); padding: 1.75rem; border-radius: 12px; border: 1px solid var(--border-color);">
+                                        <h4 style="margin: 0 0 1.5rem 0; font-size: 1rem; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 8px;">
+                                            <span style="width: 4px; height: 24px; background: var(--accent); border-radius: 2px;"></span>
+                                            Exam Details
+                                        </h4>
+                                        <div class="form-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
                                             <div class="form-group">
-                                                <label>Stream *</label>
-                                                <select name="stream" value={formData.stream} onChange={handleInputChange}>
-                                                    {AcademicConstants.streams.map(s => <option value={s}>{s}</option>)}
+                                                <label style="font-weight: 600; font-size: 0.9rem; display: block; margin-bottom: 0.5rem;">Exam Title *</label>
+                                                <input type="text" name="title" value={formData.title} onInput={handleInputChange} placeholder="e.g. Weekly Test - 1" style="width: 100%; padding: 0.75rem 1rem; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-primary); font-size: 0.95rem;" />
+                                            </div>
+                                            <div class="form-group">
+                                                <label style="font-weight: 600; font-size: 0.9rem; display: block; margin-bottom: 0.5rem;">Board *</label>
+                                                <select name="board" value={formData.board} onChange={handleInputChange} style="width: 100%; padding: 0.75rem 1rem; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-primary); font-size: 0.95rem;">
+                                                    {AcademicConstants.boards.map(b => <option value={b}>{b}</option>)}
                                                 </select>
                                             </div>
-                                        )}
-                                        <div class="form-group">
-                                            <label>Subject *</label>
-                                            <select name="subject" value={formData.subject} onChange={handleInputChange}>
-                                                <option value="">Select Subject</option>
-                                                {AcademicConstants.subjects[`${formData.board}-${formData.std}${formData.stream !== 'None' ? '-' + formData.stream : ''}`]?.map(sub => (
-                                                    <option value={sub}>{sub}</option>
-                                                ))}
-                                            </select>
-                                        </div>
-                                        <div class="form-group">
-                                            <label>Total Marks *</label>
-                                            <input type="number" name="totalMarks" value={formData.totalMarks} onInput={handleInputChange} />
-                                        </div>
-                                        <div class="form-group">
-                                            <label>Unit / Chapter *</label>
-                                            <input type="text" name="unit" value={formData.unit} onInput={handleInputChange} placeholder="e.g. Unit 1" />
+                                            <div class="form-group">
+                                                <label style="font-weight: 600; font-size: 0.9rem; display: block; margin-bottom: 0.5rem;">Standard *</label>
+                                                <select name="std" value={formData.std} onChange={handleInputChange} style="width: 100%; padding: 0.75rem 1rem; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-primary); font-size: 0.95rem;">
+                                                    <option value="">Select Standard</option>
+                                                    {AcademicConstants.standards[formData.board]?.map(s => <option value={s}>{s}</option>)}
+                                                </select>
+                                            </div>
+                                            <div class="form-group">
+                                                <label style="font-weight: 600; font-size: 0.9rem; display: block; margin-bottom: 0.5rem;">Medium *</label>
+                                                <select name="medium" value={formData.medium} onChange={handleInputChange} style="width: 100%; padding: 0.75rem 1rem; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-primary); font-size: 0.95rem;">
+                                                    {AcademicConstants.mediums.map(m => <option value={m}>{m}</option>)}
+                                                </select>
+                                            </div>
+                                            {(formData.std === '11' || formData.std === '12') && (
+                                                <div class="form-group">
+                                                    <label style="font-weight: 600; font-size: 0.9rem; display: block; margin-bottom: 0.5rem;">Stream *</label>
+                                                    <select name="stream" value={formData.stream} onChange={handleInputChange} style="width: 100%; padding: 0.75rem 1rem; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-primary); font-size: 0.95rem;">
+                                                        {AcademicConstants.streams.map(s => <option value={s}>{s}</option>)}
+                                                    </select>
+                                                </div>
+                                            )}
+                                            <div class="form-group">
+                                                <label style="font-weight: 600; font-size: 0.9rem; display: block; margin-bottom: 0.5rem;">Subject *</label>
+                                                <select name="subject" value={formData.subject} onChange={handleInputChange} style="width: 100%; padding: 0.75rem 1rem; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-primary); font-size: 0.95rem;">
+                                                    <option value="">Select Subject</option>
+                                                    {AcademicConstants.subjects[`${formData.board}-${formData.std}${formData.stream !== 'None' ? '-' + formData.stream : ''}`]?.map(sub => (
+                                                        <option value={sub}>{sub}</option>
+                                                    ))}
+                                                </select>
+                                            </div>
+                                            <div class="form-group">
+                                                <label style="font-weight: 600; font-size: 0.9rem; display: block; margin-bottom: 0.5rem;">Total Marks *</label>
+                                                <input type="number" name="totalMarks" value={formData.totalMarks} onInput={handleInputChange} style="width: 100%; padding: 0.75rem 1rem; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-primary); font-size: 0.95rem;" />
+                                            </div>
+                                            <div class="form-group">
+                                                <label style="font-weight: 600; font-size: 0.9rem; display: block; margin-bottom: 0.5rem;">Unit / Chapter *</label>
+                                                <input type="text" name="unit" value={formData.unit} onInput={handleInputChange} placeholder="e.g. Unit 1" style="width: 100%; padding: 0.75rem 1rem; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-primary); font-size: 0.95rem;" />
+                                            </div>
                                         </div>
                                     </div>
 
-                                    <div class="mode-selection" style="margin-top: 1.5rem; padding: 1.5rem; background: var(--bg-secondary); border-radius: 8px;">
-                                        <label style="display: block; margin-bottom: 1rem; font-weight: 600;">Question Entry Mode</label>
-                                        <div style="display: flex; gap: 2rem;">
-                                            <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
-                                                <input type="radio" checked={!isManualEntry} onChange={() => setIsManualEntry(false)} />
-                                                Upload PDF (Auto-parse)
+                                    <div style="background: var(--bg-secondary); padding: 1.75rem; border-radius: 12px; border: 1px solid var(--border-color);">
+                                        <h4 style="margin: 0 0 1.5rem 0; font-size: 1rem; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 8px;">
+                                            <span style="width: 4px; height: 24px; background: var(--accent); border-radius: 2px;"></span>
+                                            Question Entry Mode
+                                        </h4>
+                                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                                            <label style="padding: 1.25rem; border: 2px solid ${!isManualEntry ? 'var(--accent)' : 'var(--border-color)'}; border-radius: 10px; cursor: pointer; display: flex; align-items: center; gap: 1rem; transition: all 0.2s; background: ${!isManualEntry ? 'rgba(var(--accent-rgb), 0.08)' : 'transparent'};  hover: border-color: var(--accent);">
+                                                <input type="radio" checked={!isManualEntry} onChange={() => setIsManualEntry(false)} style="cursor: pointer; width: 20px; height: 20px;" />
+                                                <div>
+                                                    <div style="font-weight: 600; color: var(--text-primary);">PDF Upload</div>
+                                                    <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 4px;">Auto-parse questions</div>
+                                                </div>
                                             </label>
-                                            <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
-                                                <input type="radio" checked={isManualEntry} onChange={() => setIsManualEntry(true)} />
-                                                Manual Entry
+                                            <label style="padding: 1.25rem; border: 2px solid ${isManualEntry ? 'var(--accent)' : 'var(--border-color)'}; border-radius: 10px; cursor: pointer; display: flex; align-items: center; gap: 1rem; transition: all 0.2s; background: ${isManualEntry ? 'rgba(var(--accent-rgb), 0.08)' : 'transparent'}; hover: border-color: var(--accent);">
+                                                <input type="radio" checked={isManualEntry} onChange={() => setIsManualEntry(true)} style="cursor: pointer; width: 20px; height: 20px;" />
+                                                <div>
+                                                    <div style="font-weight: 600; color: var(--text-primary);">Manual Entry</div>
+                                                    <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 4px;">Add questions one by one</div>
+                                                </div>
                                             </label>
                                         </div>
 
                                         {!isManualEntry ? (
-                                            <div style="margin-top: 1rem;">
-                                                <input type="file" accept=".pdf" onChange={handleFileChange} />
-                                                <p style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.5rem;">
-                                                    Format: 1. Question... A) Choice... B)... Answer: A
-                                                </p>
+                                            <div style="margin-top: 1.5rem; padding: 1.25rem; background: var(--bg-primary); border-radius: 8px; border: 1px dashed var(--border-color);">
+                                                <div style="display: flex; flex-direction: column; gap: 1rem;">
+                                                    <input type="file" accept=".pdf" onChange={handleFileChange} style="padding: 0.75rem; cursor: pointer;" />
+                                                    <p style="font-size: 0.85rem; color: var(--text-secondary); margin: 0;">
+                                                        📄 <strong>Expected Format:</strong><br/>1. Question... A) Choice... B)... Answer: A
+                                                    </p>
+                                                </div>
                                             </div>
                                         ) : (
-                                            <div style="margin-top: 1rem;">
-                                                <p style="color: var(--text-secondary);">You will add questions manually in the next step.</p>
+                                            <div style="margin-top: 1.5rem; padding: 1.25rem; background: var(--bg-primary); border-radius: 8px; border: 1px solid var(--border-color);">
+                                                <p style="color: var(--text-secondary); margin: 0; font-size: 0.95rem;">✓ You will add questions manually in the next step.</p>
                                             </div>
                                         )}
                                     </div>
