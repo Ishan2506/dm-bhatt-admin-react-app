@@ -153,6 +153,26 @@ export function FiveMinQuiz() {
         }
     };
 
+    const fetchFiveMinTestDetail = async (id) => {
+        const candidates = [
+            `/fiveMinTest/${id}`,
+            `/fiveMinTest/get/${id}`,
+            `/fiveMinTest/view/${id}`,
+            `/fiveMinTest/details/${id}`
+        ];
+        for (const path of candidates) {
+            try {
+                const response = await api.get(path, { noPrefix: true });
+                if (response && response.questions) {
+                    return response;
+                }
+            } catch (e) {
+                // Try the next candidate endpoint
+            }
+        }
+        return null;
+    };
+
     const handleSaveExam = async () => {
         if (parsedQuestions.length === 0) {
             return showToast("Cannot save empty quiz.", "error");
@@ -208,17 +228,27 @@ export function FiveMinQuiz() {
         }
     };
 
-    const handleEdit = (exam) => {
-        setEditingExam(exam._id);
+    const handleEdit = async (exam) => {
+        let editableExam = exam;
+        if (Array.isArray(exam.questions) && exam.questions.length > 0 && typeof exam.questions[0] === 'string') {
+            const detail = await fetchFiveMinTestDetail(exam._id);
+            if (detail) {
+                editableExam = detail;
+            } else {
+                showToast('Could not load detailed quiz data.', 'error');
+            }
+        }
+
+        setEditingExam(editableExam._id);
         setFormData({
-            title: exam.title || '',
-            board: exam.board || 'GSEB',
-            std: exam.std || '',
-            medium: exam.medium || 'English',
-            stream: exam.stream && exam.stream !== '-' ? exam.stream : 'None',
-            subject: exam.subject || '',
-            unit: exam.unit || '',
-            overview: exam.overview || ''
+            title: editableExam.title || '',
+            board: editableExam.board || 'GSEB',
+            std: editableExam.std || '',
+            medium: editableExam.medium || 'English',
+            stream: editableExam.stream && editableExam.stream !== '-' ? editableExam.stream : 'None',
+            subject: editableExam.subject || '',
+            unit: editableExam.unit || '',
+            overview: editableExam.overview || ''
         });
 
         const normalizeOption = (opt) => {
@@ -238,7 +268,7 @@ export function FiveMinQuiz() {
                 }
             }
             const options = rawOptions.map(normalizeOption);
-            while (options.length < 4) options.push({ key: String.fromCharCode(65 + options.length), text: '', image: null });
+            while (options.length < 4) options.push({ text: '', image: null });
             return options.slice(0, 4).map((opt, idx) => ({ key: String.fromCharCode(65 + idx), text: opt.text, image: opt.image }));
         };
 
@@ -250,7 +280,21 @@ export function FiveMinQuiz() {
             return matchIndex >= 0 ? String.fromCharCode(65 + matchIndex) : 'A';
         };
 
-        const mappedQuestions = (exam.questions || []).map((q) => {
+        const mappedQuestions = (editableExam.questions || []).map((q) => {
+            if (typeof q === 'string') {
+                return {
+                    questionText: '',
+                    questionImage: null,
+                    options: [
+                        { key: 'A', text: '', image: null },
+                        { key: 'B', text: '', image: null },
+                        { key: 'C', text: '', image: null },
+                        { key: 'D', text: '', image: null }
+                    ],
+                    correctAnswer: 'A'
+                };
+            }
+
             const options = buildOptions(q);
             return {
                 questionText: q.questionText || q.question || '',
@@ -539,10 +583,10 @@ export function FiveMinQuiz() {
                         </div>
                         <div class="modal-footer">
                             <button class="btn btn-outline" onClick={() => {
-                                if (reviewMode) setReviewMode(false);
+                                if (reviewMode && !editingExam) setReviewMode(false);
                                 else { setShowAddModal(false); resetForm(); }
                             }}>
-                                {reviewMode ? 'Back' : 'Cancel'}
+                                {reviewMode ? (editingExam ? 'Cancel' : 'Back') : 'Cancel'}
                             </button>
                             {!reviewMode ? (
                                 <button class="btn btn-primary" onClick={() => {

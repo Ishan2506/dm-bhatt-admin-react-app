@@ -83,23 +83,51 @@ export function OneLinerExams() {
             return null;
         }
     };
+    const fetchOneLinerExamDetail = async (id) => {
+        const candidates = [
+            `/onelinerexam/${id}`,
+            `/onelinerexam/get/${id}`,
+            `/onelinerexam/view/${id}`,
+            `/onelinerexam/details/${id}`
+        ];
+        for (const path of candidates) {
+            try {
+                const response = await api.get(path, { noPrefix: true });
+                if (response && response.questions) {
+                    return response;
+                }
+            } catch (e) {
+                // Try next endpoint candidate
+            }
+        }
+        return null;
+    };
+    const handleEdit = async (exam) => {
+        let editableExam = exam;
+        if (Array.isArray(exam.questions) && exam.questions.length > 0 && typeof exam.questions[0] === 'string') {
+            const detail = await fetchOneLinerExamDetail(exam._id);
+            if (detail) {
+                editableExam = detail;
+            } else {
+                showToast('Could not load detailed one-liner exam data.', 'error');
+            }
+        }
 
-    const handleEdit = (exam) => {
-        setEditingExam(exam._id);
+        setEditingExam(editableExam._id);
         setFormData({
-            title: exam.title || '',
-            board: exam.board || 'GSEB',
-            std: exam.std || '',
-            medium: exam.medium || 'English',
-            stream: exam.stream || 'None',
-            subject: exam.subject || '',
-            unit: exam.unit || ''
+            title: editableExam.title || '',
+            board: editableExam.board || 'GSEB',
+            std: editableExam.std || '',
+            medium: editableExam.medium || 'English',
+            stream: editableExam.stream || 'None',
+            subject: editableExam.subject || '',
+            unit: editableExam.unit || ''
         });
 
-        const mappedQuestions = (exam.questions || []).map(q => ({
-            questionText: q.questionText || q.question || '',
-            questionImage: q.questionImage || q.image || null,
-            answer: q.answer || q.correctAnswer || ''
+        const mappedQuestions = (editableExam.questions || []).map(q => ({
+            questionText: q?.questionText || q?.question || '',
+            questionImage: q?.questionImage || q?.image || null,
+            answer: q?.answer || q?.correctAnswer || ''
         }));
 
         setQuestions(mappedQuestions.length > 0 ? mappedQuestions : [{ questionText: '', questionImage: null, answer: '' }]);

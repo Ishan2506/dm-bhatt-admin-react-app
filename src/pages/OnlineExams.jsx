@@ -14,7 +14,6 @@ const INITIAL_FORM_DATA = {
     totalMarks: '20',
     unit: ''
 };
-
 export function OnlineExams() {
     const [exams, setExams] = useState([]);
     const [loading, setLoading] = useState(false);
@@ -610,10 +609,10 @@ export function OnlineExams() {
                         </div>
                         <div class="modal-footer">
                             <button class="btn btn-outline" onClick={() => {
-                                if (reviewMode) setReviewMode(false);
+                                if (reviewMode && !editingExam) setReviewMode(false);
                                 else setShowAddModal(false);
                             }}>
-                                {reviewMode ? 'Back to Details' : 'Cancel'}
+                                {reviewMode ? (editingExam ? 'Cancel' : 'Back to Details') : 'Cancel'}
                             </button>
                             {!reviewMode ? (
                                 <button class="btn btn-primary" onClick={() => {
