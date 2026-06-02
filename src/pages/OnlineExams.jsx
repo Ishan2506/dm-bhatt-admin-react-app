@@ -21,6 +21,7 @@ export function OnlineExams() {
     const [showAddModal, setShowAddModal] = useState(false);
     const [toast, setToast] = useState(null);
     const [deleteConfirm, setDeleteConfirm] = useState(null);
+    const [editingExam, setEditingExam] = useState(null);
 
     // Form State
     const [formData, setFormData] = useState(INITIAL_FORM_DATA);
@@ -29,6 +30,7 @@ export function OnlineExams() {
     const [isUploading, setIsUploading] = useState(false);
     const [parsedQuestions, setParsedQuestions] = useState([]);
     const [reviewMode, setReviewMode] = useState(false);
+    const [isLoadingDetails, setIsLoadingDetails] = useState(false);
 
     const showToast = (message, type = 'success') => {
         setToast({ message, type });
@@ -42,6 +44,7 @@ export function OnlineExams() {
         setParsedQuestions([]);
         setReviewMode(false);
         setIsUploading(false);
+        setEditingExam(null);
     };
 
     const loadExams = () => {
@@ -133,6 +136,26 @@ export function OnlineExams() {
         } finally {
             setIsUploading(false);
         }
+    };
+
+    const fetchExamDetail = async (id) => {
+        const candidates = [
+            `/exam/${id}`,
+            `/exam/get/${id}`,
+            `/exam/view/${id}`,
+            `/exam/details/${id}`
+        ];
+        for (const path of candidates) {
+            try {
+                const response = await api.get(path, { noPrefix: true });
+                if (response && response.questions) {
+                    return response;
+                }
+            } catch (e) {
+                // Try the next candidate endpoint
+            }
+        }
+        return null;
     };
 
     const handleImageUpload = async (file) => {
@@ -241,6 +264,91 @@ export function OnlineExams() {
         setReviewMode(false);
     };
 
+    const handleEdit = async (exam) => {
+        setIsLoadingDetails(true);
+        let editableExam = exam;
+
+        if (Array.isArray(exam.questions) && exam.questions.length > 0 && typeof exam.questions[0] === 'string') {
+            const detail = await fetchExamDetail(exam._id);
+            if (detail) {
+                editableExam = detail;
+            } else {
+                showToast('Could not load detailed exam data. Editing with available values.', 'error');
+            }
+        }
+
+        setIsLoadingDetails(false);
+        setEditingExam(editableExam._id);
+        setFormData({
+            title: editableExam.title || '',
+            board: editableExam.board || 'GSEB',
+            std: editableExam.std || '',
+            medium: editableExam.medium || 'English',
+            stream: editableExam.stream && editableExam.stream !== '-' ? editableExam.stream : 'None',
+            subject: editableExam.subject || '',
+            unit: editableExam.unit || '',
+            totalMarks: editableExam.totalMarks?.toString() || '20'
+        });
+
+        const normalizeOption = (opt) => {
+            if (!opt) return { text: '', image: null };
+            if (typeof opt === 'string') return { text: opt, image: null };
+            return { text: opt.text || opt.value || opt.option || '', image: opt.image || null };
+        };
+
+        const buildOptions = (q) => {
+            let rawOptions = q.options;
+            if (!Array.isArray(rawOptions)) {
+                rawOptions = [q.optionA, q.optionB, q.optionC, q.optionD].filter((opt) => opt !== undefined && opt !== null);
+                if (rawOptions.length === 0 && q.options && typeof q.options === 'object') {
+                    rawOptions = Object.keys(q.options)
+                        .sort()
+                        .map((key) => q.options[key]);
+                }
+            }
+            const options = rawOptions.map(normalizeOption);
+            while (options.length < 4) options.push({ text: '', image: null });
+            return options.slice(0, 4).map((opt, idx) => ({ key: String.fromCharCode(65 + idx), text: opt.text, image: opt.image }));
+        };
+
+        const detectCorrectAnswer = (q, options) => {
+            const candidate = (q.correctAnswer || q.answer || 'A').toString().trim();
+            if (/^option\s*[ABCDabcd]$/.test(candidate)) return candidate.slice(-1).toUpperCase();
+            if (/^[ABCDabcd]$/.test(candidate)) return candidate.toUpperCase();
+            const matchIndex = options.findIndex((opt) => opt.text.trim().toLowerCase() === candidate.toLowerCase());
+            return matchIndex >= 0 ? String.fromCharCode(65 + matchIndex) : 'A';
+        };
+
+        const mappedQuestions = (editableExam.questions || []).map((q) => {
+            if (typeof q === 'string') {
+                return {
+                    questionText: '',
+                    questionImage: null,
+                    options: [
+                        { key: 'A', text: '', image: null },
+                        { key: 'B', text: '', image: null },
+                        { key: 'C', text: '', image: null },
+                        { key: 'D', text: '', image: null }
+                    ],
+                    correctAnswer: 'A'
+                };
+            }
+
+            const options = buildOptions(q);
+            return {
+                questionText: q.questionText || q.question || '',
+                questionImage: q.questionImage || null,
+                options,
+                correctAnswer: detectCorrectAnswer(q, options)
+            };
+        });
+
+        setParsedQuestions(mappedQuestions);
+        setIsManualEntry(true);
+        setReviewMode(true);
+        setShowAddModal(true);
+    };
+
     return (
         <div class="materials-page">
             <div class="table-container">
@@ -288,6 +396,9 @@ export function OnlineExams() {
                                     <td>{new Date(item.createdAt).toLocaleDateString()}</td>
                                     <td>
                                         <div class="td-actions">
+                                            <button class="btn btn-outline btn-sm" onClick={() => handleEdit(item)} title="Edit Exam">
+                                                <Icons.Edit />
+                                            </button>
                                             <button class="btn btn-danger btn-sm" onClick={() => setDeleteConfirm(item)}>
                                                 <Icons.Trash />
                                             </button>
@@ -304,8 +415,8 @@ export function OnlineExams() {
                 <div class="modal-overlay">
                     <div class="modal modal-lg">
                         <div class="modal-header">
-                            <h3>{reviewMode ? `Review Questions (${parsedQuestions.length}/${formData.totalMarks})` : 'Add New Online Exam'}</h3>
-                            <button class="modal-close" onClick={() => setShowAddModal(false)}>&times;</button>
+                            <h3>{reviewMode ? `Review Questions (${parsedQuestions.length}/${formData.totalMarks})` : (editingExam ? 'Edit Online Exam' : 'Add New Online Exam')}</h3>
+                            <button class="modal-close" onClick={() => { setShowAddModal(false); resetForm(); }}>&times;</button>
                         </div>
                         <div class="modal-body">
                             {!reviewMode ? (
@@ -505,7 +616,7 @@ export function OnlineExams() {
                                 </button>
                             ) : (
                                 <button class="btn btn-primary" onClick={handleSaveExam}>
-                                    Save Exam ({parsedQuestions.length} Questions)
+                                    {editingExam ? 'Update' : 'Save'} Exam ({parsedQuestions.length} Questions)
                                 </button>
                             )}
                         </div>

@@ -21,6 +21,7 @@ export function FiveMinQuiz() {
     const [showAddModal, setShowAddModal] = useState(false);
     const [toast, setToast] = useState(null);
     const [deleteConfirm, setDeleteConfirm] = useState(null);
+    const [editingExam, setEditingExam] = useState(null);
 
     // Form State
     const [formData, setFormData] = useState(INITIAL_FORM_DATA);
@@ -42,6 +43,7 @@ export function FiveMinQuiz() {
         setParsedQuestions([]);
         setReviewMode(false);
         setIsUploading(false);
+        setEditingExam(null);
     };
 
     const loadExams = () => {
@@ -180,8 +182,13 @@ export function FiveMinQuiz() {
                 questions: parsedQuestions
             };
 
-            await api.post('/fiveMinTest/create', payload, { noPrefix: true });
-            showToast('Quiz created successfully!');
+            if (editingExam) {
+                await api.put(`/fiveMinTest/update/${editingExam}`, payload, { noPrefix: true });
+                showToast('Quiz updated successfully!');
+            } else {
+                await api.post('/fiveMinTest/create', payload, { noPrefix: true });
+                showToast('Quiz created successfully!');
+            }
             setShowAddModal(false);
             resetForm();
             loadExams();
@@ -199,6 +206,64 @@ export function FiveMinQuiz() {
         } catch (err) {
             showToast(err.message, 'error');
         }
+    };
+
+    const handleEdit = (exam) => {
+        setEditingExam(exam._id);
+        setFormData({
+            title: exam.title || '',
+            board: exam.board || 'GSEB',
+            std: exam.std || '',
+            medium: exam.medium || 'English',
+            stream: exam.stream && exam.stream !== '-' ? exam.stream : 'None',
+            subject: exam.subject || '',
+            unit: exam.unit || '',
+            overview: exam.overview || ''
+        });
+
+        const normalizeOption = (opt) => {
+            if (!opt) return { text: '', image: null };
+            if (typeof opt === 'string') return { text: opt, image: null };
+            return { text: opt.text || opt.value || opt.option || '', image: opt.image || null };
+        };
+
+        const buildOptions = (q) => {
+            let rawOptions = q.options;
+            if (!Array.isArray(rawOptions)) {
+                rawOptions = [q.optionA, q.optionB, q.optionC, q.optionD].filter((opt) => opt !== undefined && opt !== null);
+                if (rawOptions.length === 0 && q.options && typeof q.options === 'object') {
+                    rawOptions = Object.keys(q.options)
+                        .sort()
+                        .map((key) => q.options[key]);
+                }
+            }
+            const options = rawOptions.map(normalizeOption);
+            while (options.length < 4) options.push({ key: String.fromCharCode(65 + options.length), text: '', image: null });
+            return options.slice(0, 4).map((opt, idx) => ({ key: String.fromCharCode(65 + idx), text: opt.text, image: opt.image }));
+        };
+
+        const detectCorrectAnswer = (q, options) => {
+            const candidate = (q.correctAnswer || q.answer || 'A').toString().trim();
+            if (/^option\s*[ABCDabcd]$/.test(candidate)) return candidate.slice(-1).toUpperCase();
+            if (/^[ABCDabcd]$/.test(candidate)) return candidate.toUpperCase();
+            const matchIndex = options.findIndex((opt) => opt.text.trim().toLowerCase() === candidate.toLowerCase());
+            return matchIndex >= 0 ? String.fromCharCode(65 + matchIndex) : 'A';
+        };
+
+        const mappedQuestions = (exam.questions || []).map((q) => {
+            const options = buildOptions(q);
+            return {
+                questionText: q.questionText || q.question || '',
+                questionImage: q.questionImage || null,
+                options,
+                correctAnswer: detectCorrectAnswer(q, options)
+            };
+        });
+
+        setParsedQuestions(mappedQuestions);
+        setIsManualEntry(true);
+        setReviewMode(true);
+        setShowAddModal(true);
     };
 
     const addQuestion = () => {
@@ -278,6 +343,9 @@ export function FiveMinQuiz() {
                                     <td>{new Date(item.createdAt).toLocaleDateString()}</td>
                                     <td>
                                         <div class="td-actions">
+                                            <button class="btn btn-outline btn-sm" onClick={() => handleEdit(item)} title="Edit Quiz">
+                                                <Icons.Edit />
+                                            </button>
                                             <button class="btn btn-danger btn-sm" onClick={() => setDeleteConfirm(item)}>
                                                 <Icons.Trash />
                                             </button>
@@ -294,8 +362,8 @@ export function FiveMinQuiz() {
                 <div class="modal-overlay">
                     <div class="modal modal-lg">
                         <div class="modal-header">
-                            <h3>{reviewMode ? 'Review Quiz Questions' : 'Add New 5-Minute Quiz'}</h3>
-                            <button class="modal-close" onClick={() => setShowAddModal(false)}>&times;</button>
+                            <h3>{reviewMode ? (editingExam ? 'Edit Quiz Questions' : 'Review Quiz Questions') : (editingExam ? 'Edit 5-Minute Quiz' : 'Add New 5-Minute Quiz')}</h3>
+                            <button class="modal-close" onClick={() => { setShowAddModal(false); resetForm(); }}>&times;</button>
                         </div>
                         <div class="modal-body">
                             {!reviewMode ? (
@@ -351,29 +419,31 @@ export function FiveMinQuiz() {
                                         </div>
                                     </div>
 
-                                    <div class="mode-selection" style="margin-top: 1.5rem; padding: 1.5rem; background: var(--bg-secondary); border-radius: 8px;">
-                                        <label style="display: block; margin-bottom: 1rem; font-weight: 600;">Question Entry Mode</label>
-                                        <div style="display: flex; gap: 2rem;">
-                                            <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
-                                                <input type="radio" checked={!isManualEntry} onChange={() => setIsManualEntry(false)} />
-                                                Upload PDF (Auto-parse)
-                                            </label>
-                                            <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
-                                                <input type="radio" checked={isManualEntry} onChange={() => setIsManualEntry(true)} />
-                                                Manual Entry
-                                            </label>
-                                        </div>
+                                    {!editingExam && (
+                                        <div class="mode-selection" style="margin-top: 1.5rem; padding: 1.5rem; background: var(--bg-secondary); border-radius: 8px;">
+                                            <label style="display: block; margin-bottom: 1rem; font-weight: 600;">Question Entry Mode</label>
+                                            <div style="display: flex; gap: 2rem;">
+                                                <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                                                    <input type="radio" checked={!isManualEntry} onChange={() => setIsManualEntry(false)} />
+                                                    Upload PDF (Auto-parse)
+                                                </label>
+                                                <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                                                    <input type="radio" checked={isManualEntry} onChange={() => setIsManualEntry(true)} />
+                                                    Manual Entry
+                                                </label>
+                                            </div>
 
-                                        {!isManualEntry ? (
-                                            <div style="margin-top: 1rem;">
-                                                <input type="file" accept=".pdf" onChange={handleFileChange} />
-                                            </div>
-                                        ) : (
-                                            <div style="margin-top: 1rem;">
-                                                <p style="color: var(--text-secondary);">You will add questions manually in the next step.</p>
-                                            </div>
-                                        )}
-                                    </div>
+                                            {!isManualEntry ? (
+                                                <div style="margin-top: 1rem;">
+                                                    <input type="file" accept=".pdf" onChange={handleFileChange} />
+                                                </div>
+                                            ) : (
+                                                <div style="margin-top: 1rem;">
+                                                    <p style="color: var(--text-secondary);">You will add questions manually in the next step.</p>
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
                                 </div>
                             ) : (
                                 <div class="review-questions">
@@ -470,7 +540,7 @@ export function FiveMinQuiz() {
                         <div class="modal-footer">
                             <button class="btn btn-outline" onClick={() => {
                                 if (reviewMode) setReviewMode(false);
-                                else setShowAddModal(false);
+                                else { setShowAddModal(false); resetForm(); }
                             }}>
                                 {reviewMode ? 'Back' : 'Cancel'}
                             </button>
@@ -482,14 +552,20 @@ export function FiveMinQuiz() {
                                     if (!formData.unit) return showToast("Unit/Chapter is required.", "error");
                                     if (!formData.overview) return showToast("Overview is required.", "error");
 
-                                    if (isManualEntry) setReviewMode(true);
-                                    else handleProcessPdf();
+                                    if (editingExam) {
+                                        // For edit mode, go directly to review (questions already loaded)
+                                        setReviewMode(true);
+                                    } else if (isManualEntry) {
+                                        setReviewMode(true);
+                                    } else {
+                                        handleProcessPdf();
+                                    }
                                 }} disabled={isUploading}>
-                                    {isUploading ? 'Processing...' : isManualEntry ? 'Continue' : 'Upload & Process PDF'}
+                                    {isUploading ? 'Processing...' : (editingExam ? 'Continue to Questions' : (isManualEntry ? 'Continue' : 'Upload & Process PDF'))}
                                 </button>
                             ) : (
                                 <button class="btn btn-primary" onClick={handleSaveExam}>
-                                    Save Quiz
+                                    {editingExam ? 'Update Quiz' : 'Save Quiz'}
                                 </button>
                             )}
                         </div>

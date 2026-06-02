@@ -20,6 +20,7 @@ export function OneLinerExams() {
     const [showAddModal, setShowAddModal] = useState(false);
     const [toast, setToast] = useState(null);
     const [deleteConfirm, setDeleteConfirm] = useState(null);
+    const [editingExam, setEditingExam] = useState(null);
 
     // Form State
     const [formData, setFormData] = useState(INITIAL_FORM_DATA);
@@ -33,6 +34,7 @@ export function OneLinerExams() {
     const resetForm = () => {
         setFormData(INITIAL_FORM_DATA);
         setQuestions([{ questionText: '', questionImage: null, answer: '' }]);
+        setEditingExam(null);
     };
 
     const loadExams = () => {
@@ -82,6 +84,28 @@ export function OneLinerExams() {
         }
     };
 
+    const handleEdit = (exam) => {
+        setEditingExam(exam._id);
+        setFormData({
+            title: exam.title || '',
+            board: exam.board || 'GSEB',
+            std: exam.std || '',
+            medium: exam.medium || 'English',
+            stream: exam.stream || 'None',
+            subject: exam.subject || '',
+            unit: exam.unit || ''
+        });
+
+        const mappedQuestions = (exam.questions || []).map(q => ({
+            questionText: q.questionText || q.question || '',
+            questionImage: q.questionImage || q.image || null,
+            answer: q.answer || q.correctAnswer || ''
+        }));
+
+        setQuestions(mappedQuestions.length > 0 ? mappedQuestions : [{ questionText: '', questionImage: null, answer: '' }]);
+        setShowAddModal(true);
+    };
+
     const handleSave = async () => {
         // Validation
         if (!formData.title) return showToast("Exam Title is required.", "error");
@@ -110,8 +134,14 @@ export function OneLinerExams() {
                     answer: q.answer
                 }))
             };
-            await api.post('/onelinerexam/add', payload, { noPrefix: true });
-            showToast('One Liner Exam created successfully!');
+
+            if (editingExam) {
+                await api.put(`/onelinerexam/${editingExam}`, payload, { noPrefix: true });
+                showToast('One Liner Exam updated successfully!');
+            } else {
+                await api.post('/onelinerexam/add', payload, { noPrefix: true });
+                showToast('One Liner Exam created successfully!');
+            }
             setShowAddModal(false);
             resetForm();
             loadExams();
@@ -178,6 +208,9 @@ export function OneLinerExams() {
                                     <td>{item.questions?.length || 0}</td>
                                     <td>
                                         <div class="td-actions">
+                                            <button class="btn btn-outline btn-sm" onClick={() => handleEdit(item)} title="Edit Exam">
+                                                <Icons.Edit />
+                                            </button>
                                             <button class="btn btn-danger btn-sm" onClick={() => setDeleteConfirm(item)}>
                                                 <Icons.Trash />
                                             </button>
@@ -194,8 +227,8 @@ export function OneLinerExams() {
                 <div class="modal-overlay">
                     <div class="modal modal-lg">
                         <div class="modal-header">
-                            <h3>Add One-Liner Exam</h3>
-                            <button class="modal-close" onClick={() => setShowAddModal(false)}>&times;</button>
+                            <h3>{editingExam ? 'Edit One-Liner Exam' : 'Add One-Liner Exam'}</h3>
+                            <button class="modal-close" onClick={() => { setShowAddModal(false); resetForm(); }}>&times;</button>
                         </div>
                         <div class="modal-body">
                             <div class="exam-form">
@@ -275,8 +308,8 @@ export function OneLinerExams() {
                             </div>
                         </div>
                         <div class="modal-footer">
-                            <button class="btn btn-outline" onClick={() => setShowAddModal(false)}>Cancel</button>
-                            <button class="btn btn-primary" onClick={handleSave}>Save Exam</button>
+                            <button class="btn btn-outline" onClick={() => { setShowAddModal(false); resetForm(); }}>Cancel</button>
+                            <button class="btn btn-primary" onClick={handleSave}>{editingExam ? 'Update Exam' : 'Save Exam'}</button>
                         </div>
                     </div>
                 </div>
