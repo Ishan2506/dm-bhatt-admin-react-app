@@ -152,11 +152,11 @@ a:hover {
 
 [data-theme="dark"] {
   --bg-primary: #0f172a;       /* slate-900 */
-  --bg-secondary: #1e293b;     /* slate-800 */
+  --bg-secondary: #1a1f2e;     /* darker shade for sections */
   --bg-card: #1e293b;          /* slate-800 */
   --bg-card-hover: #334155;    /* slate-700 */
   --bg-sidebar: #1e293b;
-  --bg-input: #1e293b;
+  --bg-input: #0f172a;
   --bg-modal-overlay: rgba(15, 23, 42, 0.75);
 
   --text-primary: #f1f5f9;     /* slate-100 */
