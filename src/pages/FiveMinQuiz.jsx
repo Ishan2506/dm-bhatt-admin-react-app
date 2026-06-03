@@ -411,79 +411,99 @@ export function FiveMinQuiz() {
                         </div>
                         <div class="modal-body">
                             {!reviewMode ? (
-                                <div class="exam-form">
-                                    <div class="form-grid">
-                                        <div class="form-group">
-                                            <label>Quiz Title *</label>
-                                            <input type="text" name="title" value={formData.title} onInput={handleInputChange} placeholder="e.g. History Quiz 1" />
-                                        </div>
-                                        <div class="form-group">
-                                            <label>Board *</label>
-                                            <select name="board" value={formData.board} onChange={handleInputChange}>
-                                                {AcademicConstants.boards.map(b => <option value={b}>{b}</option>)}
-                                            </select>
-                                        </div>
-                                        <div class="form-group">
-                                            <label>Standard *</label>
-                                            <select name="std" value={formData.std} onChange={handleInputChange}>
-                                                <option value="">Select Standard</option>
-                                                {AcademicConstants.standards[formData.board]?.map(s => <option value={s}>{s}</option>)}
-                                            </select>
-                                        </div>
-                                        <div class="form-group">
-                                            <label>Medium *</label>
-                                            <select name="medium" value={formData.medium} onChange={handleInputChange}>
-                                                {AcademicConstants.mediums.map(m => <option value={m}>{m}</option>)}
-                                            </select>
-                                        </div>
-                                        {(formData.std === '11' || formData.std === '12') && (
+                                <div class="exam-form" style="display: flex; flex-direction: column; gap: 2rem;">
+                                    <div style="background: var(--bg-secondary); padding: 1.75rem; border-radius: 12px; border: 1px solid var(--border-color);">
+                                        <h4 style="margin: 0 0 1.5rem 0; font-size: 1rem; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 8px;">
+                                            <span style="width: 4px; height: 24px; background: var(--accent); border-radius: 2px;"></span>
+                                            Quiz Details
+                                        </h4>
+                                        <div class="form-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
                                             <div class="form-group">
-                                                <label>Stream *</label>
-                                                <select name="stream" value={formData.stream} onChange={handleInputChange}>
-                                                    {AcademicConstants.streams.map(s => <option value={s}>{s}</option>)}
+                                                <label style="font-weight: 600; font-size: 0.9rem; display: block; margin-bottom: 0.5rem;">Quiz Title *</label>
+                                                <input type="text" name="title" value={formData.title} onInput={handleInputChange} placeholder="e.g. History Quiz 1" style="width: 100%; padding: 0.75rem 1rem; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-input); color: var(--text-primary); font-size: 0.95rem;" />
+                                            </div>
+                                            <div class="form-group">
+                                                <label style="font-weight: 600; font-size: 0.9rem; display: block; margin-bottom: 0.5rem;">Board *</label>
+                                                <select name="board" value={formData.board} onChange={handleInputChange} style="width: 100%; padding: 0.75rem 1rem; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-input); color: var(--text-primary); font-size: 0.95rem;">
+                                                    {AcademicConstants.boards.map(b => <option value={b}>{b}</option>)}
                                                 </select>
                                             </div>
-                                        )}
-                                        <div class="form-group">
-                                            <label>Subject *</label>
-                                            <select name="subject" value={formData.subject} onChange={handleInputChange}>
-                                                <option value="">Select Subject</option>
-                                                {AcademicConstants.subjects[`${formData.board}-${formData.std}${formData.stream !== 'None' ? '-' + formData.stream : ''}`]?.map(sub => (
-                                                    <option value={sub}>{sub}</option>
-                                                ))}
-                                            </select>
-                                        </div>
-                                        <div class="form-group">
-                                            <label>Unit / Chapter *</label>
-                                            <input type="text" name="unit" value={formData.unit} onInput={handleInputChange} placeholder="e.g. Unit 1" />
-                                        </div>
-                                        <div class="form-group" style="grid-column: span 2;">
-                                            <label>Overview *</label>
-                                            <textarea name="overview" value={formData.overview} onInput={handleInputChange} placeholder="Brief summary of the quiz..." />
+                                            <div class="form-group">
+                                                <label style="font-weight: 600; font-size: 0.9rem; display: block; margin-bottom: 0.5rem;">Standard *</label>
+                                                <select name="std" value={formData.std} onChange={handleInputChange} style="width: 100%; padding: 0.75rem 1rem; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-input); color: var(--text-primary); font-size: 0.95rem;">
+                                                    <option value="">Select Standard</option>
+                                                    {AcademicConstants.standards[formData.board]?.map(s => <option value={s}>{s}</option>)}
+                                                </select>
+                                            </div>
+                                            <div class="form-group">
+                                                <label style="font-weight: 600; font-size: 0.9rem; display: block; margin-bottom: 0.5rem;">Medium *</label>
+                                                <select name="medium" value={formData.medium} onChange={handleInputChange} style="width: 100%; padding: 0.75rem 1rem; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-input); color: var(--text-primary); font-size: 0.95rem;">
+                                                    {AcademicConstants.mediums.map(m => <option value={m}>{m}</option>)}
+                                                </select>
+                                            </div>
+                                            {(formData.std === '11' || formData.std === '12') && (
+                                                <div class="form-group">
+                                                    <label style="font-weight: 600; font-size: 0.9rem; display: block; margin-bottom: 0.5rem;">Stream *</label>
+                                                    <select name="stream" value={formData.stream} onChange={handleInputChange} style="width: 100%; padding: 0.75rem 1rem; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-input); color: var(--text-primary); font-size: 0.95rem;">
+                                                        {AcademicConstants.streams.map(s => <option value={s}>{s}</option>)}
+                                                    </select>
+                                                </div>
+                                            )}
+                                            <div class="form-group">
+                                                <label style="font-weight: 600; font-size: 0.9rem; display: block; margin-bottom: 0.5rem;">Subject *</label>
+                                                <select name="subject" value={formData.subject} onChange={handleInputChange} style="width: 100%; padding: 0.75rem 1rem; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-input); color: var(--text-primary); font-size: 0.95rem;">
+                                                    <option value="">Select Subject</option>
+                                                    {AcademicConstants.subjects[`${formData.board}-${formData.std}${formData.stream !== 'None' ? '-' + formData.stream : ''}`]?.map(sub => (
+                                                        <option value={sub}>{sub}</option>
+                                                    ))}
+                                                </select>
+                                            </div>
+                                            <div class="form-group">
+                                                <label style="font-weight: 600; font-size: 0.9rem; display: block; margin-bottom: 0.5rem;">Unit / Chapter *</label>
+                                                <input type="text" name="unit" value={formData.unit} onInput={handleInputChange} placeholder="e.g. Unit 1" style="width: 100%; padding: 0.75rem 1rem; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-input); color: var(--text-primary); font-size: 0.95rem;" />
+                                            </div>
+                                            <div class="form-group" style="grid-column: span 2;">
+                                                <label style="font-weight: 600; font-size: 0.9rem; display: block; margin-bottom: 0.5rem;">Overview *</label>
+                                                <textarea name="overview" value={formData.overview} onInput={handleInputChange} placeholder="Brief summary of the quiz..." style="width: 100%; padding: 0.75rem 1rem; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-input); color: var(--text-primary); font-size: 0.95rem; min-height: 80px;" />
+                                            </div>
                                         </div>
                                     </div>
 
                                     {!editingExam && (
-                                        <div class="mode-selection" style="margin-top: 1.5rem; padding: 1.5rem; background: var(--bg-secondary); border-radius: 8px;">
-                                            <label style="display: block; margin-bottom: 1rem; font-weight: 600;">Question Entry Mode</label>
-                                            <div style="display: flex; gap: 2rem;">
-                                                <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
-                                                    <input type="radio" checked={!isManualEntry} onChange={() => setIsManualEntry(false)} />
-                                                    Upload PDF (Auto-parse)
+                                        <div class="mode-selection" style="background: var(--bg-secondary); padding: 1.75rem; border-radius: 12px; border: 1px solid var(--border-color);">
+                                            <h4 style="margin: 0 0 1.5rem 0; font-size: 1rem; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 8px;">
+                                                <span style="width: 4px; height: 24px; background: var(--accent); border-radius: 2px;"></span>
+                                                Question Entry Mode
+                                            </h4>
+                                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                                                <label style="padding: 1.25rem; border: 2px solid ${!isManualEntry ? 'var(--accent)' : 'var(--border-color)'}; border-radius: 10px; cursor: pointer; display: flex; align-items: center; gap: 1rem; transition: all 0.2s; background: ${!isManualEntry ? 'rgba(var(--accent-rgb), 0.08)' : 'transparent'};">
+                                                    <input type="radio" checked={!isManualEntry} onChange={() => setIsManualEntry(false)} style="cursor: pointer; width: 20px; height: 20px;" />
+                                                    <div>
+                                                        <div style="font-weight: 600; color: var(--text-primary);">PDF Upload</div>
+                                                        <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 4px;">Auto-parse questions</div>
+                                                    </div>
                                                 </label>
-                                                <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
-                                                    <input type="radio" checked={isManualEntry} onChange={() => setIsManualEntry(true)} />
-                                                    Manual Entry
+                                                <label style="padding: 1.25rem; border: 2px solid ${isManualEntry ? 'var(--accent)' : 'var(--border-color)'}; border-radius: 10px; cursor: pointer; display: flex; align-items: center; gap: 1rem; transition: all 0.2s; background: ${isManualEntry ? 'rgba(var(--accent-rgb), 0.08)' : 'transparent'};">
+                                                    <input type="radio" checked={isManualEntry} onChange={() => setIsManualEntry(true)} style="cursor: pointer; width: 20px; height: 20px;" />
+                                                    <div>
+                                                        <div style="font-weight: 600; color: var(--text-primary);">Manual Entry</div>
+                                                        <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 4px;">Add questions one by one</div>
+                                                    </div>
                                                 </label>
                                             </div>
 
                                             {!isManualEntry ? (
-                                                <div style="margin-top: 1rem;">
-                                                    <input type="file" accept=".pdf" onChange={handleFileChange} />
+                                                <div style="margin-top: 1.5rem; padding: 1.25rem; background: var(--bg-primary); border-radius: 8px; border: 1px dashed var(--border-color);">
+                                                    <div style="display: flex; flex-direction: column; gap: 1rem;">
+                                                        <input type="file" accept=".pdf" onChange={handleFileChange} style="padding: 0.75rem; cursor: pointer;" />
+                                                        <p style="font-size: 0.85rem; color: var(--text-secondary); margin: 0;">
+                                                            📄 <strong>Expected Format:</strong><br/>1. Question... A) Choice... B)... Answer: A
+                                                        </p>
+                                                    </div>
                                                 </div>
                                             ) : (
-                                                <div style="margin-top: 1rem;">
-                                                    <p style="color: var(--text-secondary);">You will add questions manually in the next step.</p>
+                                                <div style="margin-top: 1.5rem; padding: 1.25rem; background: var(--bg-primary); border-radius: 8px; border: 1px solid var(--border-color);">
+                                                    <p style="color: var(--text-secondary); margin: 0; font-size: 0.95rem;">✓ You will add questions manually in the next step.</p>
                                                 </div>
                                             )}
                                         </div>
@@ -491,24 +511,24 @@ export function FiveMinQuiz() {
                                 </div>
                             ) : (
                                 <div class="review-questions">
-                                    <div class="review-header" style="position: sticky; top: 0; background: var(--bg-primary); z-index: 10; margin-bottom: 1rem; padding: 0.75rem; background: var(--bg-secondary); border-radius: 4px; display: flex; justify-content: space-between; align-items: center;">
-                                        <span>Total Questions: <strong>{parsedQuestions.length}</strong></span>
+                                    <div class="review-header" style="position: sticky; top: 0; background: var(--bg-secondary); z-index: 10; margin-bottom: 1rem; padding: 1rem; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--border-color);">
+                                        <span style="font-weight: 600; color: var(--text-primary);">Total: <strong>{parsedQuestions.length}</strong></span>
                                         <button class="btn btn-sm btn-primary" onClick={addQuestion}><Icons.Plus /> Add Question</button>
                                     </div>
                                     <div class="questions-list" style="max-height: 60vh; overflow-y: auto;">
                                         {parsedQuestions.map((q, qIndex) => (
-                                            <div key={qIndex} class="question-item" style="margin-bottom: 1.5rem; padding: 1.5rem; border: 1px solid var(--border-color); border-radius: 12px; background: var(--bg-primary);">
+                                            <div key={qIndex} class="question-item" style="margin-bottom: 1.5rem; padding: 1.5rem; border: 1px solid var(--border-color); border-radius: 12px; background: var(--bg-secondary);">
                                                 <div style="display: flex; justify-content: space-between; margin-bottom: 1rem;">
                                                     <strong style="font-size: 1.1rem; color: var(--primary-color);">Question {qIndex + 1}</strong>
                                                     <button class="btn btn-sm btn-outline-danger" onClick={() => removeQuestion(qIndex)}><Icons.Trash /></button>
                                                 </div>
-                                                
+
                                                 <div class="question-content" style="display: flex; flex-direction: column; gap: 0.75rem;">
-                                                    <textarea 
-                                                        class="form-control" 
+                                                    <textarea
+                                                        class="form-control"
                                                         placeholder="Enter question text..."
-                                                        style="width: 100%; min-height: 80px;" 
-                                                        value={q.questionText} 
+                                                        style="width: 100%; min-height: 80px; background: var(--bg-input); color: var(--text-primary); border: 1px solid var(--border-color);"
+                                                        value={q.questionText}
                                                         onInput={(e) => updateQuestion(qIndex, 'questionText', e.target.value)}
                                                     />
                                                     
@@ -533,10 +553,10 @@ export function FiveMinQuiz() {
                                                     {q.options.map((opt, oIndex) => {
                                                         const optKey = String.fromCharCode(65 + oIndex);
                                                         return (
-                                                            <div key={optKey} class="option-box" style="padding: 1rem; background: var(--bg-secondary); border-radius: 8px;">
+                                                            <div key={optKey} class="option-box" style="padding: 1rem; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 8px;">
                                                                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
-                                                                    <strong>Option {optKey}</strong>
-                                                                    <label style="cursor: pointer; color: var(--primary-color);">
+                                                                    <strong style="color: var(--text-primary);">Option {optKey}</strong>
+                                                                    <label style="cursor: pointer; color: var(--accent);">
                                                                         <Icons.Image />
                                                                         <input type="file" hidden accept="image/*" onChange={async (e) => {
                                                                             const url = await handleImageUpload(e.target.files[0]);
@@ -544,11 +564,12 @@ export function FiveMinQuiz() {
                                                                         }} />
                                                                     </label>
                                                                 </div>
-                                                                <input 
-                                                                    type="text" 
-                                                                    class="form-control" 
+                                                                <input
+                                                                    type="text"
+                                                                    class="form-control"
                                                                     placeholder={`Enter option ${optKey}...`}
-                                                                    value={opt.text} 
+                                                                    style="background: var(--bg-input); color: var(--text-primary); border: 1px solid var(--border-color);"
+                                                                    value={opt.text}
                                                                     onInput={(e) => updateQuestion(qIndex, `option_${optKey}_text`, e.target.value)}
                                                                 />
                                                                 {opt.image && (

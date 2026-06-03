@@ -259,58 +259,67 @@ export function OneLinerExams() {
                             <button class="modal-close" onClick={() => { setShowAddModal(false); resetForm(); }}>&times;</button>
                         </div>
                         <div class="modal-body">
-                            <div class="exam-form">
-                                <div class="form-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-                                    <div class="form-group">
-                                        <label>Title *</label>
-                                        <input type="text" name="title" value={formData.title} onInput={handleInputChange} style="color: var(--text-primary);" />
-                                    </div>
-                                    <div class="form-group">
-                                        <label>Board *</label>
-                                        <select name="board" value={formData.board} onChange={handleInputChange} style="color: var(--text-primary);">
-                                            {AcademicConstants.boards.map(b => <option value={b}>{b}</option>)}
-                                        </select>
-                                    </div>
-                                    <div class="form-group">
-                                        <label>Standard *</label>
-                                        <select name="std" value={formData.std} onChange={handleInputChange} style="color: var(--text-primary);">
-                                            <option value="">Select Standard</option>
-                                            {AcademicConstants.standards[formData.board]?.map(s => <option value={s}>{s}</option>)}
-                                        </select>
-                                    </div>
-                                    <div class="form-group">
-                                        <label>Medium *</label>
-                                        <select name="medium" value={formData.medium} onChange={handleInputChange} style="color: var(--text-primary);">
-                                            {AcademicConstants.mediums.map(m => <option value={m}>{m}</option>)}
-                                        </select>
-                                    </div>
-                                    <div class="form-group">
-                                        <label>Subject *</label>
-                                        <input type="text" name="subject" value={formData.subject} onInput={handleInputChange} style="color: var(--text-primary);" />
-                                    </div>
-                                    <div class="form-group">
-                                        <label>Unit *</label>
-                                        <input type="text" name="unit" value={formData.unit} onInput={handleInputChange} style="color: var(--text-primary);" />
+                            <div class="exam-form" style="display: flex; flex-direction: column; gap: 2rem;">
+                                <div style="background: var(--bg-secondary); padding: 1.75rem; border-radius: 12px; border: 1px solid var(--border-color);">
+                                    <h4 style="margin: 0 0 1.5rem 0; font-size: 1rem; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 8px;">
+                                        <span style="width: 4px; height: 24px; background: var(--accent); border-radius: 2px;"></span>
+                                        Exam Details
+                                    </h4>
+                                    <div class="form-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+                                        <div class="form-group">
+                                            <label style="font-weight: 600; font-size: 0.9rem; display: block; margin-bottom: 0.5rem;">Title *</label>
+                                            <input type="text" name="title" value={formData.title} onInput={handleInputChange} placeholder="e.g. History Quiz 1" style="width: 100%; padding: 0.75rem 1rem; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-input); color: var(--text-primary); font-size: 0.95rem;" />
+                                        </div>
+                                        <div class="form-group">
+                                            <label style="font-weight: 600; font-size: 0.9rem; display: block; margin-bottom: 0.5rem;">Board *</label>
+                                            <select name="board" value={formData.board} onChange={handleInputChange} style="width: 100%; padding: 0.75rem 1rem; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-input); color: var(--text-primary); font-size: 0.95rem;">
+                                                {AcademicConstants.boards.map(b => <option value={b}>{b}</option>)}
+                                            </select>
+                                        </div>
+                                        <div class="form-group">
+                                            <label style="font-weight: 600; font-size: 0.9rem; display: block; margin-bottom: 0.5rem;">Standard *</label>
+                                            <select name="std" value={formData.std} onChange={handleInputChange} style="width: 100%; padding: 0.75rem 1rem; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-input); color: var(--text-primary); font-size: 0.95rem;">
+                                                <option value="">Select Standard</option>
+                                                {AcademicConstants.standards[formData.board]?.map(s => <option value={s}>{s}</option>)}
+                                            </select>
+                                        </div>
+                                        <div class="form-group">
+                                            <label style="font-weight: 600; font-size: 0.9rem; display: block; margin-bottom: 0.5rem;">Medium *</label>
+                                            <select name="medium" value={formData.medium} onChange={handleInputChange} style="width: 100%; padding: 0.75rem 1rem; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-input); color: var(--text-primary); font-size: 0.95rem;">
+                                                {AcademicConstants.mediums.map(m => <option value={m}>{m}</option>)}
+                                            </select>
+                                        </div>
+                                        <div class="form-group">
+                                            <label style="font-weight: 600; font-size: 0.9rem; display: block; margin-bottom: 0.5rem;">Subject *</label>
+                                            <input type="text" name="subject" value={formData.subject} onInput={handleInputChange} placeholder="e.g. English" style="width: 100%; padding: 0.75rem 1rem; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-input); color: var(--text-primary); font-size: 0.95rem;" />
+                                        </div>
+                                        <div class="form-group">
+                                            <label style="font-weight: 600; font-size: 0.9rem; display: block; margin-bottom: 0.5rem;">Unit *</label>
+                                            <input type="text" name="unit" value={formData.unit} onInput={handleInputChange} placeholder="e.g. Unit 1" style="width: 100%; padding: 0.75rem 1rem; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-input); color: var(--text-primary); font-size: 0.95rem;" />
+                                        </div>
                                     </div>
                                 </div>
 
-                                <div class="questions-section" style="margin-top: 1.5rem;">
-                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                                        <h4>Questions</h4>
-                                        <button class="btn btn-sm btn-outline-primary" onClick={addQuestion}><Icons.Plus /> Add Question</button>
+                                <div class="questions-section" style="background: var(--bg-secondary); padding: 1.75rem; border-radius: 12px; border: 1px solid var(--border-color);">
+                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                                        <h4 style="margin: 0; font-size: 1rem; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 8px;">
+                                            <span style="width: 4px; height: 24px; background: var(--accent); border-radius: 2px;"></span>
+                                            Questions
+                                        </h4>
+                                        <button class="btn btn-sm btn-primary" onClick={addQuestion}><Icons.Plus /> Add Question</button>
                                     </div>
-                                    <div style="max-height: 40vh; overflow-y: auto;">
+                                    <div style="max-height: 50vh; overflow-y: auto;">
                                         {questions.map((q, qIndex) => (
-                                            <div key={qIndex} style="padding: 1rem; border: 1px solid var(--border-color); border-radius: 8px; margin-bottom: 1rem;">
-                                                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
-                                                    <strong>Question {qIndex + 1}</strong>
+                                            <div key={qIndex} style="padding: 1.5rem; border: 1px solid var(--border-color); border-radius: 12px; margin-bottom: 1.5rem; background: var(--bg-primary);">
+                                                <div style="display: flex; justify-content: space-between; margin-bottom: 1rem;">
+                                                    <strong style="font-size: 1.1rem; color: var(--primary-color);">Question {qIndex + 1}</strong>
                                                     <button class="btn btn-sm btn-outline-danger" onClick={() => removeQuestion(qIndex)}><Icons.Trash /></button>
                                                 </div>
                                                 <div class="form-group">
-                                                    <label>Question Text</label>
-                                                    <input type="text" class="form-control" style="color: var(--text-primary);" value={q.questionText} onInput={(e) => updateQuestion(qIndex, 'questionText', e.target.value)} />
+                                                    <label style="font-weight: 600; font-size: 0.9rem; display: block; margin-bottom: 0.5rem;">Question Text</label>
+                                                    <input type="text" class="form-control" style="background: var(--bg-input); color: var(--text-primary); border: 1px solid var(--border-color);" placeholder="Enter question text..." value={q.questionText} onInput={(e) => updateQuestion(qIndex, 'questionText', e.target.value)} />
                                                 </div>
-                                                <div class="image-upload-row" style="display: flex; align-items: center; gap: 1rem; margin: 0.5rem 0;">
+                                                <div class="image-upload-row" style="display: flex; align-items: center; gap: 1rem; margin: 1rem 0;">
                                                     <label class="btn btn-sm btn-outline" style="cursor: pointer; display: flex; align-items: center; gap: 4px;">
                                                         <Icons.Image /> {q.questionImage ? 'Change Image' : 'Add Image'}
                                                         <input type="file" hidden accept="image/*" onChange={async (e) => {
@@ -320,14 +329,14 @@ export function OneLinerExams() {
                                                     </label>
                                                     {q.questionImage && (
                                                         <div style="display: flex; align-items: center; gap: 4px;">
-                                                            <img src={`http://103.212.121.139:5000/${q.questionImage}`} style="height: 30px; border-radius: 4px;" />
+                                                            <img src={`http://103.212.121.139:5000/${q.questionImage}`} style="height: 40px; border-radius: 4px;" />
                                                             <button class="btn-close-sm" onClick={() => updateQuestion(qIndex, 'questionImage', null)}>&times;</button>
                                                         </div>
                                                     )}
                                                 </div>
                                                 <div class="form-group">
-                                                    <label>Answer</label>
-                                                    <textarea class="form-control" style="color: var(--text-primary);" value={q.answer} onInput={(e) => updateQuestion(qIndex, 'answer', e.target.value)} />
+                                                    <label style="font-weight: 600; font-size: 0.9rem; display: block; margin-bottom: 0.5rem;">Answer</label>
+                                                    <textarea class="form-control" style="background: var(--bg-input); color: var(--text-primary); border: 1px solid var(--border-color); min-height: 80px;" placeholder="Enter answer..." value={q.answer} onInput={(e) => updateQuestion(qIndex, 'answer', e.target.value)} />
                                                 </div>
                                             </div>
                                         ))}
