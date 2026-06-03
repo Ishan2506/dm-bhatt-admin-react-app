@@ -263,34 +263,34 @@ export function OneLinerExams() {
                                 <div class="form-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
                                     <div class="form-group">
                                         <label>Title *</label>
-                                        <input type="text" name="title" value={formData.title} onInput={handleInputChange} />
+                                        <input type="text" name="title" value={formData.title} onInput={handleInputChange} style="color: var(--text-primary);" />
                                     </div>
                                     <div class="form-group">
                                         <label>Board *</label>
-                                        <select name="board" value={formData.board} onChange={handleInputChange}>
+                                        <select name="board" value={formData.board} onChange={handleInputChange} style="color: var(--text-primary);">
                                             {AcademicConstants.boards.map(b => <option value={b}>{b}</option>)}
                                         </select>
                                     </div>
                                     <div class="form-group">
                                         <label>Standard *</label>
-                                        <select name="std" value={formData.std} onChange={handleInputChange}>
+                                        <select name="std" value={formData.std} onChange={handleInputChange} style="color: var(--text-primary);">
                                             <option value="">Select Standard</option>
                                             {AcademicConstants.standards[formData.board]?.map(s => <option value={s}>{s}</option>)}
                                         </select>
                                     </div>
                                     <div class="form-group">
                                         <label>Medium *</label>
-                                        <select name="medium" value={formData.medium} onChange={handleInputChange}>
+                                        <select name="medium" value={formData.medium} onChange={handleInputChange} style="color: var(--text-primary);">
                                             {AcademicConstants.mediums.map(m => <option value={m}>{m}</option>)}
                                         </select>
                                     </div>
                                     <div class="form-group">
                                         <label>Subject *</label>
-                                        <input type="text" name="subject" value={formData.subject} onInput={handleInputChange} />
+                                        <input type="text" name="subject" value={formData.subject} onInput={handleInputChange} style="color: var(--text-primary);" />
                                     </div>
                                     <div class="form-group">
                                         <label>Unit *</label>
-                                        <input type="text" name="unit" value={formData.unit} onInput={handleInputChange} />
+                                        <input type="text" name="unit" value={formData.unit} onInput={handleInputChange} style="color: var(--text-primary);" />
                                     </div>
                                 </div>
 
@@ -308,7 +308,7 @@ export function OneLinerExams() {
                                                 </div>
                                                 <div class="form-group">
                                                     <label>Question Text</label>
-                                                    <input type="text" class="form-control" value={q.questionText} onInput={(e) => updateQuestion(qIndex, 'questionText', e.target.value)} />
+                                                    <input type="text" class="form-control" style="color: var(--text-primary);" value={q.questionText} onInput={(e) => updateQuestion(qIndex, 'questionText', e.target.value)} />
                                                 </div>
                                                 <div class="image-upload-row" style="display: flex; align-items: center; gap: 1rem; margin: 0.5rem 0;">
                                                     <label class="btn btn-sm btn-outline" style="cursor: pointer; display: flex; align-items: center; gap: 4px;">
@@ -327,7 +327,7 @@ export function OneLinerExams() {
                                                 </div>
                                                 <div class="form-group">
                                                     <label>Answer</label>
-                                                    <textarea class="form-control" value={q.answer} onInput={(e) => updateQuestion(qIndex, 'answer', e.target.value)} />
+                                                    <textarea class="form-control" style="color: var(--text-primary);" value={q.answer} onInput={(e) => updateQuestion(qIndex, 'answer', e.target.value)} />
                                                 </div>
                                             </div>
                                         ))}

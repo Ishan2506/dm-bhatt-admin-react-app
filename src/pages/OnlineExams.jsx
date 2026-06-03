@@ -428,38 +428,38 @@ export function OnlineExams() {
                                         <div class="form-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
                                             <div class="form-group">
                                                 <label style="font-weight: 600; font-size: 0.9rem; display: block; margin-bottom: 0.5rem;">Exam Title *</label>
-                                                <input type="text" name="title" value={formData.title} onInput={handleInputChange} placeholder="e.g. Weekly Test - 1" style="width: 100%; padding: 0.75rem 1rem; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-primary); font-size: 0.95rem;" />
+                                                <input type="text" name="title" value={formData.title} onInput={handleInputChange} placeholder="e.g. Weekly Test - 1" style="width: 100%; padding: 0.75rem 1rem; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-primary); color: var(--text-primary); font-size: 0.95rem;" />
                                             </div>
                                             <div class="form-group">
                                                 <label style="font-weight: 600; font-size: 0.9rem; display: block; margin-bottom: 0.5rem;">Board *</label>
-                                                <select name="board" value={formData.board} onChange={handleInputChange} style="width: 100%; padding: 0.75rem 1rem; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-primary); font-size: 0.95rem;">
+                                                <select name="board" value={formData.board} onChange={handleInputChange} style="width: 100%; padding: 0.75rem 1rem; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-primary); color: var(--text-primary); font-size: 0.95rem;">
                                                     {AcademicConstants.boards.map(b => <option value={b}>{b}</option>)}
                                                 </select>
                                             </div>
                                             <div class="form-group">
                                                 <label style="font-weight: 600; font-size: 0.9rem; display: block; margin-bottom: 0.5rem;">Standard *</label>
-                                                <select name="std" value={formData.std} onChange={handleInputChange} style="width: 100%; padding: 0.75rem 1rem; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-primary); font-size: 0.95rem;">
+                                                <select name="std" value={formData.std} onChange={handleInputChange} style="width: 100%; padding: 0.75rem 1rem; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-primary); color: var(--text-primary); font-size: 0.95rem;">
                                                     <option value="">Select Standard</option>
                                                     {AcademicConstants.standards[formData.board]?.map(s => <option value={s}>{s}</option>)}
                                                 </select>
                                             </div>
                                             <div class="form-group">
                                                 <label style="font-weight: 600; font-size: 0.9rem; display: block; margin-bottom: 0.5rem;">Medium *</label>
-                                                <select name="medium" value={formData.medium} onChange={handleInputChange} style="width: 100%; padding: 0.75rem 1rem; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-primary); font-size: 0.95rem;">
+                                                <select name="medium" value={formData.medium} onChange={handleInputChange} style="width: 100%; padding: 0.75rem 1rem; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-primary); color: var(--text-primary); font-size: 0.95rem;">
                                                     {AcademicConstants.mediums.map(m => <option value={m}>{m}</option>)}
                                                 </select>
                                             </div>
                                             {(formData.std === '11' || formData.std === '12') && (
                                                 <div class="form-group">
                                                     <label style="font-weight: 600; font-size: 0.9rem; display: block; margin-bottom: 0.5rem;">Stream *</label>
-                                                    <select name="stream" value={formData.stream} onChange={handleInputChange} style="width: 100%; padding: 0.75rem 1rem; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-primary); font-size: 0.95rem;">
+                                                    <select name="stream" value={formData.stream} onChange={handleInputChange} style="width: 100%; padding: 0.75rem 1rem; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-primary); color: var(--text-primary); font-size: 0.95rem;">
                                                         {AcademicConstants.streams.map(s => <option value={s}>{s}</option>)}
                                                     </select>
                                                 </div>
                                             )}
                                             <div class="form-group">
                                                 <label style="font-weight: 600; font-size: 0.9rem; display: block; margin-bottom: 0.5rem;">Subject *</label>
-                                                <select name="subject" value={formData.subject} onChange={handleInputChange} style="width: 100%; padding: 0.75rem 1rem; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-primary); font-size: 0.95rem;">
+                                                <select name="subject" value={formData.subject} onChange={handleInputChange} style="width: 100%; padding: 0.75rem 1rem; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-primary); color: var(--text-primary); font-size: 0.95rem;">
                                                     <option value="">Select Subject</option>
                                                     {AcademicConstants.subjects[`${formData.board}-${formData.std}${formData.stream !== 'None' ? '-' + formData.stream : ''}`]?.map(sub => (
                                                         <option value={sub}>{sub}</option>
@@ -468,11 +468,11 @@ export function OnlineExams() {
                                             </div>
                                             <div class="form-group">
                                                 <label style="font-weight: 600; font-size: 0.9rem; display: block; margin-bottom: 0.5rem;">Total Marks *</label>
-                                                <input type="number" name="totalMarks" value={formData.totalMarks} onInput={handleInputChange} style="width: 100%; padding: 0.75rem 1rem; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-primary); font-size: 0.95rem;" />
+                                                <input type="number" name="totalMarks" value={formData.totalMarks} onInput={handleInputChange} style="width: 100%; padding: 0.75rem 1rem; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-primary); color: var(--text-primary); font-size: 0.95rem;" />
                                             </div>
                                             <div class="form-group">
                                                 <label style="font-weight: 600; font-size: 0.9rem; display: block; margin-bottom: 0.5rem;">Unit / Chapter *</label>
-                                                <input type="text" name="unit" value={formData.unit} onInput={handleInputChange} placeholder="e.g. Unit 1" style="width: 100%; padding: 0.75rem 1rem; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-primary); font-size: 0.95rem;" />
+                                                <input type="text" name="unit" value={formData.unit} onInput={handleInputChange} placeholder="e.g. Unit 1" style="width: 100%; padding: 0.75rem 1rem; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-primary); color: var(--text-primary); font-size: 0.95rem;" />
                                             </div>
                                         </div>
                                     </div>
@@ -530,11 +530,11 @@ export function OnlineExams() {
                                                 </div>
                                                 
                                                 <div class="question-content" style="display: flex; flex-direction: column; gap: 0.75rem;">
-                                                    <textarea 
-                                                        class="form-control" 
+                                                    <textarea
+                                                        class="form-control"
                                                         placeholder="Enter question text..."
-                                                        style="width: 100%; min-height: 80px;" 
-                                                        value={q.questionText} 
+                                                        style="width: 100%; min-height: 80px; background: var(--bg-primary); color: var(--text-primary);"
+                                                        value={q.questionText}
                                                         onInput={(e) => updateQuestion(qIndex, 'questionText', e.target.value)}
                                                     />
                                                     
@@ -570,11 +570,12 @@ export function OnlineExams() {
                                                                         }} />
                                                                     </label>
                                                                 </div>
-                                                                <input 
-                                                                    type="text" 
-                                                                    class="form-control" 
+                                                                <input
+                                                                    type="text"
+                                                                    class="form-control"
                                                                     placeholder={`Enter option ${optKey}...`}
-                                                                    value={opt.text} 
+                                                                    style="background: var(--bg-primary); color: var(--text-primary);"
+                                                                    value={opt.text}
                                                                     onInput={(e) => updateQuestion(qIndex, `option_${optKey}_text`, e.target.value)}
                                                                 />
                                                                 {opt.image && (
