@@ -22,6 +22,9 @@ export function FiveMinQuiz() {
     const [toast, setToast] = useState(null);
     const [deleteConfirm, setDeleteConfirm] = useState(null);
     const [editingExam, setEditingExam] = useState(null);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [pageSize, setPageSize] = useState(25);
+    const [totalCount, setTotalCount] = useState(0);
 
     // Form State
     const [formData, setFormData] = useState(INITIAL_FORM_DATA);
@@ -46,16 +49,21 @@ export function FiveMinQuiz() {
         setEditingExam(null);
     };
 
-    const loadExams = () => {
+    const loadExams = (page = 1) => {
         setLoading(true);
-        api.get('/fiveMinTest/all', { noPrefix: true })
-            .then(setExams)
+        const skip = (page - 1) * pageSize;
+        api.get(`/fiveMinTest/all?skip=${skip}&limit=${pageSize}`, { noPrefix: true })
+            .then(response => {
+                setExams(response.data || response);
+                setTotalCount(response.total || response.length);
+                setCurrentPage(page);
+            })
             .catch(err => showToast(err.message, 'error'))
             .finally(() => setLoading(false));
     };
 
     useEffect(() => {
-        loadExams();
+        loadExams(1);
     }, []);
 
     const handleInputChange = (e) => {
@@ -221,12 +229,14 @@ export function FiveMinQuiz() {
         try {
             await api.del(`/fiveMinTest/delete/${id}`, { noPrefix: true });
             setDeleteConfirm(null);
-            loadExams();
+            loadExams(currentPage);
             showToast('Quiz deleted successfully!');
         } catch (err) {
             showToast(err.message, 'error');
         }
     };
+
+    const totalPages = Math.ceil(totalCount / pageSize);
 
     const handleEdit = async (exam) => {
         let editableExam = exam;
@@ -346,13 +356,34 @@ export function FiveMinQuiz() {
                 <div class="table-header">
                     <h3><Icons.Reports /> 5-Minute Quiz History</h3>
                     <div class="table-actions">
+                        <select
+                            value={pageSize}
+                            onChange={(e) => {
+                                const newPageSize = parseInt(e.target.value);
+                                setPageSize(newPageSize);
+                                setCurrentPage(1);
+                                const skip = 0;
+                                api.get(`/fiveMinTest/all?skip=${skip}&limit=${newPageSize}`, { noPrefix: true })
+                                    .then(response => {
+                                        setExams(response.data || response);
+                                        setTotalCount(response.total || response.length);
+                                    })
+                                    .catch(err => showToast(err.message, 'error'));
+                            }}
+                            style="padding: 0.5rem 0.75rem; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg-secondary); color: var(--text-primary); font-size: var(--font-sm); cursor: pointer;"
+                        >
+                            <option value={10}>10 per page</option>
+                            <option value={25} selected>25 per page</option>
+                            <option value={50}>50 per page</option>
+                            <option value={100}>100 per page</option>
+                        </select>
                         <button class="btn btn-primary btn-sm" onClick={() => {
                             resetForm();
                             setShowAddModal(true);
                         }}>
                             <Icons.Plus /> Add New Quiz
                         </button>
-                        <button class="btn btn-outline btn-sm" onClick={loadExams}>
+                        <button class="btn btn-outline btn-sm" onClick={() => loadExams(currentPage)}>
                             <Icons.Refresh /> Refresh
                         </button>
                     </div>
@@ -366,39 +397,97 @@ export function FiveMinQuiz() {
                         <p>No 5-minute quizzes found.</p>
                     </div>
                 ) : (
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Title</th>
-                                <th>Subject</th>
-                                <th>Std</th>
-                                <th>Unit</th>
-                                <th>Created Date</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {exams.map(item => (
-                                <tr key={item._id}>
-                                    <td style="font-weight: 600;">{item.title}</td>
-                                    <td>{item.subject}</td>
-                                    <td>{item.std} ({item.board})</td>
-                                    <td>{item.unit}</td>
-                                    <td>{new Date(item.createdAt).toLocaleDateString()}</td>
-                                    <td>
-                                        <div class="td-actions">
-                                            <button class="btn btn-outline btn-sm" onClick={() => handleEdit(item)} title="Edit Quiz">
-                                                <Icons.Edit />
-                                            </button>
-                                            <button class="btn btn-danger btn-sm" onClick={() => setDeleteConfirm(item)}>
-                                                <Icons.Trash />
-                                            </button>
-                                        </div>
-                                    </td>
+                    <>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Title</th>
+                                    <th>Subject</th>
+                                    <th>Std</th>
+                                    <th>Unit</th>
+                                    <th>Created Date</th>
+                                    <th>Actions</th>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                {exams.map(item => (
+                                    <tr key={item._id}>
+                                        <td style="font-weight: 600;">{item.title}</td>
+                                        <td>{item.subject}</td>
+                                        <td>{item.std} ({item.board})</td>
+                                        <td>{item.unit}</td>
+                                        <td>{new Date(item.createdAt).toLocaleDateString()}</td>
+                                        <td>
+                                            <div class="td-actions">
+                                                <button class="btn btn-outline btn-sm" onClick={() => handleEdit(item)} title="Edit Quiz">
+                                                    <Icons.Edit />
+                                                </button>
+                                                <button class="btn btn-danger btn-sm" onClick={() => setDeleteConfirm(item)}>
+                                                    <Icons.Trash />
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                        <div style="display: flex; align-items: center; justify-content: space-between; padding: '1rem'; border-top: 1px solid var(--border); margin-top: 1.5rem; gap: 1rem;">
+                            <span style="font-size: var(--font-sm); color: var(--text-secondary);">
+                                Showing {((currentPage - 1) * pageSize) + 1} to {Math.min(currentPage * pageSize, totalCount)} of {totalCount} quizzes
+                            </span>
+                            <div style="display: flex; gap: 0.5rem;">
+                                <button
+                                    class="btn btn-outline btn-sm"
+                                    onClick={() => loadExams(currentPage - 1)}
+                                    disabled={currentPage === 1}
+                                >
+                                    ← Previous
+                                </button>
+                                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                    {Array.from({ length: totalPages }, (_, i) => {
+                                        const pageNum = i + 1;
+                                        if (
+                                            pageNum === 1 ||
+                                            pageNum === totalPages ||
+                                            (pageNum >= currentPage - 1 && pageNum <= currentPage + 1)
+                                        ) {
+                                            return (
+                                                <button
+                                                    key={pageNum}
+                                                    onClick={() => loadExams(pageNum)}
+                                                    style={{
+                                                        padding: '0.5rem 0.75rem',
+                                                        borderRadius: 'var(--radius-sm)',
+                                                        border: pageNum === currentPage ? 'none' : '1px solid var(--border)',
+                                                        background: pageNum === currentPage ? 'var(--accent)' : 'transparent',
+                                                        color: pageNum === currentPage ? 'white' : 'var(--text-primary)',
+                                                        cursor: 'pointer',
+                                                        fontSize: 'var(--font-sm)',
+                                                        fontWeight: pageNum === currentPage ? '600' : 'normal'
+                                                    }}
+                                                >
+                                                    {pageNum}
+                                                </button>
+                                            );
+                                        } else if (
+                                            (pageNum === 2 && currentPage > 3) ||
+                                            (pageNum === totalPages - 1 && currentPage < totalPages - 2)
+                                        ) {
+                                            return <span key={pageNum}>...</span>;
+                                        }
+                                        return null;
+                                    })}
+                                </div>
+                                <button
+                                    class="btn btn-outline btn-sm"
+                                    onClick={() => loadExams(currentPage + 1)}
+                                    disabled={currentPage === totalPages}
+                                >
+                                    Next →
+                                </button>
+                            </div>
+                        </div>
+                    </>
                 )}
             </div>
 

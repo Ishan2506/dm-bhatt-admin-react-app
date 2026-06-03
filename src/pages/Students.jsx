@@ -14,10 +14,11 @@ export function Students() {
     const [deleteConfirm, setDeleteConfirm] = useState(null);
     const [exporting, setExporting] = useState(false);
     const [standards, setStandards] = useState([]);
+    const [pageSize, setPageSize] = useState(25);
 
     const load = (page = 1) => {
         setLoading(true);
-        api.get(`/students?page=${page}&limit=50`)
+        api.get(`/students?page=${page}&limit=${pageSize}`)
             .then(res => {
                 if (Array.isArray(res)) {
                     setData({ students: res, total: res.length, page: 1, totalPages: 1 });
@@ -116,6 +117,19 @@ export function Students() {
                 <div class="table-header">
                     <h3><Icons.User /> All Students</h3>
                     <div class="table-filters" style="display: flex; gap: 1rem; align-items: center;">
+                        <select
+                            value={pageSize}
+                            onChange={(e) => {
+                                setPageSize(parseInt(e.target.value));
+                                load(1);
+                            }}
+                            style="padding: 0.5rem 0.75rem; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg-secondary); color: var(--text-primary); font-size: var(--font-sm); cursor: pointer;"
+                        >
+                            <option value={10}>10 per page</option>
+                            <option value={25} selected>25 per page</option>
+                            <option value={50}>50 per page</option>
+                            <option value={100}>100 per page</option>
+                        </select>
                         <span style="font-size: 0.85rem; color: var(--text-secondary); font-weight: 500;">
                             Total: {data.total}
                         </span>
@@ -175,24 +189,61 @@ export function Students() {
                         </table>
                         
                         {data.totalPages > 1 && (
-                            <div class="pagination" style="padding: 1rem; border-top: 1px solid var(--border); display: flex; justify-content: center; gap: 1rem; align-items: center;">
-                                <button 
-                                    class="btn btn-outline btn-sm"
-                                    disabled={data.page === 1}
-                                    onClick={() => load(data.page - 1)}
-                                >
-                                    Previous
-                                </button>
-                                <span style="font-size: 0.85rem; color: var(--text-secondary);">
-                                    Page {data.page} of {data.totalPages}
+                            <div style="display: flex; align-items: center; justify-content: space-between; padding: '1rem'; border-top: 1px solid var(--border); margin-top: 1.5rem; gap: 1rem;">
+                                <span style="font-size: var(--font-sm); color: var(--text-secondary);">
+                                    Showing {((data.page - 1) * pageSize) + 1} to {Math.min(data.page * pageSize, data.total)} of {data.total} students
                                 </span>
-                                <button 
-                                    class="btn btn-outline btn-sm"
-                                    disabled={data.page === data.totalPages}
-                                    onClick={() => load(data.page + 1)}
-                                >
-                                    Next
-                                </button>
+                                <div style="display: flex; gap: 0.5rem;">
+                                    <button
+                                        class="btn btn-outline btn-sm"
+                                        onClick={() => load(data.page - 1)}
+                                        disabled={data.page === 1}
+                                    >
+                                        ← Previous
+                                    </button>
+                                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                        {Array.from({ length: data.totalPages }, (_, i) => {
+                                            const pageNum = i + 1;
+                                            if (
+                                                pageNum === 1 ||
+                                                pageNum === data.totalPages ||
+                                                (pageNum >= data.page - 1 && pageNum <= data.page + 1)
+                                            ) {
+                                                return (
+                                                    <button
+                                                        key={pageNum}
+                                                        onClick={() => load(pageNum)}
+                                                        style={{
+                                                            padding: '0.5rem 0.75rem',
+                                                            borderRadius: 'var(--radius-sm)',
+                                                            border: pageNum === data.page ? 'none' : '1px solid var(--border)',
+                                                            background: pageNum === data.page ? 'var(--accent)' : 'transparent',
+                                                            color: pageNum === data.page ? 'white' : 'var(--text-primary)',
+                                                            cursor: 'pointer',
+                                                            fontSize: 'var(--font-sm)',
+                                                            fontWeight: pageNum === data.page ? '600' : 'normal'
+                                                        }}
+                                                    >
+                                                        {pageNum}
+                                                    </button>
+                                                );
+                                            } else if (
+                                                (pageNum === 2 && data.page > 3) ||
+                                                (pageNum === data.totalPages - 1 && data.page < data.totalPages - 2)
+                                            ) {
+                                                return <span key={pageNum}>...</span>;
+                                            }
+                                            return null;
+                                        })}
+                                    </div>
+                                    <button
+                                        class="btn btn-outline btn-sm"
+                                        onClick={() => load(data.page + 1)}
+                                        disabled={data.page === data.totalPages}
+                                    >
+                                        Next →
+                                    </button>
+                                </div>
                             </div>
                         )}
                     </Fragment>

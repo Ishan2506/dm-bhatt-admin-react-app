@@ -16,6 +16,9 @@ export function Materials({ type }) {
     const [toast, setToast] = useState(null);
     const [standards, setStandards] = useState([]);
     const [subjects, setSubjects] = useState([]);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [pageSize, setPageSize] = useState(25);
+    const [totalCount, setTotalCount] = useState(0);
 
     const showToast = (message, type = 'success') => {
         setToast({ message, type });
@@ -78,10 +81,15 @@ export function Materials({ type }) {
         { id: 'History', label: 'History', icon: <Icons.History /> }
     ];
 
-    const loadMaterials = () => {
+    const loadMaterials = (page = 1) => {
         setLoading(true);
-        api.get('/material/all', { noPrefix: true })
-            .then(setMaterials)
+        const skip = (page - 1) * pageSize;
+        api.get(`/material/all?skip=${skip}&limit=${pageSize}`, { noPrefix: true })
+            .then(response => {
+                setMaterials(response.data || response);
+                setTotalCount(response.total || response.length);
+                setCurrentPage(page);
+            })
             .catch(err => showToast(err.message, 'error'))
             .finally(() => setLoading(false));
     };
@@ -120,9 +128,10 @@ export function Materials({ type }) {
 
     useEffect(() => {
         if (activeTab === 'History') {
-            loadMaterials();
+            setCurrentPage(1);
+            loadMaterials(1);
         }
-        
+
         if (activeTab === 'BoardPaper' && !['10', '12'].includes(form.standard)) {
             setForm(prev => ({ ...prev, standard: '' }));
         }
@@ -196,7 +205,7 @@ export function Materials({ type }) {
         try {
             await api.del(`/material/delete/${id}`, { noPrefix: true });
             setDeleteConfirm(null);
-            loadMaterials();
+            loadMaterials(currentPage);
         } catch (err) {
             showToast(err.message, 'error');
         }
@@ -317,13 +326,38 @@ export function Materials({ type }) {
         );
     };
 
+    const totalPages = Math.ceil(totalCount / pageSize);
+
     const renderHistory = () => (
         <div class="table-container">
             <div class="table-header">
                 <h3><Icons.History /> Material Upload History</h3>
-                <button class="btn btn-outline btn-sm" onClick={loadMaterials}>
-                    <Icons.Refresh /> Refresh
-                </button>
+                <div style="display: flex; gap: 0.75rem; align-items: center;">
+                    <select
+                        value={pageSize}
+                        onChange={(e) => {
+                            const newPageSize = parseInt(e.target.value);
+                            setPageSize(newPageSize);
+                            setCurrentPage(1);
+                            const skip = 0;
+                            api.get(`/material/all?skip=${skip}&limit=${newPageSize}`, { noPrefix: true })
+                                .then(response => {
+                                    setMaterials(response.data || response);
+                                    setTotalCount(response.total || response.length);
+                                })
+                                .catch(err => showToast(err.message, 'error'));
+                        }}
+                        style="padding: 0.5rem 0.75rem; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg-secondary); color: var(--text-primary); font-size: var(--font-sm); cursor: pointer;"
+                    >
+                        <option value={10}>10 per page</option>
+                        <option value={25} selected>25 per page</option>
+                        <option value={50}>50 per page</option>
+                        <option value={100}>100 per page</option>
+                    </select>
+                    <button class="btn btn-outline btn-sm" onClick={() => loadMaterials(currentPage)}>
+                        <Icons.Refresh /> Refresh
+                    </button>
+                </div>
             </div>
             {loading ? (
                 <div style="padding: 2rem; text-align: center;"><div class="loading-spinner" /></div>
@@ -333,71 +367,129 @@ export function Materials({ type }) {
                     <p>No materials found.</p>
                 </div>
             ) : (
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Title</th>
-                            <th>Type</th>
-                            <th>Subject</th>
-                            <th>Std</th>
-                            <th>Year</th>
-                            <th>Created By</th>
-                            <th>Updated By</th>
-                            <th>Created Time</th>
-                            <th>Updated Time</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {materials.map(item => (
-                            <tr key={item._id}>
-                                <td style="font-weight: 600;">{item.title}</td>
-                                <td><span class="badge badge-info">{item.type}</span></td>
-                                <td>{item.subject}</td>
-                                <td>{item.standard}</td>
-                                <td>{item.year}</td>
-                                <td>
-                                    {item.createdBy ? (
-                                        <div style={{ lineHeight: '1.2' }}>
-                                            {item.createdBy.firstName}<br />
-                                            {item.createdBy.email && <small style={{ color: 'var(--text-secondary)' }}>{item.createdBy.email}</small>}
-                                        </div>
-                                    ) : 'System'}
-                                </td>
-                                <td>
-                                    {item.updatedBy ? (
-                                        <div style={{ lineHeight: '1.2' }}>
-                                            {item.updatedBy.firstName}<br />
-                                            {item.updatedBy.email && <small style={{ color: 'var(--text-secondary)' }}>{item.updatedBy.email}</small>}
-                                        </div>
-                                    ) : (item.createdBy ? (
-                                        <div style={{ lineHeight: '1.2' }}>
-                                            {item.createdBy.firstName}<br />
-                                            {item.createdBy.email && <small style={{ color: 'var(--text-secondary)' }}>{item.createdBy.email}</small>}
-                                        </div>
-                                    ) : 'System')}
-                                </td>
-                                <td style="font-size: var(--font-xs); color: var(--text-secondary);">{formatDateTime(item.createdAt)}</td>
-                                <td style="font-size: var(--font-xs); color: var(--text-secondary);">{formatDateTime(item.updatedAt || item.createdAt)}</td>
-                                <td>
-                                    <div class="td-actions">
-                                        {item.file && (
-                                            <button class="btn btn-outline btn-sm" title="Preview" onClick={() => setPreviewItem(item)} style="color: var(--accent);">
-                                                <Icons.Eye />
-                                            </button>
-                                        )}
-                                        <button class="btn btn-outline btn-sm" onClick={() => handleEdit(item)}>
-                                            <Icons.Edit />
-                                        </button>
-                                        <button class="btn btn-danger btn-sm" onClick={() => setDeleteConfirm(item)}>
-                                            <Icons.Trash />
-                                        </button>
-                                    </div>
-                                </td>
+                <>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Title</th>
+                                <th>Type</th>
+                                <th>Subject</th>
+                                <th>Std</th>
+                                <th>Year</th>
+                                <th>Created By</th>
+                                <th>Updated By</th>
+                                <th>Created Time</th>
+                                <th>Updated Time</th>
+                                <th>Actions</th>
                             </tr>
-                        ))}
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            {materials.map(item => (
+                                <tr key={item._id}>
+                                    <td style="font-weight: 600;">{item.title}</td>
+                                    <td><span class="badge badge-info">{item.type}</span></td>
+                                    <td>{item.subject}</td>
+                                    <td>{item.standard}</td>
+                                    <td>{item.year}</td>
+                                    <td>
+                                        {item.createdBy ? (
+                                            <div style={{ lineHeight: '1.2' }}>
+                                                {item.createdBy.firstName}<br />
+                                                {item.createdBy.email && <small style={{ color: 'var(--text-secondary)' }}>{item.createdBy.email}</small>}
+                                            </div>
+                                        ) : 'System'}
+                                    </td>
+                                    <td>
+                                        {item.updatedBy ? (
+                                            <div style={{ lineHeight: '1.2' }}>
+                                                {item.updatedBy.firstName}<br />
+                                                {item.updatedBy.email && <small style={{ color: 'var(--text-secondary)' }}>{item.updatedBy.email}</small>}
+                                            </div>
+                                        ) : (item.createdBy ? (
+                                            <div style={{ lineHeight: '1.2' }}>
+                                                {item.createdBy.firstName}<br />
+                                                {item.createdBy.email && <small style={{ color: 'var(--text-secondary)' }}>{item.createdBy.email}</small>}
+                                            </div>
+                                        ) : 'System')}
+                                    </td>
+                                    <td style="font-size: var(--font-xs); color: var(--text-secondary);">{formatDateTime(item.createdAt)}</td>
+                                    <td style="font-size: var(--font-xs); color: var(--text-secondary);">{formatDateTime(item.updatedAt || item.createdAt)}</td>
+                                    <td>
+                                        <div class="td-actions">
+                                            {item.file && (
+                                                <button class="btn btn-outline btn-sm" title="Preview" onClick={() => setPreviewItem(item)} style="color: var(--accent);">
+                                                    <Icons.Eye />
+                                                </button>
+                                            )}
+                                            <button class="btn btn-outline btn-sm" onClick={() => handleEdit(item)}>
+                                                <Icons.Edit />
+                                            </button>
+                                            <button class="btn btn-danger btn-sm" onClick={() => setDeleteConfirm(item)}>
+                                                <Icons.Trash />
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                    <div style="display: flex; align-items: center; justify-content: space-between; padding: '1rem'; border-top: 1px solid var(--border); margin-top: 1.5rem; gap: 1rem;">
+                        <span style="font-size: var(--font-sm); color: var(--text-secondary);">
+                            Showing {((currentPage - 1) * pageSize) + 1} to {Math.min(currentPage * pageSize, totalCount)} of {totalCount} materials
+                        </span>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <button
+                                class="btn btn-outline btn-sm"
+                                onClick={() => loadMaterials(currentPage - 1)}
+                                disabled={currentPage === 1}
+                            >
+                                ← Previous
+                            </button>
+                            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                {Array.from({ length: totalPages }, (_, i) => {
+                                    const pageNum = i + 1;
+                                    if (
+                                        pageNum === 1 ||
+                                        pageNum === totalPages ||
+                                        (pageNum >= currentPage - 1 && pageNum <= currentPage + 1)
+                                    ) {
+                                        return (
+                                            <button
+                                                key={pageNum}
+                                                onClick={() => loadMaterials(pageNum)}
+                                                style={{
+                                                    padding: '0.5rem 0.75rem',
+                                                    borderRadius: 'var(--radius-sm)',
+                                                    border: pageNum === currentPage ? 'none' : '1px solid var(--border)',
+                                                    background: pageNum === currentPage ? 'var(--accent)' : 'transparent',
+                                                    color: pageNum === currentPage ? 'white' : 'var(--text-primary)',
+                                                    cursor: 'pointer',
+                                                    fontSize: 'var(--font-sm)',
+                                                    fontWeight: pageNum === currentPage ? '600' : 'normal'
+                                                }}
+                                            >
+                                                {pageNum}
+                                            </button>
+                                        );
+                                    } else if (
+                                        (pageNum === 2 && currentPage > 3) ||
+                                        (pageNum === totalPages - 1 && currentPage < totalPages - 2)
+                                    ) {
+                                        return <span key={pageNum}>...</span>;
+                                    }
+                                    return null;
+                                })}
+                            </div>
+                            <button
+                                class="btn btn-outline btn-sm"
+                                onClick={() => loadMaterials(currentPage + 1)}
+                                disabled={currentPage === totalPages}
+                            >
+                                Next →
+                            </button>
+                        </div>
+                    </div>
+                </>
             )}
         </div>
     );

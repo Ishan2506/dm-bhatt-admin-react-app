@@ -87,12 +87,20 @@ const navigation = [
 
 export function Layout({ children, currentPath, user, onLogout }) {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
     const [isDarkMode, setIsDarkMode] = useState(false);
     const userRole = user?.role || 'admin';
 
     useEffect(() => {
         setIsSidebarOpen(false);
     }, [currentPath]);
+
+    useEffect(() => {
+        const savedCollapsed = localStorage.getItem('sidebarCollapsed');
+        if (savedCollapsed) {
+            setIsSidebarCollapsed(JSON.parse(savedCollapsed));
+        }
+    }, []);
 
     useEffect(() => {
         const savedTheme = localStorage.getItem('theme');
@@ -118,6 +126,12 @@ export function Layout({ children, currentPath, user, onLogout }) {
         }
     };
 
+    const toggleSidebarCollapse = () => {
+        const newCollapsed = !isSidebarCollapsed;
+        setIsSidebarCollapsed(newCollapsed);
+        localStorage.setItem('sidebarCollapsed', JSON.stringify(newCollapsed));
+    };
+
     const filteredNavigation = navigation
         .filter(section => {
             if (!section.roles) return true;
@@ -133,11 +147,11 @@ export function Layout({ children, currentPath, user, onLogout }) {
         .filter(section => section.items && section.items.length > 0);
 
     return (
-        <div class="layout">
+        <div class={`layout ${isSidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
             {isSidebarOpen && (
                 <div class="sidebar-overlay" onClick={() => setIsSidebarOpen(false)} />
             )}
-            <aside class={`sidebar ${isSidebarOpen ? 'open' : ''}`}>
+            <aside class={`sidebar ${isSidebarOpen ? 'open' : ''} ${isSidebarCollapsed ? 'collapsed' : ''}`}>
                 <div class="sidebar-brand">
                     <div class="sidebar-logo-container">
                          <img src="/assets/logo.png" alt="Padhaku Logo" class="sidebar-logo" />
@@ -146,6 +160,11 @@ export function Layout({ children, currentPath, user, onLogout }) {
                         <h2>Padhaku</h2>
                         <span>{userRole === 'super admin' ? 'Super Admin' : 'Admin'}</span>
                     </div>
+                    <button class="sidebar-collapse-btn" onClick={toggleSidebarCollapse} title={isSidebarCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="15 18 9 12 15 6"></polyline>
+                        </svg>
+                    </button>
                 </div>
                 <nav class="sidebar-nav">
                     {filteredNavigation.map(section => (

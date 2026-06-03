@@ -21,6 +21,9 @@ export function ReportsPage({ section, type: initialType }) {
     const [loading, setLoading] = useState(true);
     const [data, setData] = useState([]);
     const [expandedStudent, setExpandedStudent] = useState(null);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [pageSize, setPageSize] = useState(25);
+    const [totalCount, setTotalCount] = useState(0);
 
     const [filters, setFilters] = useState({
         board: '',
@@ -53,23 +56,29 @@ export function ReportsPage({ section, type: initialType }) {
     }, [section, initialType]);
 
     useEffect(() => {
-        loadData();
+        setCurrentPage(1);
+        loadData(1);
     }, [view, examType, filters]);
 
-    const loadData = () => {
+    const loadData = (page = 1) => {
         setLoading(true);
+        const skip = (page - 1) * pageSize;
         const query = new URLSearchParams();
         if (filters.board) query.append('board', filters.board);
         if (filters.std) query.append('std', filters.std);
         if (filters.medium) query.append('medium', filters.medium);
         if (filters.stream) query.append('stream', filters.stream);
+        query.append('skip', skip);
+        query.append('limit', pageSize);
 
         if (view === 'students') {
             console.log('Fetching student reports with query:', query.toString());
             api.get(`/reports/students?${query.toString()}`)
                 .then(res => {
                     console.log('Student reports received:', res);
-                    setData(res);
+                    setData(res.data || res);
+                    setTotalCount(res.total || res.length);
+                    setCurrentPage(page);
                 })
                 .catch(err => {
                     console.error('Student reports failed:', err);
@@ -81,7 +90,9 @@ export function ReportsPage({ section, type: initialType }) {
             api.get(`/reports/exams?${query.toString()}`)
                 .then(res => {
                     console.log('Exam reports received:', res);
-                    setData(res);
+                    setData(res.data || res);
+                    setTotalCount(res.total || res.length);
+                    setCurrentPage(page);
                 })
                 .catch(err => {
                     console.error('Exam reports failed:', err);
@@ -97,6 +108,8 @@ export function ReportsPage({ section, type: initialType }) {
     const toggleStudent = (id) => {
         setExpandedStudent(expandedStudent === id ? null : id);
     };
+
+    const totalPages = Math.ceil(totalCount / pageSize);
 
     const getMarksClass = (score, total) => {
         if (!total) return '';
@@ -174,7 +187,49 @@ export function ReportsPage({ section, type: initialType }) {
                         {view === 'students' ? <Icons.User /> : <Icons.Reports />}
                         {view === 'students' ? ' Student Wise Reports' : ` ${EXAM_TYPES.find(t => t.id === examType)?.label} Reports`}
                     </h3>
-                    <span class="badge badge-primary">{data.length} Results</span>
+                    <div style="display: flex; gap: 1rem; align-items: center;">
+                        <select
+                            value={pageSize}
+                            onChange={(e) => {
+                                const newPageSize = parseInt(e.target.value);
+                                setPageSize(newPageSize);
+                                setCurrentPage(1);
+                                const skip = 0;
+                                const query = new URLSearchParams();
+                                if (filters.board) query.append('board', filters.board);
+                                if (filters.std) query.append('std', filters.std);
+                                if (filters.medium) query.append('medium', filters.medium);
+                                if (filters.stream) query.append('stream', filters.stream);
+                                query.append('skip', skip);
+                                query.append('limit', newPageSize);
+
+                                setLoading(true);
+                                if (view === 'students') {
+                                    api.get(`/reports/students?${query.toString()}`)
+                                        .then(res => {
+                                            setData(res.data || res);
+                                            setTotalCount(res.total || res.length);
+                                        })
+                                        .finally(() => setLoading(false));
+                                } else {
+                                    if (examType !== 'COMBINED') query.append('type', examType);
+                                    api.get(`/reports/exams?${query.toString()}`)
+                                        .then(res => {
+                                            setData(res.data || res);
+                                            setTotalCount(res.total || res.length);
+                                        })
+                                        .finally(() => setLoading(false));
+                                }
+                            }}
+                            style="padding: 0.5rem 0.75rem; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg-secondary); color: var(--text-primary); font-size: var(--font-sm); cursor: pointer;"
+                        >
+                            <option value={10}>10 per page</option>
+                            <option value={25} selected>25 per page</option>
+                            <option value={50}>50 per page</option>
+                            <option value={100}>100 per page</option>
+                        </select>
+                        <span class="badge badge-primary">{totalCount} Total</span>
+                    </div>
                 </div>
 
                 {loading ? (
@@ -188,105 +243,221 @@ export function ReportsPage({ section, type: initialType }) {
                         <p>No reports found matching your filters.</p>
                     </div>
                 ) : view === 'students' ? (
-                    <table>
-                        <thead>
-                            <tr>
-                                <th width="40"></th>
-                                <th>Student Name</th>
-                                <th>Phone</th>
-                                <th>Standard</th>
-                                <th>Total Exams</th>
-                                <th>Avg. Marks</th>
-                                <th>Medium</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {data.map(student => (
-                                <Fragment key={student._id}>
-                                    <tr class="student-row-header" onClick={() => toggleStudent(student._id)}>
-                                        <td>
-                                            <span class={`expander-icon ${expandedStudent === student._id ? 'open' : ''}`}>
-                                                <Icons.ChevronRight />
-                                            </span>
-                                        </td>
-                                        <td style="font-weight: 600;">{student.name}</td>
-                                        <td>{student.phone}</td>
-                                        <td>{student.std} {student.stream !== 'None' ? `(${student.stream})` : ''}</td>
-                                        <td>{student.totalExams}</td>
-                                        <td>
-                                            <span class={`marks-badge ${student.avgMarks >= 70 ? 'marks-high' : 'marks-mid'}`}>
-                                                {student.avgMarks.toFixed(1)}
-                                            </span>
-                                        </td>
-                                        <td>{student.medium}</td>
-                                    </tr>
-                                    {expandedStudent === student._id && (
-                                        <tr class="student-details-row">
-                                            <td colspan="7">
-                                                <table class="nested-table">
-                                                    <thead>
-                                                        <tr>
-                                                            <th>Exam Title</th>
-                                                            <th>Type</th>
-                                                            <th>Score</th>
-                                                            <th>Total</th>
-                                                            <th>Date</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        {student.exams.map((ex, idx) => (
-                                                            <tr key={idx}>
-                                                                <td>{ex.title}</td>
-                                                                <td><span class="badge badge-outline">{ex.type}</span></td>
-                                                                <td>
-                                                                    <span class={`marks-badge ${getMarksClass(ex.score, ex.total)}`}>
-                                                                        {ex.score}
-                                                                    </span>
-                                                                </td>
-                                                                <td>{ex.total}</td>
-                                                                <td>{new Date(ex.date).toLocaleDateString()}</td>
-                                                            </tr>
-                                                        ))}
-                                                    </tbody>
-                                                </table>
-                                            </td>
-                                        </tr>
-                                    )}
-                                </Fragment>
-                            ))}
-                        </tbody>
-                    </table>
-                ) : (
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Exam Title</th>
-                                <th>Student Name</th>
-                                <th>Standard</th>
-                                <th>Type</th>
-                                <th>Obtained</th>
-                                <th>Total</th>
-                                <th>Date</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {data.map(item => (
-                                <tr key={item._id}>
-                                    <td style="font-weight: 600;">{item.title}</td>
-                                    <td>{item.studentName}</td>
-                                    <td>{item.std} {item.stream !== 'None' ? `(${item.stream})` : ''}</td>
-                                    <td><span class="badge badge-outline">{item.type}</span></td>
-                                    <td>
-                                        <span class={`marks-badge ${getMarksClass(item.obtainedMarks, item.totalMarks)}`}>
-                                            {item.obtainedMarks}
-                                        </span>
-                                    </td>
-                                    <td>{item.totalMarks}</td>
-                                    <td>{new Date(item.date).toLocaleDateString()}</td>
+                    <>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th width="40"></th>
+                                    <th>Student Name</th>
+                                    <th>Phone</th>
+                                    <th>Standard</th>
+                                    <th>Total Exams</th>
+                                    <th>Avg. Marks</th>
+                                    <th>Medium</th>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                {data.map(student => (
+                                    <Fragment key={student._id}>
+                                        <tr class="student-row-header" onClick={() => toggleStudent(student._id)}>
+                                            <td>
+                                                <span class={`expander-icon ${expandedStudent === student._id ? 'open' : ''}`}>
+                                                    <Icons.ChevronRight />
+                                                </span>
+                                            </td>
+                                            <td style="font-weight: 600;">{student.name}</td>
+                                            <td>{student.phone}</td>
+                                            <td>{student.std} {student.stream !== 'None' ? `(${student.stream})` : ''}</td>
+                                            <td>{student.totalExams}</td>
+                                            <td>
+                                                <span class={`marks-badge ${student.avgMarks >= 70 ? 'marks-high' : 'marks-mid'}`}>
+                                                    {student.avgMarks.toFixed(1)}
+                                                </span>
+                                            </td>
+                                            <td>{student.medium}</td>
+                                        </tr>
+                                        {expandedStudent === student._id && (
+                                            <tr class="student-details-row">
+                                                <td colspan="7">
+                                                    <table class="nested-table">
+                                                        <thead>
+                                                            <tr>
+                                                                <th>Exam Title</th>
+                                                                <th>Type</th>
+                                                                <th>Score</th>
+                                                                <th>Total</th>
+                                                                <th>Date</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            {student.exams.map((ex, idx) => (
+                                                                <tr key={idx}>
+                                                                    <td>{ex.title}</td>
+                                                                    <td><span class="badge badge-outline">{ex.type}</span></td>
+                                                                    <td>
+                                                                        <span class={`marks-badge ${getMarksClass(ex.score, ex.total)}`}>
+                                                                            {ex.score}
+                                                                        </span>
+                                                                    </td>
+                                                                    <td>{ex.total}</td>
+                                                                    <td>{new Date(ex.date).toLocaleDateString()}</td>
+                                                                </tr>
+                                                            ))}
+                                                        </tbody>
+                                                    </table>
+                                                </td>
+                                            </tr>
+                                        )}
+                                    </Fragment>
+                                ))}
+                            </tbody>
+                        </table>
+                        <div style="display: flex; align-items: center; justify-content: space-between; padding: '1rem'; border-top: 1px solid var(--border); margin-top: 1.5rem; gap: 1rem;">
+                            <span style="font-size: var(--font-sm); color: var(--text-secondary);">
+                                Showing {((currentPage - 1) * pageSize) + 1} to {Math.min(currentPage * pageSize, totalCount)} of {totalCount} students
+                            </span>
+                            <div style="display: flex; gap: 0.5rem;">
+                                <button
+                                    class="btn btn-outline btn-sm"
+                                    onClick={() => loadData(currentPage - 1)}
+                                    disabled={currentPage === 1}
+                                >
+                                    ← Previous
+                                </button>
+                                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                    {Array.from({ length: totalPages }, (_, i) => {
+                                        const pageNum = i + 1;
+                                        if (
+                                            pageNum === 1 ||
+                                            pageNum === totalPages ||
+                                            (pageNum >= currentPage - 1 && pageNum <= currentPage + 1)
+                                        ) {
+                                            return (
+                                                <button
+                                                    key={pageNum}
+                                                    onClick={() => loadData(pageNum)}
+                                                    style={{
+                                                        padding: '0.5rem 0.75rem',
+                                                        borderRadius: 'var(--radius-sm)',
+                                                        border: pageNum === currentPage ? 'none' : '1px solid var(--border)',
+                                                        background: pageNum === currentPage ? 'var(--accent)' : 'transparent',
+                                                        color: pageNum === currentPage ? 'white' : 'var(--text-primary)',
+                                                        cursor: 'pointer',
+                                                        fontSize: 'var(--font-sm)',
+                                                        fontWeight: pageNum === currentPage ? '600' : 'normal'
+                                                    }}
+                                                >
+                                                    {pageNum}
+                                                </button>
+                                            );
+                                        } else if (
+                                            (pageNum === 2 && currentPage > 3) ||
+                                            (pageNum === totalPages - 1 && currentPage < totalPages - 2)
+                                        ) {
+                                            return <span key={pageNum}>...</span>;
+                                        }
+                                        return null;
+                                    })}
+                                </div>
+                                <button
+                                    class="btn btn-outline btn-sm"
+                                    onClick={() => loadData(currentPage + 1)}
+                                    disabled={currentPage === totalPages}
+                                >
+                                    Next →
+                                </button>
+                            </div>
+                        </div>
+                    </>
+                ) : (
+                    <>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Exam Title</th>
+                                    <th>Student Name</th>
+                                    <th>Standard</th>
+                                    <th>Type</th>
+                                    <th>Obtained</th>
+                                    <th>Total</th>
+                                    <th>Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {data.map(item => (
+                                    <tr key={item._id}>
+                                        <td style="font-weight: 600;">{item.title}</td>
+                                        <td>{item.studentName}</td>
+                                        <td>{item.std} {item.stream !== 'None' ? `(${item.stream})` : ''}</td>
+                                        <td><span class="badge badge-outline">{item.type}</span></td>
+                                        <td>
+                                            <span class={`marks-badge ${getMarksClass(item.obtainedMarks, item.totalMarks)}`}>
+                                                {item.obtainedMarks}
+                                            </span>
+                                        </td>
+                                        <td>{item.totalMarks}</td>
+                                        <td>{new Date(item.date).toLocaleDateString()}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                        <div style="display: flex; align-items: center; justify-content: space-between; padding: '1rem'; border-top: 1px solid var(--border); margin-top: 1.5rem; gap: 1rem;">
+                            <span style="font-size: var(--font-sm); color: var(--text-secondary);">
+                                Showing {((currentPage - 1) * pageSize) + 1} to {Math.min(currentPage * pageSize, totalCount)} of {totalCount} results
+                            </span>
+                            <div style="display: flex; gap: 0.5rem;">
+                                <button
+                                    class="btn btn-outline btn-sm"
+                                    onClick={() => loadData(currentPage - 1)}
+                                    disabled={currentPage === 1}
+                                >
+                                    ← Previous
+                                </button>
+                                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                    {Array.from({ length: totalPages }, (_, i) => {
+                                        const pageNum = i + 1;
+                                        if (
+                                            pageNum === 1 ||
+                                            pageNum === totalPages ||
+                                            (pageNum >= currentPage - 1 && pageNum <= currentPage + 1)
+                                        ) {
+                                            return (
+                                                <button
+                                                    key={pageNum}
+                                                    onClick={() => loadData(pageNum)}
+                                                    style={{
+                                                        padding: '0.5rem 0.75rem',
+                                                        borderRadius: 'var(--radius-sm)',
+                                                        border: pageNum === currentPage ? 'none' : '1px solid var(--border)',
+                                                        background: pageNum === currentPage ? 'var(--accent)' : 'transparent',
+                                                        color: pageNum === currentPage ? 'white' : 'var(--text-primary)',
+                                                        cursor: 'pointer',
+                                                        fontSize: 'var(--font-sm)',
+                                                        fontWeight: pageNum === currentPage ? '600' : 'normal'
+                                                    }}
+                                                >
+                                                    {pageNum}
+                                                </button>
+                                            );
+                                        } else if (
+                                            (pageNum === 2 && currentPage > 3) ||
+                                            (pageNum === totalPages - 1 && currentPage < totalPages - 2)
+                                        ) {
+                                            return <span key={pageNum}>...</span>;
+                                        }
+                                        return null;
+                                    })}
+                                </div>
+                                <button
+                                    class="btn btn-outline btn-sm"
+                                    onClick={() => loadData(currentPage + 1)}
+                                    disabled={currentPage === totalPages}
+                                >
+                                    Next →
+                                </button>
+                            </div>
+                        </div>
+                    </>
                 )}
             </div>
         </div>
