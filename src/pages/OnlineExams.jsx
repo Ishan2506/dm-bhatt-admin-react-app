@@ -216,8 +216,13 @@ export function OnlineExams() {
                 questions: parsedQuestions
             };
 
-            await api.post('/exam/create', payload, { noPrefix: true });
-            showToast('Exam created successfully!');
+            if (editingExam) {
+                await api.put(`/exam/update/${editingExam}`, payload, { noPrefix: true });
+                showToast('Exam updated successfully!');
+            } else {
+                await api.post('/exam/create', payload, { noPrefix: true });
+                showToast('Exam created successfully!');
+            }
             setShowAddModal(false);
             resetForm();
             loadExams();
