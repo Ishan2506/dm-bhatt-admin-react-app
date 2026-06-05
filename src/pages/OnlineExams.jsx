@@ -611,6 +611,34 @@ export function OnlineExams() {
                                 </div>
                             ) : (
                                 <div class="review-questions">
+                                    {editingExam && (
+                                        <div style="background: var(--bg-secondary); padding: 1.75rem; border-radius: 12px; border: 1px solid var(--border-color); margin-bottom: 1.5rem;">
+                                            <h4 style="margin: 0 0 1.5rem 0; font-size: 1rem; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 8px;">
+                                                <span style="width: 4px; height: 24px; background: var(--accent); border-radius: 2px;"></span>
+                                                Edit Exam Details
+                                            </h4>
+                                            <div class="form-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+                                                <div class="form-group">
+                                                    <label style="font-weight: 600; font-size: 0.9rem; display: block; margin-bottom: 0.5rem;">Exam Title *</label>
+                                                    <input type="text" name="title" value={formData.title} onInput={handleInputChange} placeholder="e.g. Weekly Test - 1" style="width: 100%; padding: 0.75rem 1rem; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-primary); color: var(--text-primary); font-size: 0.95rem;" />
+                                                </div>
+                                                <div class="form-group">
+                                                    <label style="font-weight: 600; font-size: 0.9rem; display: block; margin-bottom: 0.5rem;">Unit / Chapter *</label>
+                                                    <input type="text" name="unit" value={formData.unit} onInput={handleInputChange} placeholder="e.g. Unit 1" style="width: 100%; padding: 0.75rem 1rem; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-primary); color: var(--text-primary); font-size: 0.95rem;" />
+                                                </div>
+                                                <div class="form-group">
+                                                    <label style="font-weight: 600; font-size: 0.9rem; display: block; margin-bottom: 0.5rem;">Board *</label>
+                                                    <select name="board" value={formData.board} onChange={handleInputChange} style="width: 100%; padding: 0.75rem 1rem; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-primary); color: var(--text-primary); font-size: 0.95rem;">
+                                                        {AcademicConstants.boards.map(b => <option value={b}>{b}</option>)}
+                                                    </select>
+                                                </div>
+                                                <div class="form-group">
+                                                    <label style="font-weight: 600; font-size: 0.9rem; display: block; margin-bottom: 0.5rem;">Total Marks *</label>
+                                                    <input type="number" name="totalMarks" value={formData.totalMarks} onInput={handleInputChange} style="width: 100%; padding: 0.75rem 1rem; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-primary); color: var(--text-primary); font-size: 0.95rem;" disabled />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
                                     <div class="review-header" style="position: sticky; top: 0; background: var(--bg-primary); z-index: 10; margin-bottom: 1rem; padding: 0.75rem; background: var(--bg-secondary); border-radius: 4px; display: flex; justify-content: space-between; align-items: center;">
                                         <span>Total: <strong>{parsedQuestions.length} / {formData.totalMarks}</strong></span>
                                         <button class="btn btn-sm btn-primary" onClick={addQuestion}><Icons.Plus /> Add Question</button>
