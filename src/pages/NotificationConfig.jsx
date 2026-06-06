@@ -28,15 +28,24 @@ export function NotificationConfig() {
     const [saving, setSaving] = useState(false);
     const [saved, setSaved] = useState(false);
     const [loading, setLoading] = useState(true);
-    const [pushForm, setPushForm] = useState({ title: '', body: '' });
+    const [pushForm, setPushForm] = useState({ title: '', body: '', std: 'all' });
     const [sendingPush, setSendingPush] = useState(false);
     const [pushSent, setPushSent] = useState(false);
+    const [standards, setStandards] = useState([]);
 
     useEffect(() => {
         api.get('/config/notification')
             .then(res => { if (res) setForm({ ...defaultForm, ...res }); })
             .catch(() => {})
             .finally(() => setLoading(false));
+
+        api.get('/super-admin/standards')
+            .then(res => {
+                if (res && Array.isArray(res)) {
+                    setStandards(res.map(s => s.name || s).sort());
+                }
+            })
+            .catch(() => {});
     }, []);
 
     const handleSave = async (e) => {
@@ -193,25 +202,40 @@ export function NotificationConfig() {
                     {/* --- Send Push Notification --- */}
                     <div class="config-section">
                         <h3 class="config-section-title">Send Push Notification</h3>
-                        <p class="config-section-desc">Write a message to send a push notification to all student apps</p>
-                        
+                        <p class="config-section-desc">Write a message to send a push notification to student apps</p>
+
                         <div class="config-grid" style="margin-top: 1.5rem;">
+                            <div class="form-group">
+                                <label>Send To</label>
+                                <select
+                                    class="form-control"
+                                    value={pushForm.std}
+                                    onChange={(e) => setPushForm({ ...pushForm, std: e.target.value })}
+                                >
+                                    <option value="all">All Students</option>
+                                    {standards.map(std => (
+                                        <option key={std} value={std}>
+                                            Standard {std}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
                             <div class="form-group" style="grid-column: span 2;">
                                 <label>Notification Title</label>
-                                <input 
-                                    class="form-control" 
-                                    type="text" 
-                                    placeholder="Enter title..." 
+                                <input
+                                    class="form-control"
+                                    type="text"
+                                    placeholder="Enter title..."
                                     value={pushForm.title}
                                     onInput={(e) => setPushForm({ ...pushForm, title: e.target.value })}
                                 />
                             </div>
                             <div class="form-group" style="grid-column: span 2;">
                                 <label>Notification Subtitle / Message</label>
-                                <textarea 
-                                    class="form-control" 
-                                    rows="3" 
-                                    placeholder="Enter message body..." 
+                                <textarea
+                                    class="form-control"
+                                    rows="3"
+                                    placeholder="Enter message body..."
                                     value={pushForm.body}
                                     onInput={(e) => setPushForm({ ...pushForm, body: e.target.value })}
                                 />
@@ -219,13 +243,13 @@ export function NotificationConfig() {
                         </div>
 
                         <div style="margin-top: 1.5rem; display: flex; align-items: center; gap: 1rem;">
-                            <button 
-                                type="button" 
-                                class="btn btn-primary" 
+                            <button
+                                type="button"
+                                class="btn btn-primary"
                                 onClick={handleSendPush}
                                 disabled={sendingPush}
                             >
-                                {sendingPush ? 'Sending...' : 'Send to All Students'}
+                                {sendingPush ? 'Sending...' : pushForm.std === 'all' ? 'Send to All Students' : `Send to Std ${pushForm.std}`}
                             </button>
                             {pushSent && (
                                 <span class="save-success" style="margin:0;"><Icons.Success /> Notification sent!</span>
