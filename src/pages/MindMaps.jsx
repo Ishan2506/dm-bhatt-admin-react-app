@@ -1,8 +1,9 @@
 import { h } from 'preact';
 import { useState, useEffect } from 'preact/hooks';
 import { api } from '../api';
-import { AcademicConstants } from '../utils/constants';
 import { Icons } from '../components/Icons';
+
+const BOARDS = ['GSEB', 'CBSE', 'ICSE', 'ISC'];
 
 const NodeEditor = ({ node, onUpdate, onDelete, isRoot = false }) => {
     const addChild = () => {
@@ -233,13 +234,13 @@ export function MindMaps() {
                             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
                                 <div class="form-group">
                                     <label class="form-label">Board</label>
-                                    <select 
-                                        name="board" 
-                                        class="form-control" 
-                                        value={form.board} 
+                                    <select
+                                        name="board"
+                                        class="form-control"
+                                        value={form.board}
                                         onInput={handleInputChange}
                                     >
-                                        {AcademicConstants.boards.map(b => <option value={b}>{b}</option>)}
+                                        {BOARDS.map(b => <option value={b}>{b}</option>)}
                                     </select>
                                 </div>
                                 <div class="form-group">
