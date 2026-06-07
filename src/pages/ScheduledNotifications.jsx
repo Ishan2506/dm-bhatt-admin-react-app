@@ -54,13 +54,16 @@ export function ScheduledNotifications() {
     const formatDateTime = (dateStr) => {
         if (!dateStr) return 'N/A';
         const d = new Date(dateStr);
-        return d.toLocaleString('en-IN', {
+        // Convert UTC to IST (UTC+5:30)
+        const istTime = new Date(d.getTime() + (5.5 * 60 * 60 * 1000));
+        return istTime.toLocaleString('en-IN', {
             day: '2-digit',
             month: '2-digit',
             year: 'numeric',
             hour: '2-digit',
             minute: '2-digit',
-            hour12: true
+            hour12: true,
+            timeZone: 'Asia/Kolkata'
         });
     };
 
