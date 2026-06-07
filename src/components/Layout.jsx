@@ -75,11 +75,18 @@ const navigation = [
         ]
     },
     {
+        title: 'NOTIFICATIONS',
+        roles: ['super admin'],
+        items: [
+            { path: '/admin/config/notification', label: 'Configuration', icon: <Icons.Notification /> },
+            { path: '/admin/scheduled-notifications', label: 'Scheduled', icon: <Icons.Clock /> },
+        ]
+    },
+    {
         title: 'CONFIGURATION',
         roles: ['super admin'],
         items: [
             { path: '/admin/config/payment', label: 'Payment', icon: <Icons.Revenue /> },
-            { path: '/admin/config/notification', label: 'Notification', icon: <Icons.Notification /> },
             { path: '/admin/config/app', label: 'App Version', icon: <Icons.Gear /> },
         ]
     }

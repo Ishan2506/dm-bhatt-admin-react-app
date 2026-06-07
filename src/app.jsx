@@ -18,6 +18,7 @@ import { FiveMinQuiz } from './pages/FiveMinQuiz';
 import { OneLinerExams } from './pages/OneLinerExams';
 import { PaymentConfig } from './pages/PaymentConfig';
 import { NotificationConfig } from './pages/NotificationConfig';
+import { ScheduledNotifications } from './pages/ScheduledNotifications';
 import { AppConfig } from './pages/AppConfig';
 import { Products } from './pages/Products';
 import { ReportsPage } from './pages/ReportsPage';
@@ -134,6 +135,7 @@ export function App() {
           {user.role === 'super admin' && <Payments path="/admin/payments/:type?" />}
           {user.role === 'super admin' && <PaymentConfig path="/admin/config/payment" />}
           {user.role === 'super admin' && <NotificationConfig path="/admin/config/notification" />}
+          {user.role === 'super admin' && <ScheduledNotifications path="/admin/scheduled-notifications" />}
           {user.role === 'super admin' && <AppConfig path="/admin/config/app" />}
 
           <Standards path="/admin/standards" />
