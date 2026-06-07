@@ -39,13 +39,18 @@ export function NotificationConfig() {
             .catch(() => {})
             .finally(() => setLoading(false));
 
-        api.get('/super-admin/standards')
+        api.get('/standards')
             .then(res => {
                 if (res && Array.isArray(res)) {
-                    setStandards(res.map(s => s.name || s).sort());
+                    const stdNames = res.map(s => s.name || s).sort((a, b) => {
+                        const aNum = parseInt(a);
+                        const bNum = parseInt(b);
+                        return aNum - bNum;
+                    });
+                    setStandards(stdNames);
                 }
             })
-            .catch(() => {});
+            .catch(err => console.error('Failed to load standards:', err));
     }, []);
 
     const handleSave = async (e) => {
