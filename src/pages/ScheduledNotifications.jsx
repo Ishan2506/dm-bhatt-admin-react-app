@@ -54,9 +54,8 @@ export function ScheduledNotifications() {
     const formatDateTime = (dateStr) => {
         if (!dateStr) return 'N/A';
         const d = new Date(dateStr);
-        // Convert UTC to IST (UTC+5:30)
-        const istTime = new Date(d.getTime() + (5.5 * 60 * 60 * 1000));
-        return istTime.toLocaleString('en-IN', {
+        // Use Asia/Kolkata timezone to display IST time correctly
+        return d.toLocaleString('en-IN', {
             day: '2-digit',
             month: '2-digit',
             year: 'numeric',
