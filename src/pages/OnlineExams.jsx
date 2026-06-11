@@ -33,6 +33,8 @@ export function OnlineExams() {
     const [parsedQuestions, setParsedQuestions] = useState([]);
     const [reviewMode, setReviewMode] = useState(false);
     const [isLoadingDetails, setIsLoadingDetails] = useState(false);
+    const [allSubjects, setAllSubjects] = useState([]);
+    const [filteredSubjects, setFilteredSubjects] = useState([]);
 
     const showToast = (message, type = 'success') => {
         setToast({ message, type });
@@ -62,9 +64,33 @@ export function OnlineExams() {
             .finally(() => setLoading(false));
     };
 
+    const loadAllSubjects = () => {
+        api.get('/subjects')
+            .then(response => {
+                const subjects = Array.isArray(response) ? response : response.data || [];
+                setAllSubjects(subjects);
+            })
+            .catch(err => console.error('Failed to load subjects:', err));
+    };
+
+    const getFilteredSubjects = () => {
+        return allSubjects.filter(subject => {
+            const subjectStd = subject.standardId?.name || subject.std || '';
+            const subjectStream = subject.stream || 'None';
+            const matchStd = formData.std === '' || subjectStd.includes(formData.std);
+            const matchStream = formData.stream === 'None' || subjectStream === formData.stream || subjectStream === 'None';
+            return matchStd && matchStream;
+        });
+    };
+
     useEffect(() => {
         loadExams(1);
+        loadAllSubjects();
     }, []);
+
+    useEffect(() => {
+        setFilteredSubjects(getFilteredSubjects());
+    }, [formData.std, formData.stream, allSubjects]);
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -636,8 +662,8 @@ export function OnlineExams() {
                                                     <label style="font-weight: 600; font-size: 0.9rem; display: block; margin-bottom: 0.5rem;">Subject *</label>
                                                     <select name="subject" value={formData.subject} onChange={handleInputChange} style="width: 100%; padding: 0.75rem 1rem; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-primary); color: var(--text-primary); font-size: 0.95rem;">
                                                         <option value="">Select Subject</option>
-                                                        {AcademicConstants.subjects[`${formData.board}-${formData.std}${formData.stream !== 'None' ? '-' + formData.stream : ''}`]?.map(sub => (
-                                                            <option value={sub}>{sub}</option>
+                                                        {filteredSubjects.map(sub => (
+                                                            <option value={sub.name || sub._id}>{sub.name}</option>
                                                         ))}
                                                     </select>
                                                 </div>
