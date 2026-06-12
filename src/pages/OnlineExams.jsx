@@ -581,8 +581,8 @@ export function OnlineExams() {
                                                 <label style="font-weight: 600; font-size: 0.9rem; display: block; margin-bottom: 0.5rem;">Subject *</label>
                                                 <select name="subject" value={formData.subject} onChange={handleInputChange} style="width: 100%; padding: 0.75rem 1rem; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-primary); color: var(--text-primary); font-size: 0.95rem;">
                                                     <option value="">Select Subject</option>
-                                                    {AcademicConstants.subjects[`${formData.board}-${formData.std}${formData.stream !== 'None' ? '-' + formData.stream : ''}`]?.map(sub => (
-                                                        <option value={sub}>{sub}</option>
+                                                    {filteredSubjects.map(sub => (
+                                                        <option value={sub.name || sub._id}>{sub.name}</option>
                                                     ))}
                                                 </select>
                                             </div>
