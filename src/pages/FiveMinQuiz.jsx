@@ -586,13 +586,13 @@ export function FiveMinQuiz() {
                                                     <div style="display: flex; flex-direction: column; gap: 1rem;">
                                                         <input type="file" accept=".pdf" onChange={handleFileChange} style="padding: 0.75rem; cursor: pointer;" />
                                                         <p style="font-size: 0.85rem; color: var(--text-secondary); margin: 0;">
-                                                            📄 <strong>Expected Format:</strong><br/>1. Question... A) Choice... B)... Answer: A
+                                                            <strong>Expected Format:</strong><br/>1. Question... A) Choice... B)... Answer: A
                                                         </p>
                                                     </div>
                                                 </div>
                                             ) : (
                                                 <div style="margin-top: 1.5rem; padding: 1.25rem; background: var(--bg-primary); border-radius: 8px; border: 1px solid var(--border-color);">
-                                                    <p style="color: var(--text-secondary); margin: 0; font-size: 0.95rem;">✓ You will add questions manually in the next step.</p>
+                                                    <p style="color: var(--text-secondary); margin: 0; font-size: 0.95rem;">You will add questions manually in the next step.</p>
                                                 </div>
                                             )}
                                         </div>

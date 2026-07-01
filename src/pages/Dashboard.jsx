@@ -59,9 +59,9 @@ export function Dashboard() {
                                 {
                                     label: 'Revenue',
                                     data: revData.map(d => d.amount || 0),
-                                    backgroundColor: '#4f46e5',
+                                    backgroundColor: '#2563eb',
                                     borderRadius: 6,
-                                    barThickness: 12,
+                                    barThickness: 14,
                                 }
                             ]
                         },
@@ -104,7 +104,7 @@ export function Dashboard() {
                             labels: stats.studentsByStd.map(s => `Std ${s.label}`),
                             datasets: [{
                                 data: stats.studentsByStd.map(s => s.value),
-                                backgroundColor: ['#4f46e5', '#10b981', '#f59e0b', '#ef4444', '#3b82f6', '#8b5cf6'],
+                                backgroundColor: ['#2563eb', '#16a34a', '#f59e0b', '#dc2626', '#7c3aed', '#0ea5e9'],
                                 borderWidth: 0,
                                 hoverOffset: 12
                             }]
@@ -136,7 +136,7 @@ export function Dashboard() {
                             labels: stats.productEarningsByProduct.map(p => p.label),
                             datasets: [{
                                 data: stats.productEarningsByProduct.map(p => p.value),
-                                backgroundColor: ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#4f46e5'],
+                                backgroundColor: ['#16a34a', '#2563eb', '#f59e0b', '#dc2626', '#7c3aed', '#0ea5e9'],
                                 borderWidth: 0,
                                 hoverOffset: 12
                             }]

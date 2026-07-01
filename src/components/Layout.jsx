@@ -99,7 +99,6 @@ const navigation = [
 export function Layout({ children, currentPath, user, onLogout }) {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
-    const [isDarkMode, setIsDarkMode] = useState(false);
     const userRole = user?.role || 'admin';
 
     useEffect(() => {
@@ -114,28 +113,9 @@ export function Layout({ children, currentPath, user, onLogout }) {
     }, []);
 
     useEffect(() => {
-        const savedTheme = localStorage.getItem('theme');
-        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-        if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
-            setIsDarkMode(true);
-            document.documentElement.setAttribute('data-theme', 'dark');
-        } else {
-            setIsDarkMode(false);
-            document.documentElement.removeAttribute('data-theme');
-        }
+        // Light theme only — ensure no legacy dark-mode attribute lingers.
+        document.documentElement.removeAttribute('data-theme');
     }, []);
-
-    const toggleTheme = () => {
-        const newMode = !isDarkMode;
-        setIsDarkMode(newMode);
-        if (newMode) {
-            document.documentElement.setAttribute('data-theme', 'dark');
-            localStorage.setItem('theme', 'dark');
-        } else {
-            document.documentElement.removeAttribute('data-theme');
-            localStorage.setItem('theme', 'light');
-        }
-    };
 
     const toggleSidebarCollapse = () => {
         const newCollapsed = !isSidebarCollapsed;
@@ -238,9 +218,6 @@ export function Layout({ children, currentPath, user, onLogout }) {
                     </div>
                     <div class="topbar-right">
                         <div class="topbar-actions">
-                             <button class="topbar-btn theme-toggle" onClick={toggleTheme} aria-label="Toggle Dark Mode">
-                                {isDarkMode ? <Icons.Sun /> : <Icons.Moon />}
-                             </button>
                              <div class="topbar-profile">
                                  <button class="profile-toggle-btn">
                                      <div class="profile-avatar-small"><Icons.User /></div>

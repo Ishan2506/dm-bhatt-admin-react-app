@@ -331,7 +331,7 @@ export function Materials({ type }) {
                         {editing && !form.file && (
                             <div style="margin-top: 8px; padding: 10px; background: var(--bg-secondary); border-radius: var(--radius-md); border: 1px dashed var(--border);">
                                 <p style="font-size: var(--font-xs); color: var(--text-primary); margin-bottom: 4px;">
-                                    📄 Current: <span style="color: var(--accent); font-weight: 600;">{getFileName(editing.file)}</span>
+                                    Current: <span style="color: var(--accent); font-weight: 600;">{getFileName(editing.file)}</span>
                                 </p>
                                 <p style="font-size: var(--font-xs); color: var(--text-secondary);">Leave empty to keep existing file</p>
                             </div>
@@ -607,11 +607,11 @@ export function Materials({ type }) {
                                     <Icons.ExternalLink /> Open in tab
                                 </a>
                                 <button
-                                    class="btn btn-outline btn-sm"
+                                    class="btn btn-outline btn-sm btn-icon"
                                     onClick={() => setPreviewItem(null)}
-                                    style={{ fontWeight: 700, fontSize: '1.1rem', lineHeight: 1 }}
+                                    aria-label="Close preview"
                                 >
-                                    ✕
+                                    <Icons.X />
                                 </button>
                             </div>
                         </div>

@@ -3,6 +3,22 @@ import { useState } from 'preact/hooks';
 import { Link } from 'preact-router/match';
 import './LandingPage.css';
 
+const svg = (children) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    {children}
+  </svg>
+);
+
+const LpIcons = {
+  Book: () => svg(<><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z" /><path d="M6.5 18H20" /></>),
+  Check: () => svg(<><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" /></>),
+  Chart: () => svg(<><line x1="18" y1="20" x2="18" y2="10" /><line x1="12" y1="20" x2="12" y2="4" /><line x1="6" y1="20" x2="6" y2="14" /></>),
+  Phone: () => svg(<><rect width="14" height="20" x="5" y="2" rx="2" ry="2" /><path d="M12 18h.01" /></>),
+  Lock: () => svg(<><rect width="18" height="11" x="3" y="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></>),
+  Bulb: () => svg(<><path d="M9 18h6" /><path d="M10 22h4" /><path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 0 1 8.91 14" /></>),
+  Pin: () => svg(<><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0Z" /><circle cx="12" cy="10" r="3" /></>),
+};
+
 export function LandingPage() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
@@ -60,14 +76,14 @@ export function LandingPage() {
             <div className="lp-image-wrapper">
               <img src="/assets/padhaku-mockup.png" alt="App Mockup" />
               <div className="lp-floating-card lp-card-1">
-                <div className="lp-card-icon">📚</div>
+                <div className="lp-card-icon"><LpIcons.Book /></div>
                 <div className="lp-card-info">
                   <strong>500+</strong>
                   <span>Chapters</span>
                 </div>
               </div>
               <div className="lp-floating-card lp-card-2">
-                <div className="lp-card-icon">✅</div>
+                <div className="lp-card-icon"><LpIcons.Check /></div>
                 <div className="lp-card-info">
                   <strong>Real-time</strong>
                   <span>Tracking</span>
@@ -113,7 +129,7 @@ export function LandingPage() {
           <div className="lp-bento-grid">
             <div className="lp-bento-item lp-bento-large">
               <div className="lp-bento-content">
-                <div className="lp-bento-icon">📊</div>
+                <div className="lp-bento-icon"><LpIcons.Chart /></div>
                 <h3>Detailed Analytics</h3>
                 <p>Track your performance across different subjects and see where you need to improve.</p>
               </div>
@@ -130,7 +146,7 @@ export function LandingPage() {
 
             <div className="lp-bento-item lp-bento-medium">
               <div className="lp-bento-content">
-                <div className="lp-bento-icon">📱</div>
+                <div className="lp-bento-icon"><LpIcons.Phone /></div>
                 <h3>Anywhere Access</h3>
                 <p>Study on the go with our fully responsive mobile and web applications.</p>
               </div>
@@ -138,7 +154,7 @@ export function LandingPage() {
 
             <div className="lp-bento-item lp-bento-medium">
               <div className="lp-bento-content">
-                <div className="lp-bento-icon">🔒</div>
+                <div className="lp-bento-icon"><LpIcons.Lock /></div>
                 <h3>Secure Portal</h3>
                 <p>Your data and progress are always safe with our enterprise-grade security.</p>
               </div>
@@ -146,7 +162,7 @@ export function LandingPage() {
 
             <div className="lp-bento-item lp-bento-wide">
               <div className="lp-bento-content">
-                <div className="lp-bento-icon">💡</div>
+                <div className="lp-bento-icon"><LpIcons.Bulb /></div>
                 <h3>Expert Curated Content</h3>
                 <p>All materials are verified and curated by subject matter experts to ensure accuracy and relevance to your curriculum.</p>
               </div>
@@ -188,8 +204,9 @@ export function LandingPage() {
                   Centralised platform to track your daily progress. Elevating 
                   education management through digital innovation.
                 </p>
-                <div className="lp-location-badge">
-                  📍 AHMEDABAD, IN
+                <div className="lp-location-badge" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0Z" /><circle cx="12" cy="10" r="3" /></svg>
+                  AHMEDABAD, IN
                 </div>
               </div>
 

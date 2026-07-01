@@ -307,7 +307,7 @@ export function MindMaps() {
                             </div>
 
                             <div class="tree-builder-section">
-                                <h4 class="form-label" style={{ borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem', marginBottom: '1rem' }}>🌳 Tree Builder</h4>
+                                <h4 class="form-label" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem', marginBottom: '1rem' }}><Icons.MindMaps /> Tree Builder</h4>
                                 <NodeEditor 
                                     node={form.data} 
                                     onUpdate={handleTreeUpdate} 
