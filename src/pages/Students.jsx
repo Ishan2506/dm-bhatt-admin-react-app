@@ -15,6 +15,16 @@ export function Students() {
     const [exporting, setExporting] = useState(false);
     const [standards, setStandards] = useState([]);
     const [pageSize, setPageSize] = useState(25);
+    const [search, setSearch] = useState('');
+
+    // Deterministic avatar color from a name (pure UI helper).
+    const avatarColors = ['#2563eb', '#7c3aed', '#16a34a', '#f59e0b', '#dc2626', '#0ea5e9', '#db2777'];
+    const avatarColor = (name = '') => {
+        let h = 0;
+        for (let i = 0; i < name.length; i++) h = name.charCodeAt(i) + ((h << 5) - h);
+        return avatarColors[Math.abs(h) % avatarColors.length];
+    };
+    const initials = (name = '') => name.trim().split(/\s+/).slice(0, 2).map(p => p[0]).join('').toUpperCase() || '?';
 
     const load = (page = 1) => {
         setLoading(true);
@@ -111,137 +121,181 @@ export function Students() {
         }
     };
 
+    const visibleStudents = search.trim()
+        ? data.students.filter(s => {
+            const q = search.trim().toLowerCase();
+            return [s.firstName, s.email, s.phoneNum, s.std, s.medium]
+                .some(v => (v || '').toString().toLowerCase().includes(q));
+        })
+        : data.students;
+
     return (
         <div>
+            <div class="page-header">
+                <div class="page-header-titles">
+                    <div class="page-header-eyebrow"><Icons.User /> Users</div>
+                    <h1>Students</h1>
+                    <p class="page-subtitle">Manage enrolled learners, their standards, and reward points.</p>
+                    <div class="header-metrics">
+                        <div class="header-metric">
+                            <span class="hm-value">{data.total.toLocaleString()}</span>
+                            <span class="hm-label">Total Students</span>
+                        </div>
+                        <div class="header-metric">
+                            <span class="hm-value">{standards.length}</span>
+                            <span class="hm-label">Standards</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="page-header-actions">
+                    <button class="btn btn-outline" onClick={handleExport} disabled={exporting}>
+                        {exporting ? 'Exporting…' : <Fragment><Icons.Download /> Export CSV</Fragment>}
+                    </button>
+                    <button class="btn btn-primary" onClick={openAdd}>
+                        <Icons.Plus /> Add Student
+                    </button>
+                </div>
+            </div>
+
             <div class="table-container">
                 <div class="table-header">
-                    <h3><Icons.User /> All Students</h3>
-                    <div class="table-filters" style="display: flex; gap: 1rem; align-items: center;">
-                        <select
-                            value={pageSize}
-                            onChange={(e) => {
-                                setPageSize(parseInt(e.target.value));
-                                load(1);
-                            }}
-                            style="padding: 0.5rem 0.75rem; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg-secondary); color: var(--text-primary); font-size: var(--font-sm); cursor: pointer;"
-                        >
-                            <option value={10}>10 per page</option>
-                            <option value={25} selected>25 per page</option>
-                            <option value={50}>50 per page</option>
-                            <option value={100}>100 per page</option>
-                        </select>
-                        <span style="font-size: 0.85rem; color: var(--text-secondary); font-weight: 500;">
-                            Total: {data.total}
-                        </span>
-                        <button class="btn btn-outline btn-sm" onClick={handleExport} disabled={exporting}>
-                            {exporting ? 'Exporting...' : <Fragment><Icons.Download /> Export CSV</Fragment>}
-                        </button>
-                        <button class="btn btn-primary btn-sm" onClick={openAdd}>
-                            <Icons.Plus /> Add Student
-                        </button>
+                    <div class="toolbar" style="width:100%;">
+                        <div class="toolbar-group">
+                            <div class="field-search">
+                                <Icons.Eye />
+                                <input
+                                    class="form-control"
+                                    placeholder="Search name, email, phone…"
+                                    value={search}
+                                    onInput={(e) => setSearch(e.target.value)}
+                                />
+                            </div>
+                        </div>
+                        <div class="toolbar-group">
+                            <select
+                                class="form-control"
+                                value={pageSize}
+                                onChange={(e) => { setPageSize(parseInt(e.target.value)); load(1); }}
+                            >
+                                <option value={10}>10 per page</option>
+                                <option value={25}>25 per page</option>
+                                <option value={50}>50 per page</option>
+                                <option value={100}>100 per page</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
                 {loading ? (
-                    <div style="padding: 2rem; text-align: center;">Loading students...</div>
+                    <div class="loading-spinner" />
                 ) : data.students.length === 0 ? (
                     <div class="table-empty">
                         <div class="empty-icon"><Icons.User /></div>
-                        <p>No students found.</p>
+                        <p>No students found. Add your first student to get started.</p>
                     </div>
                 ) : (
                     <Fragment>
+                        <div class="table-scroll">
                         <table>
                             <thead>
                                 <tr>
-                                    <th>Name</th>
-                                    <th>Email</th>
+                                    <th>Student</th>
                                     <th>Phone</th>
                                     <th>Standard</th>
                                     <th>Medium</th>
                                     <th>Points</th>
-                                    <th>Joined Date</th>
-                                    <th>Actions</th>
+                                    <th>Joined</th>
+                                    <th style="text-align:right;">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {data.students.map((student) => (
+                                {visibleStudents.map((student) => (
                                     <tr key={student._id}>
-                                        <td style="font-weight: 600;">{student.firstName || ''}</td>
-                                        <td>{student.email || '-'}</td>
-                                        <td>{student.phoneNum || '-'}</td>
-                                        <td>{student.std || '-'} {student.stream ? `(${student.stream})` : ''}</td>
-                                        <td>{student.medium || '-'}</td>
-                                        <td>{student.totalRewardPoints || 0}</td>
-                                        <td>{student.createdAt ? new Date(student.createdAt).toLocaleDateString() : '-'}</td>
                                         <td>
-                                            <div class="td-actions">
-                                                <button class="btn btn-outline btn-sm" onClick={() => openEdit(student)}>
-                                                    <Icons.Edit /> Edit
+                                            <div class="identity">
+                                                <div class="avatar" style={{ background: avatarColor(student.firstName || '') }}>
+                                                    {initials(student.firstName || '')}
+                                                </div>
+                                                <div class="identity-body">
+                                                    <div class="identity-name">{student.firstName || 'Unnamed'}</div>
+                                                    <div class="identity-sub">{student.email || 'No email'}</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>{student.phoneNum || '—'}</td>
+                                        <td>
+                                            <span class="cell-chip">
+                                                {student.std || '—'}{student.stream ? ` · ${student.stream}` : ''}
+                                            </span>
+                                        </td>
+                                        <td>{student.medium || '—'}</td>
+                                        <td style="font-weight:600;color:var(--text-primary);font-variant-numeric:tabular-nums;">
+                                            {student.totalRewardPoints || 0}
+                                        </td>
+                                        <td>{student.createdAt ? new Date(student.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}</td>
+                                        <td>
+                                            <div class="td-actions" style="justify-content:flex-end;">
+                                                <button class="icon-btn primary" title="Edit" onClick={() => openEdit(student)}>
+                                                    <Icons.Edit />
                                                 </button>
-                                                <button class="btn btn-danger btn-sm" onClick={() => setDeleteConfirm(student)}>
+                                                <button class="icon-btn danger" title="Delete" onClick={() => setDeleteConfirm(student)}>
                                                     <Icons.Trash />
                                                 </button>
                                             </div>
                                         </td>
                                     </tr>
                                 ))}
+                                {visibleStudents.length === 0 && (
+                                    <tr>
+                                        <td colSpan={7} style="text-align:center;color:var(--text-muted);padding:2.5rem;">
+                                            No students match “{search}”.
+                                        </td>
+                                    </tr>
+                                )}
                             </tbody>
                         </table>
-                        
+                        </div>
+
                         {data.totalPages > 1 && (
-                            <div style="display: flex; align-items: center; justify-content: space-between; padding: '1rem'; border-top: 1px solid var(--border); margin-top: 1.5rem; gap: 1rem;">
-                                <span style="font-size: var(--font-sm); color: var(--text-secondary);">
-                                    Showing {((data.page - 1) * pageSize) + 1} to {Math.min(data.page * pageSize, data.total)} of {data.total} students
+                            <div class="pagination">
+                                <span>
+                                    Showing {((data.page - 1) * pageSize) + 1}–{Math.min(data.page * pageSize, data.total)} of {data.total.toLocaleString()}
                                 </span>
-                                <div style="display: flex; gap: 0.5rem;">
+                                <div class="pagination-controls">
                                     <button
-                                        class="btn btn-outline btn-sm"
                                         onClick={() => load(data.page - 1)}
                                         disabled={data.page === 1}
                                     >
-                                        ← Previous
+                                        <Icons.ChevronLeft />
                                     </button>
-                                    <div style="display: flex; align-items: center; gap: 0.5rem;">
-                                        {Array.from({ length: data.totalPages }, (_, i) => {
-                                            const pageNum = i + 1;
-                                            if (
-                                                pageNum === 1 ||
-                                                pageNum === data.totalPages ||
-                                                (pageNum >= data.page - 1 && pageNum <= data.page + 1)
-                                            ) {
-                                                return (
-                                                    <button
-                                                        key={pageNum}
-                                                        onClick={() => load(pageNum)}
-                                                        style={{
-                                                            padding: '0.5rem 0.75rem',
-                                                            borderRadius: 'var(--radius-sm)',
-                                                            border: pageNum === data.page ? 'none' : '1px solid var(--border)',
-                                                            background: pageNum === data.page ? 'var(--accent)' : 'transparent',
-                                                            color: pageNum === data.page ? 'white' : 'var(--text-primary)',
-                                                            cursor: 'pointer',
-                                                            fontSize: 'var(--font-sm)',
-                                                            fontWeight: pageNum === data.page ? '600' : 'normal'
-                                                        }}
-                                                    >
-                                                        {pageNum}
-                                                    </button>
-                                                );
-                                            } else if (
-                                                (pageNum === 2 && data.page > 3) ||
-                                                (pageNum === data.totalPages - 1 && data.page < data.totalPages - 2)
-                                            ) {
-                                                return <span key={pageNum}>...</span>;
-                                            }
-                                            return null;
-                                        })}
-                                    </div>
+                                    {Array.from({ length: data.totalPages }, (_, i) => {
+                                        const pageNum = i + 1;
+                                        if (
+                                            pageNum === 1 ||
+                                            pageNum === data.totalPages ||
+                                            (pageNum >= data.page - 1 && pageNum <= data.page + 1)
+                                        ) {
+                                            return (
+                                                <button
+                                                    key={pageNum}
+                                                    class={pageNum === data.page ? 'active' : ''}
+                                                    onClick={() => load(pageNum)}
+                                                >
+                                                    {pageNum}
+                                                </button>
+                                            );
+                                        } else if (
+                                            (pageNum === 2 && data.page > 3) ||
+                                            (pageNum === data.totalPages - 1 && data.page < data.totalPages - 2)
+                                        ) {
+                                            return <span key={pageNum}>…</span>;
+                                        }
+                                        return null;
+                                    })}
                                     <button
-                                        class="btn btn-outline btn-sm"
                                         onClick={() => load(data.page + 1)}
                                         disabled={data.page === data.totalPages}
                                     >
-                                        Next →
+                                        <Icons.ChevronRight />
                                     </button>
                                 </div>
                             </div>

@@ -53,18 +53,23 @@ export function AppConfig() {
     return (
         <div>
             <div class="config-page">
-                <div class="config-header">
-                    <div class="config-header-icon"><Icons.Gear /></div>
-                    <div>
-                        <h2 class="config-title">App Version Configuration</h2>
-                        <p class="config-subtitle">Manage minimum required app version and store links for both apps.</p>
+                <div class="page-header">
+                    <div class="page-header-titles">
+                        <div class="page-header-eyebrow"><Icons.Gear /> Configuration</div>
+                        <h1>App Version</h1>
+                        <p class="page-subtitle">Manage minimum required app versions and store links for the Student and Admin applications.</p>
                     </div>
                 </div>
 
                 <form onSubmit={handleSave}>
                     <div class="config-section">
-                        <h3 class="config-section-title">Student App Configuration</h3>
-                        <p class="config-section-desc">Version requirements and store links for the main Student Application.</p>
+                        <div class="config-section-head">
+                            <div class="config-section-badge"><Icons.User /></div>
+                            <div>
+                                <h3 class="config-section-title">Student App</h3>
+                                <p class="config-section-desc">Version requirements and store links for the main Student Application.</p>
+                            </div>
+                        </div>
                         <div class="config-grid">
                             <div class="form-group">
                                 <label>Minimum Android Version (Build Number)</label>
@@ -86,8 +91,13 @@ export function AppConfig() {
                     </div>
 
                     <div class="config-section">
-                        <h3 class="config-section-title">Assistant / Admin App Configuration</h3>
-                        <p class="config-section-desc">Version requirements and store links for the Admin Application.</p>
+                        <div class="config-section-head">
+                            <div class="config-section-badge"><Icons.Shield /></div>
+                            <div>
+                                <h3 class="config-section-title">Assistant / Admin App</h3>
+                                <p class="config-section-desc">Version requirements and store links for the Admin Application.</p>
+                            </div>
+                        </div>
                         <div class="config-grid">
                             <div class="form-group">
                                 <label>Minimum Android Version (Build Number)</label>
@@ -109,19 +119,24 @@ export function AppConfig() {
                     </div>
 
                     <div class="config-section">
-                        <h3 class="config-section-title">Update Message</h3>
-                        <p class="config-section-desc">Text shown to users on the force update screen for both apps.</p>
-                        <div class="form-group">
+                        <div class="config-section-head">
+                            <div class="config-section-badge"><Icons.Notification /></div>
+                            <div>
+                                <h3 class="config-section-title">Force Update Message</h3>
+                                <p class="config-section-desc">Text shown to users on the force update screen for both apps.</p>
+                            </div>
+                        </div>
+                        <div class="form-group" style="margin-bottom:0;">
                             <textarea class="form-control" rows="3" placeholder="e.g. A new version of the app is available. Please update to continue using the app." {...f('forceUpdateMessage')} />
                         </div>
                     </div>
 
-                    <div class="config-footer">
+                    <div class="sticky-actions">
                         {saved && (
-                            <span class="save-success"><Icons.Success /> Saved successfully!</span>
+                            <span class="save-success"><Icons.Success /> Saved successfully</span>
                         )}
-                        <button class="btn btn-primary" type="submit" disabled={saving}>
-                            {saving ? 'Saving...' : 'Save Configuration'}
+                        <button class="btn btn-primary btn-lg" type="submit" disabled={saving}>
+                            {saving ? 'Saving…' : 'Save Configuration'}
                         </button>
                     </div>
                 </form>

@@ -178,30 +178,35 @@ export function Dashboard() {
     const totalRevenue = stats?.totalRevenue || 0;
 
     const cards = [
-        { title: 'Total Students', value: stats?.totalStudents || 0, icon: <Icons.User />, color: '#4f46e5', trend: '12%', up: true },
-        { title: 'Total Products', value: stats?.totalProducts || 0, icon: <Icons.Materials />, color: '#10b981', trend: '5%', up: true },
-        { title: 'Total Chapters', value: stats?.totalChapters || 0, icon: <Icons.Chapters />, color: '#f59e0b', trend: '2%', up: false },
-        { title: 'Total Revenue', value: `₹${totalRevenue.toLocaleString()}`, icon: <Icons.Revenue />, color: '#ef4444', trend: '25%', up: true },
+        { title: 'Total Students', value: (stats?.totalStudents || 0).toLocaleString(), icon: <Icons.User />, color: '#2563eb', trend: '12%', up: true, hint: 'Enrolled learners' },
+        { title: 'Total Products', value: (stats?.totalProducts || 0).toLocaleString(), icon: <Icons.Materials />, color: '#16a34a', trend: '5%', up: true, hint: 'Live in catalogue' },
+        { title: 'Total Chapters', value: (stats?.totalChapters || 0).toLocaleString(), icon: <Icons.Chapters />, color: '#f59e0b', trend: '2%', up: false, hint: 'Published content' },
+        { title: 'Total Revenue', value: `₹${totalRevenue.toLocaleString()}`, icon: <Icons.Revenue />, color: '#7c3aed', trend: '25%', up: true, hint: 'Lifetime earnings' },
     ];
 
     return (
         <div class="dashboard-page">
-            <div class="stat-grid">
+            <div class="page-header">
+                <div class="page-header-titles">
+                    <div class="page-header-eyebrow"><Icons.Dashboard /> Overview</div>
+                    <h1>Welcome back</h1>
+                    <p class="page-subtitle">Here's what's happening across Padhaku today.</p>
+                </div>
+            </div>
+
+            <div class="metric-grid">
                 {cards.map(card => (
-                    <div class="stat-card">
-                        <div class="stat-icon-wrapper">
-                            <span class="stat-icon-main">{card.icon}</span>
+                    <div class="metric-card" style={{ '--accent-c': card.color }}>
+                        <div class="metric-top">
+                            <div class="metric-label">{card.title}</div>
+                            <div class="metric-icon"><span class="stat-icon-main">{card.icon}</span></div>
                         </div>
-                        <div class="stat-info">
-                            <h3 class="stat-label">
-                                {card.title}
-                            </h3>
-                            <div class="stat-value-container">
-                                <span class="stat-value">{card.value}</span>
-                                <span class={`trend-badge ${card.up ? 'trend-up' : 'trend-down'}`}>
-                                    {card.up ? <Icons.TrendUp /> : <Icons.TrendDown />} {card.trend}
-                                </span>
-                            </div>
+                        <div class="metric-value">{card.value}</div>
+                        <div class="metric-foot">
+                            <span class={`trend-badge ${card.up ? 'trend-up' : 'trend-down'}`}>
+                                {card.up ? <Icons.TrendUp /> : <Icons.TrendDown />} {card.trend}
+                            </span>
+                            <span>{card.hint}</span>
                         </div>
                     </div>
                 ))}
@@ -210,19 +215,25 @@ export function Dashboard() {
             <div class="dashboard-charts">
                 <div class="chart-card" style={{ gridColumn: '1 / -1' }}>
                     <div class="chart-header">
-                        <h2 class="chart-title">Revenue Overview</h2>
+                        <div class="chart-title-group">
+                            <h2 class="chart-title">Revenue Overview</h2>
+                            <span class="chart-subtitle">Monthly earnings across all products</span>
+                        </div>
                         <div class="chart-legend">
-                             <span class="legend-item"><i style={{ background: '#4f46e5' }}></i> Revenue</span>
+                             <span class="legend-item"><i style={{ background: '#2563eb' }}></i> Revenue</span>
                         </div>
                     </div>
-                    <div class="chart-container" style={{ height: '400px' }}>
+                    <div class="chart-container" style={{ height: '380px' }}>
                         <canvas ref={revenueChartRef}></canvas>
                     </div>
                 </div>
 
                 <div class="chart-card">
                     <div class="chart-header">
-                        <h2 class="chart-title">Student Distribution</h2>
+                        <div class="chart-title-group">
+                            <h2 class="chart-title">Student Distribution</h2>
+                            <span class="chart-subtitle">By standard</span>
+                        </div>
                     </div>
                     <div class="chart-container" style={{ height: '300px' }}>
                         <canvas ref={studentChartRef}></canvas>
@@ -231,7 +242,10 @@ export function Dashboard() {
 
                 <div class="chart-card">
                     <div class="chart-header">
-                        <h2 class="chart-title">Product Distribution</h2>
+                        <div class="chart-title-group">
+                            <h2 class="chart-title">Product Distribution</h2>
+                            <span class="chart-subtitle">Earnings share by product</span>
+                        </div>
                     </div>
                     <div class="chart-container" style={{ height: '300px' }}>
                         <canvas ref={productChartRef}></canvas>
