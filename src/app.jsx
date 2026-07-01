@@ -25,6 +25,7 @@ import { ReportsPage } from './pages/ReportsPage';
 import { LandingPage } from './pages/LandingPage';
 import { ActivityLogs } from './pages/ActivityLogs';
 import { SubscriptionPlans } from './pages/SubscriptionPlans';
+import { RedeemCodes } from './pages/RedeemCodes';
 import './pages/LoginPage.css';
 
 export function App() {
@@ -141,6 +142,7 @@ export function App() {
 
           <Standards path="/admin/standards" />
           <SubscriptionPlans path="/admin/subscription-plans" />
+          <RedeemCodes path="/admin/redeem-codes" />
           <Subjects path="/admin/subjects" />
           <Chapters path="/admin/chapters" />
           <Products path="/admin/products" />
