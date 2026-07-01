@@ -18,6 +18,9 @@ export function Materials({ type }) {
     const [subjects, setSubjects] = useState([]);
     const [filterSubjects, setFilterSubjects] = useState([]);
     const [filterSubject, setFilterSubject] = useState('');
+    const [filterStandard, setFilterStandard] = useState('');
+    const [filterStream, setFilterStream] = useState('');
+    const [filterMedium, setFilterMedium] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
     const [pageSize, setPageSize] = useState(25);
     const [totalCount, setTotalCount] = useState(0);
@@ -83,11 +86,20 @@ export function Materials({ type }) {
         { id: 'History', label: 'History', icon: <Icons.History /> }
     ];
 
-    const loadMaterials = (page = 1, size = pageSize, subject = filterSubject) => {
+    const loadMaterials = (page = 1, size = pageSize, filters = {}) => {
+        const {
+            subject = filterSubject,
+            standard = filterStandard,
+            stream = filterStream,
+            medium = filterMedium,
+        } = filters;
         setLoading(true);
         const skip = (page - 1) * size;
         let url = `/material/all?skip=${skip}&limit=${size}`;
         if (subject) url += `&subject=${encodeURIComponent(subject)}`;
+        if (standard) url += `&standard=${encodeURIComponent(standard)}`;
+        if (stream) url += `&stream=${encodeURIComponent(stream)}`;
+        if (medium) url += `&medium=${encodeURIComponent(medium)}`;
         api.get(url, { noPrefix: true })
             .then(response => {
                 setMaterials(response.data || response);
@@ -340,13 +352,49 @@ export function Materials({ type }) {
         <div class="table-container">
             <div class="table-header">
                 <h3><Icons.History /> Material Upload History</h3>
-                <div style="display: flex; gap: 0.75rem; align-items: center;">
+                <div style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;">
+                    <select
+                        value={filterStandard}
+                        onChange={(e) => {
+                            const val = e.target.value;
+                            setFilterStandard(val);
+                            loadMaterials(1, pageSize, { standard: val });
+                        }}
+                        style="padding: 0.5rem 0.75rem; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg-secondary); color: var(--text-primary); font-size: var(--font-sm); cursor: pointer;"
+                    >
+                        <option value="">All Standards</option>
+                        {standards.map(s => <option value={s.name}>{s.name}</option>)}
+                    </select>
+                    <select
+                        value={filterStream}
+                        onChange={(e) => {
+                            const val = e.target.value;
+                            setFilterStream(val);
+                            loadMaterials(1, pageSize, { stream: val });
+                        }}
+                        style="padding: 0.5rem 0.75rem; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg-secondary); color: var(--text-primary); font-size: var(--font-sm); cursor: pointer;"
+                    >
+                        <option value="">All Streams</option>
+                        {AcademicConstants.streams.filter(s => s !== 'None').map(s => <option value={s}>{s}</option>)}
+                    </select>
+                    <select
+                        value={filterMedium}
+                        onChange={(e) => {
+                            const val = e.target.value;
+                            setFilterMedium(val);
+                            loadMaterials(1, pageSize, { medium: val });
+                        }}
+                        style="padding: 0.5rem 0.75rem; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg-secondary); color: var(--text-primary); font-size: var(--font-sm); cursor: pointer;"
+                    >
+                        <option value="">All Mediums</option>
+                        {AcademicConstants.mediums.map(m => <option value={m}>{m}</option>)}
+                    </select>
                     <select
                         value={filterSubject}
                         onChange={(e) => {
-                            const newSubject = e.target.value;
-                            setFilterSubject(newSubject);
-                            loadMaterials(1, pageSize, newSubject);
+                            const val = e.target.value;
+                            setFilterSubject(val);
+                            loadMaterials(1, pageSize, { subject: val });
                         }}
                         style="padding: 0.5rem 0.75rem; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg-secondary); color: var(--text-primary); font-size: var(--font-sm); cursor: pointer;"
                     >
@@ -358,12 +406,12 @@ export function Materials({ type }) {
                         onChange={(e) => {
                             const newPageSize = parseInt(e.target.value);
                             setPageSize(newPageSize);
-                            loadMaterials(1, newPageSize, filterSubject);
+                            loadMaterials(1, newPageSize);
                         }}
                         style="padding: 0.5rem 0.75rem; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg-secondary); color: var(--text-primary); font-size: var(--font-sm); cursor: pointer;"
                     >
                         <option value={10}>10 per page</option>
-                        <option value={25} selected>25 per page</option>
+                        <option value={25}>25 per page</option>
                         <option value={50}>50 per page</option>
                         <option value={100}>100 per page</option>
                     </select>
