@@ -24,6 +24,7 @@ import { Products } from './pages/Products';
 import { ReportsPage } from './pages/ReportsPage';
 import { LandingPage } from './pages/LandingPage';
 import { ActivityLogs } from './pages/ActivityLogs';
+import { SubscriptionPlans } from './pages/SubscriptionPlans';
 import './pages/LoginPage.css';
 
 export function App() {
@@ -139,6 +140,7 @@ export function App() {
           {user.role === 'super admin' && <AppConfig path="/admin/config/app" />}
 
           <Standards path="/admin/standards" />
+          <SubscriptionPlans path="/admin/subscription-plans" />
           <Subjects path="/admin/subjects" />
           <Chapters path="/admin/chapters" />
           <Products path="/admin/products" />

@@ -70,6 +70,7 @@ const navigation = [
         title: 'PAYMENTS',
         roles: ['super admin'],
         items: [
+            { path: '/admin/subscription-plans', label: 'Subscription Plans', icon: <Icons.Gear /> },
             { path: '/admin/payments/upgrades', label: 'Plan Purchases', icon: <Icons.Payments /> },
             { path: '/admin/payments/purchases', label: 'Product Purchases', icon: <Icons.Payments /> },
         ]
