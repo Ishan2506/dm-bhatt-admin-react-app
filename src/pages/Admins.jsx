@@ -80,58 +80,80 @@ export function Admins() {
         }
     };
 
+    const activeCount = data.admins.filter(a => a.isActive !== false).length;
     return (
         <div>
-            <div class="table-container">
-                <div class="table-header">
-                    <h3><Icons.Shield /> Admins</h3>
-                    <div class="table-filters" style="display: flex; gap: 1rem; align-items: center;">
-                        <span style="font-size: 0.85rem; color: var(--text-secondary); font-weight: 500;">
-                            Total: {data.admins.length}
-                        </span>
-                        <button class="btn btn-primary btn-sm" onClick={openAdd}>
-                            <Icons.Plus /> Add Admin
-                        </button>
+            <div class="page-header">
+                <div class="page-header-titles">
+                    <div class="page-header-eyebrow"><Icons.Shield /> Users</div>
+                    <h1>Administrators</h1>
+                    <p class="page-subtitle">Manage staff accounts and their access to the admin panel.</p>
+                    <div class="header-metrics">
+                        <div class="header-metric">
+                            <span class="hm-value">{data.admins.length}</span>
+                            <span class="hm-label">Total</span>
+                        </div>
+                        <div class="header-metric">
+                            <span class="hm-value">{activeCount}</span>
+                            <span class="hm-label">Active</span>
+                        </div>
                     </div>
                 </div>
+                <div class="page-header-actions">
+                    <button class="btn btn-primary" onClick={openAdd}>
+                        <Icons.Plus /> Add Admin
+                    </button>
+                </div>
+            </div>
+
+            <div class="table-container">
                 {loading ? (
-                    <div style="padding: 2rem; text-align: center;">Loading admins...</div>
+                    <div class="loading-spinner" />
                 ) : data.admins.length === 0 ? (
-                    <div class="table-empty">
-                        <div class="empty-icon"><Icons.Shield /></div>
-                        <p>No admins found.</p>
+                    <div class="empty-state">
+                        <div class="empty-state-icon"><Icons.Shield /></div>
+                        <h3>No administrators yet</h3>
+                        <p>Add your first admin to grant panel access.</p>
                     </div>
                 ) : (
-                    <Fragment>
+                    <div class="table-scroll">
                         <table>
                             <thead>
                                 <tr>
-                                    <th>Name</th>
-                                    <th>Email</th>
+                                    <th>Administrator</th>
                                     <th>Phone</th>
                                     <th>Status</th>
-                                    <th>Joined Date</th>
-                                    <th>Actions</th>
+                                    <th>Joined</th>
+                                    <th style="text-align:right;">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {data.admins.map((admin) => (
                                     <tr key={admin._id}>
-                                        <td style="font-weight: 600;">{admin.firstName || ''}</td>
-                                        <td>{admin.email || '-'}</td>
-                                        <td>{admin.phoneNum || '-'}</td>
+                                        <td>
+                                            <div class="identity">
+                                                <div class="avatar" style={{ background: 'var(--primary)' }}>
+                                                    {(admin.firstName || '?').charAt(0).toUpperCase()}
+                                                </div>
+                                                <div class="identity-body">
+                                                    <div class="identity-name">{admin.firstName || 'Unnamed'}</div>
+                                                    <div class="identity-sub">{admin.email || 'No email'}</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>{admin.phoneNum || '—'}</td>
                                         <td>
                                             <span class={`badge ${admin.isActive !== false ? 'badge-success' : 'badge-danger'}`}>
                                                 {admin.isActive !== false ? 'Active' : 'Inactive'}
                                             </span>
                                         </td>
-                                        <td>{admin.createdAt ? new Date(admin.createdAt).toLocaleDateString() : '-'}</td>
+                                        <td style="font-size:var(--font-xs);">{admin.createdAt ? new Date(admin.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}</td>
                                         <td>
-                                            <div class="td-actions">
-                                                <button class="btn btn-outline btn-sm" onClick={() => openEdit(admin)}>
-                                                    <Icons.Edit /> Edit
+                                            <div class="td-actions" style="justify-content:flex-end;">
+                                                <button class="icon-btn primary" title="Edit" onClick={() => openEdit(admin)}>
+                                                    <Icons.Edit />
                                                 </button>
-                                                <button class="btn btn-danger btn-sm" onClick={() => setDeleteConfirm(admin)}>
+                                                <button class="icon-btn danger" title="Delete" onClick={() => setDeleteConfirm(admin)}>
                                                     <Icons.Trash />
                                                 </button>
                                             </div>
@@ -140,7 +162,7 @@ export function Admins() {
                                 ))}
                             </tbody>
                         </table>
-                    </Fragment>
+                    </div>
                 )}
             </div>
 

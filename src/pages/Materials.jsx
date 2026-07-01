@@ -24,6 +24,8 @@ export function Materials({ type }) {
     const [currentPage, setCurrentPage] = useState(1);
     const [pageSize, setPageSize] = useState(25);
     const [totalCount, setTotalCount] = useState(0);
+    // 'list' shows existing items for the active tab; 'form' shows the upload form.
+    const [view, setView] = useState('list');
 
     const showToast = (message, type = 'success') => {
         setToast({ message, type });
@@ -83,7 +85,6 @@ export function Materials({ type }) {
         { id: 'SchoolPaper', label: 'School Paper', icon: <Icons.Standards /> },
         { id: 'Notes', label: 'Notes', icon: <Icons.Subjects /> },
         { id: 'ImageMaterial', label: 'Images', icon: <Icons.Image /> },
-        { id: 'History', label: 'History', icon: <Icons.History /> }
     ];
 
     const loadMaterials = (page = 1, size = pageSize, filters = {}) => {
@@ -92,6 +93,8 @@ export function Materials({ type }) {
             standard = filterStandard,
             stream = filterStream,
             medium = filterMedium,
+            // Scope the list to the active material type.
+            type = activeTab || '',
         } = filters;
         setLoading(true);
         const skip = (page - 1) * size;
@@ -100,10 +103,21 @@ export function Materials({ type }) {
         if (standard) url += `&standard=${encodeURIComponent(standard)}`;
         if (stream) url += `&stream=${encodeURIComponent(stream)}`;
         if (medium) url += `&medium=${encodeURIComponent(medium)}`;
+        if (type) url += `&type=${encodeURIComponent(type)}`;
         api.get(url, { noPrefix: true })
             .then(response => {
-                setMaterials(response.data || response);
-                setTotalCount(response.total || response.length);
+                let list = response.data || response || [];
+                let total = response.total ?? list.length;
+                // Client-side safety filter in case the API ignores the type param.
+                if (type && Array.isArray(list)) {
+                    const filtered = list.filter(m => m.type === type);
+                    if (filtered.length !== list.length) {
+                        list = filtered;
+                        total = filtered.length;
+                    }
+                }
+                setMaterials(list);
+                setTotalCount(total);
                 setCurrentPage(page);
             })
             .catch(err => showToast(err.message, 'error'))
@@ -116,7 +130,6 @@ export function Materials({ type }) {
             'school-paper': 'SchoolPaper',
             'notes': 'Notes',
             'images': 'ImageMaterial',
-            'history': 'History'
         };
         const newTab = typeMap[type] || 'BoardPaper';
         setActiveTab(newTab);
@@ -147,10 +160,11 @@ export function Materials({ type }) {
     }, [form.standard, form.stream, standards]);
 
     useEffect(() => {
-        if (activeTab === 'History') {
-            setCurrentPage(1);
-            loadMaterials(1);
-        }
+        // Switching tabs always returns to the list view for that type.
+        // (Skip the reset when we're mid-edit — handleEdit sets activeTab then opens the form.)
+        if (!editing) setView('list');
+        setCurrentPage(1);
+        loadMaterials(1, pageSize, { type: activeTab });
 
         if (activeTab === 'BoardPaper' && !['10', '12'].includes(form.standard)) {
             setForm(prev => ({ ...prev, standard: '' }));
@@ -201,18 +215,24 @@ export function Materials({ type }) {
         try {
             let endpoint = '';
             if (editing) {
+                const editedType = editing.type;
                 await api.put(`/material/update/${editing._id}`, formData, { noPrefix: true });
                 showToast('Material updated successfully!');
-                setActiveTab('History');
+                resetForm();
+                setView('list');
+                setActiveTab(editedType || activeTab);
+                loadMaterials(1, pageSize, { type: editedType || activeTab });
             } else {
                 if (activeTab === 'BoardPaper') endpoint = `/material/upload-board-paper`;
                 else if (activeTab === 'SchoolPaper') endpoint = `/material/upload-school-paper`;
                 else if (activeTab === 'Notes') endpoint = `/material/upload-notes`;
                 else if (activeTab === 'ImageMaterial') endpoint = `/material/upload-image-material`;
-                
+
                 await api.post(endpoint, formData, { noPrefix: true });
                 showToast('Uploaded successfully!');
                 resetForm();
+                setView('list');
+                loadMaterials(1, pageSize, { type: activeTab });
             }
         } catch (err) {
             showToast(err.message, 'error');
@@ -246,6 +266,17 @@ export function Materials({ type }) {
             file: null
         });
         setActiveTab(item.type);
+        setView('form');
+    };
+
+    const openAddForm = () => {
+        resetForm();
+        setView('form');
+    };
+
+    const cancelForm = () => {
+        resetForm();
+        setView('list');
     };
 
     const renderForm = () => {
@@ -258,17 +289,22 @@ export function Materials({ type }) {
         }
         const availableSubjects = subjects.map(s => s.name);
 
+        const tabMeta = tabs.find(t => t.id === activeTab) || tabs[0];
         return (
-            <div class="card">
+            <div class="config-section" style="max-width:820px;">
                 <form onSubmit={handleSubmit}>
-                    <div class="table-header" style="margin-bottom: 1.5rem; padding: 0; border: none;">
-                        <h3>{editing ? `Edit ${activeTab}` : `Upload ${activeTab}`}</h3>
-                        {editing && (
-                            <button type="button" class="btn btn-outline btn-sm" onClick={resetForm}>Cancel Edit</button>
-                        )}
+                    <div class="config-section-head">
+                        <div class="config-section-badge">{tabMeta.icon}</div>
+                        <div style="flex:1;">
+                            <h3 class="config-section-title">{editing ? `Edit ${tabMeta.label}` : `Upload ${tabMeta.label}`}</h3>
+                            <p class="config-section-desc">{editing ? 'Update the details below and re-upload if needed.' : 'Fill in the details and attach a file to publish new material.'}</p>
+                        </div>
+                        <button type="button" class="btn btn-outline btn-sm" onClick={cancelForm}>
+                            <Icons.ChevronLeft /> Back to list
+                        </button>
                     </div>
 
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem;">
                         <div class="form-group">
                             <label>Title</label>
                             <input name="title" class="form-control" value={form.title} onInput={handleInputChange} required />
@@ -348,80 +384,50 @@ export function Materials({ type }) {
 
     const totalPages = Math.ceil(totalCount / pageSize);
 
+    const selectStyle = "height:40px;padding:0 0.75rem;border:1px solid var(--border);border-radius:var(--radius-md);background:var(--bg-secondary);color:var(--text-primary);font-size:var(--font-sm);cursor:pointer;";
+
     const renderHistory = () => (
         <div class="table-container">
             <div class="table-header">
-                <h3><Icons.History /> Material Upload History</h3>
-                <div style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;">
-                    <select
-                        value={filterStandard}
-                        onChange={(e) => {
-                            const val = e.target.value;
-                            setFilterStandard(val);
-                            loadMaterials(1, pageSize, { standard: val });
-                        }}
-                        style="padding: 0.5rem 0.75rem; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg-secondary); color: var(--text-primary); font-size: var(--font-sm); cursor: pointer;"
-                    >
-                        <option value="">All Standards</option>
-                        {standards.map(s => <option value={s.name}>{s.name}</option>)}
-                    </select>
-                    <select
-                        value={filterStream}
-                        onChange={(e) => {
-                            const val = e.target.value;
-                            setFilterStream(val);
-                            loadMaterials(1, pageSize, { stream: val });
-                        }}
-                        style="padding: 0.5rem 0.75rem; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg-secondary); color: var(--text-primary); font-size: var(--font-sm); cursor: pointer;"
-                    >
-                        <option value="">All Streams</option>
-                        {AcademicConstants.streams.filter(s => s !== 'None').map(s => <option value={s}>{s}</option>)}
-                    </select>
-                    <select
-                        value={filterMedium}
-                        onChange={(e) => {
-                            const val = e.target.value;
-                            setFilterMedium(val);
-                            loadMaterials(1, pageSize, { medium: val });
-                        }}
-                        style="padding: 0.5rem 0.75rem; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg-secondary); color: var(--text-primary); font-size: var(--font-sm); cursor: pointer;"
-                    >
-                        <option value="">All Mediums</option>
-                        {AcademicConstants.mediums.map(m => <option value={m}>{m}</option>)}
-                    </select>
-                    <select
-                        value={filterSubject}
-                        onChange={(e) => {
-                            const val = e.target.value;
-                            setFilterSubject(val);
-                            loadMaterials(1, pageSize, { subject: val });
-                        }}
-                        style="padding: 0.5rem 0.75rem; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg-secondary); color: var(--text-primary); font-size: var(--font-sm); cursor: pointer;"
-                    >
-                        <option value="">All Subjects</option>
-                        {filterSubjects.map(s => <option value={s}>{s}</option>)}
-                    </select>
-                    <select
-                        value={pageSize}
-                        onChange={(e) => {
-                            const newPageSize = parseInt(e.target.value);
-                            setPageSize(newPageSize);
-                            loadMaterials(1, newPageSize);
-                        }}
-                        style="padding: 0.5rem 0.75rem; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg-secondary); color: var(--text-primary); font-size: var(--font-sm); cursor: pointer;"
-                    >
-                        <option value={10}>10 per page</option>
-                        <option value={25}>25 per page</option>
-                        <option value={50}>50 per page</option>
-                        <option value={100}>100 per page</option>
-                    </select>
-                    <button class="btn btn-outline btn-sm" onClick={() => loadMaterials(currentPage)}>
-                        <Icons.Refresh /> Refresh
-                    </button>
+                <div class="toolbar" style="width:100%;">
+                    <div class="toolbar-group">
+                        <select value={filterStandard} style={selectStyle}
+                            onChange={(e) => { const val = e.target.value; setFilterStandard(val); loadMaterials(1, pageSize, { standard: val }); }}>
+                            <option value="">All Standards</option>
+                            {standards.map(s => <option value={s.name}>{s.name}</option>)}
+                        </select>
+                        <select value={filterStream} style={selectStyle}
+                            onChange={(e) => { const val = e.target.value; setFilterStream(val); loadMaterials(1, pageSize, { stream: val }); }}>
+                            <option value="">All Streams</option>
+                            {AcademicConstants.streams.filter(s => s !== 'None').map(s => <option value={s}>{s}</option>)}
+                        </select>
+                        <select value={filterMedium} style={selectStyle}
+                            onChange={(e) => { const val = e.target.value; setFilterMedium(val); loadMaterials(1, pageSize, { medium: val }); }}>
+                            <option value="">All Mediums</option>
+                            {AcademicConstants.mediums.map(m => <option value={m}>{m}</option>)}
+                        </select>
+                        <select value={filterSubject} style={selectStyle}
+                            onChange={(e) => { const val = e.target.value; setFilterSubject(val); loadMaterials(1, pageSize, { subject: val }); }}>
+                            <option value="">All Subjects</option>
+                            {filterSubjects.map(s => <option value={s}>{s}</option>)}
+                        </select>
+                    </div>
+                    <div class="toolbar-group">
+                        <select value={pageSize} style={selectStyle}
+                            onChange={(e) => { const newPageSize = parseInt(e.target.value); setPageSize(newPageSize); loadMaterials(1, newPageSize); }}>
+                            <option value={10}>10 / page</option>
+                            <option value={25}>25 / page</option>
+                            <option value={50}>50 / page</option>
+                            <option value={100}>100 / page</option>
+                        </select>
+                        <button class="btn btn-outline" onClick={() => loadMaterials(currentPage)}>
+                            <Icons.Refresh /> Refresh
+                        </button>
+                    </div>
                 </div>
             </div>
             {loading ? (
-                <div style="padding: 2rem; text-align: center;"><div class="loading-spinner" /></div>
+                <div class="loading-spinner" />
             ) : materials.length === 0 ? (
                 <div class="table-empty">
                     <div class="empty-icon"><Icons.Paper /></div>
@@ -429,63 +435,58 @@ export function Materials({ type }) {
                 </div>
             ) : (
                 <>
+                    <div class="table-scroll">
                     <table>
                         <thead>
                             <tr>
-                                <th>Title</th>
+                                <th style="width:280px;">Material</th>
                                 <th>Type</th>
                                 <th>Subject</th>
                                 <th>Std</th>
                                 <th>Year</th>
                                 <th>Created By</th>
-                                <th>Updated By</th>
-                                <th>Created Time</th>
-                                <th>Updated Time</th>
-                                <th>Actions</th>
+                                <th>Updated</th>
+                                <th style="text-align:right;">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             {materials.map(item => (
                                 <tr key={item._id}>
-                                    <td style="font-weight: 600;">{item.title}</td>
+                                    <td style="width:280px;max-width:280px;">
+                                        <div class="identity">
+                                            <div class="avatar avatar-sm" style={{ background: isImage(item.file) ? 'var(--chart-violet)' : 'var(--danger)' }}>
+                                                {isImage(item.file) ? <Icons.Image /> : <Icons.Paper />}
+                                            </div>
+                                            <div class="identity-body" style="max-width:210px;">
+                                                <div class="identity-name" title={item.title}>{item.title}</div>
+                                                <div class="identity-sub" title={getFileName(item.file)}>{getFileName(item.file)}</div>
+                                            </div>
+                                        </div>
+                                    </td>
                                     <td><span class="badge badge-info">{item.type}</span></td>
                                     <td>{item.subject}</td>
-                                    <td>{item.standard}</td>
+                                    <td><span class="cell-chip">{item.standard}</span></td>
                                     <td>{item.year}</td>
                                     <td>
                                         {item.createdBy ? (
-                                            <div style={{ lineHeight: '1.2' }}>
-                                                {item.createdBy.firstName}<br />
-                                                {item.createdBy.email && <small style={{ color: 'var(--text-secondary)' }}>{item.createdBy.email}</small>}
+                                            <div class="identity-body">
+                                                <div class="identity-name">{item.createdBy.firstName}</div>
+                                                {item.createdBy.email && <div class="identity-sub">{item.createdBy.email}</div>}
                                             </div>
-                                        ) : 'System'}
+                                        ) : <span class="cell-chip">System</span>}
                                     </td>
+                                    <td style="font-size: var(--font-xs);">{formatDateTime(item.updatedAt || item.createdAt)}</td>
                                     <td>
-                                        {item.updatedBy ? (
-                                            <div style={{ lineHeight: '1.2' }}>
-                                                {item.updatedBy.firstName}<br />
-                                                {item.updatedBy.email && <small style={{ color: 'var(--text-secondary)' }}>{item.updatedBy.email}</small>}
-                                            </div>
-                                        ) : (item.createdBy ? (
-                                            <div style={{ lineHeight: '1.2' }}>
-                                                {item.createdBy.firstName}<br />
-                                                {item.createdBy.email && <small style={{ color: 'var(--text-secondary)' }}>{item.createdBy.email}</small>}
-                                            </div>
-                                        ) : 'System')}
-                                    </td>
-                                    <td style="font-size: var(--font-xs); color: var(--text-secondary);">{formatDateTime(item.createdAt)}</td>
-                                    <td style="font-size: var(--font-xs); color: var(--text-secondary);">{formatDateTime(item.updatedAt || item.createdAt)}</td>
-                                    <td>
-                                        <div class="td-actions">
+                                        <div class="td-actions" style="justify-content:flex-end;">
                                             {item.file && (
-                                                <button class="btn btn-outline btn-sm" title="Preview" onClick={() => setPreviewItem(item)} style="color: var(--accent);">
+                                                <button class="icon-btn primary" title="Preview" onClick={() => setPreviewItem(item)}>
                                                     <Icons.Eye />
                                                 </button>
                                             )}
-                                            <button class="btn btn-outline btn-sm" onClick={() => handleEdit(item)}>
+                                            <button class="icon-btn primary" title="Edit" onClick={() => handleEdit(item)}>
                                                 <Icons.Edit />
                                             </button>
-                                            <button class="btn btn-danger btn-sm" onClick={() => setDeleteConfirm(item)}>
+                                            <button class="icon-btn danger" title="Delete" onClick={() => setDeleteConfirm(item)}>
                                                 <Icons.Trash />
                                             </button>
                                         </div>
@@ -494,71 +495,62 @@ export function Materials({ type }) {
                             ))}
                         </tbody>
                     </table>
-                    <div style="display: flex; align-items: center; justify-content: space-between; padding: '1rem'; border-top: 1px solid var(--border); margin-top: 1.5rem; gap: 1rem;">
-                        <span style="font-size: var(--font-sm); color: var(--text-secondary);">
-                            Showing {((currentPage - 1) * pageSize) + 1} to {Math.min(currentPage * pageSize, totalCount)} of {totalCount} materials
-                        </span>
-                        <div style="display: flex; gap: 0.5rem;">
-                            <button
-                                class="btn btn-outline btn-sm"
-                                onClick={() => loadMaterials(currentPage - 1)}
-                                disabled={currentPage === 1}
-                            >
-                                ← Previous
-                            </button>
-                            <div style="display: flex; align-items: center; gap: 0.5rem;">
-                                {Array.from({ length: totalPages }, (_, i) => {
-                                    const pageNum = i + 1;
-                                    if (
-                                        pageNum === 1 ||
-                                        pageNum === totalPages ||
-                                        (pageNum >= currentPage - 1 && pageNum <= currentPage + 1)
-                                    ) {
-                                        return (
-                                            <button
-                                                key={pageNum}
-                                                onClick={() => loadMaterials(pageNum)}
-                                                style={{
-                                                    padding: '0.5rem 0.75rem',
-                                                    borderRadius: 'var(--radius-sm)',
-                                                    border: pageNum === currentPage ? 'none' : '1px solid var(--border)',
-                                                    background: pageNum === currentPage ? 'var(--accent)' : 'transparent',
-                                                    color: pageNum === currentPage ? 'white' : 'var(--text-primary)',
-                                                    cursor: 'pointer',
-                                                    fontSize: 'var(--font-sm)',
-                                                    fontWeight: pageNum === currentPage ? '600' : 'normal'
-                                                }}
-                                            >
-                                                {pageNum}
-                                            </button>
-                                        );
-                                    } else if (
-                                        (pageNum === 2 && currentPage > 3) ||
-                                        (pageNum === totalPages - 1 && currentPage < totalPages - 2)
-                                    ) {
-                                        return <span key={pageNum}>...</span>;
-                                    }
-                                    return null;
-                                })}
-                            </div>
-                            <button
-                                class="btn btn-outline btn-sm"
-                                onClick={() => loadMaterials(currentPage + 1)}
-                                disabled={currentPage === totalPages}
-                            >
-                                Next →
-                            </button>
+                    </div>
+                    {totalPages > 1 && (
+                    <div class="pagination">
+                        <span>Showing {((currentPage - 1) * pageSize) + 1}–{Math.min(currentPage * pageSize, totalCount)} of {totalCount.toLocaleString()}</span>
+                        <div class="pagination-controls">
+                            <button onClick={() => loadMaterials(currentPage - 1)} disabled={currentPage === 1}><Icons.ChevronLeft /></button>
+                            {Array.from({ length: totalPages }, (_, i) => {
+                                const pageNum = i + 1;
+                                if (pageNum === 1 || pageNum === totalPages || (pageNum >= currentPage - 1 && pageNum <= currentPage + 1)) {
+                                    return (
+                                        <button key={pageNum} class={pageNum === currentPage ? 'active' : ''} onClick={() => loadMaterials(pageNum)}>
+                                            {pageNum}
+                                        </button>
+                                    );
+                                } else if ((pageNum === 2 && currentPage > 3) || (pageNum === totalPages - 1 && currentPage < totalPages - 2)) {
+                                    return <span key={pageNum}>…</span>;
+                                }
+                                return null;
+                            })}
+                            <button onClick={() => loadMaterials(currentPage + 1)} disabled={currentPage === totalPages}><Icons.ChevronRight /></button>
                         </div>
                     </div>
+                    )}
                 </>
             )}
         </div>
     );
 
+    const activeMeta = tabs.find(t => t.id === activeTab) || tabs[0];
+    const isFormView = view === 'form';
     return (
         <div class="materials-page">
+            <div class="page-header">
+                <div class="page-header-titles">
+                    <div class="page-header-eyebrow"><Icons.Materials /> Resources</div>
+                    <h1>
+                        {isFormView
+                            ? `${editing ? 'Edit' : 'Add'} ${activeMeta.label}`
+                            : activeMeta.label}
+                    </h1>
+                    <p class="page-subtitle">
+                        {isFormView
+                            ? 'Fill in the details and attach a file to publish.'
+                            : `Manage all ${activeMeta.label.toLowerCase()} materials.`}
+                    </p>
+                </div>
+                {!isFormView && (
+                    <div class="page-header-actions">
+                        <button class="btn btn-primary" onClick={openAddForm}>
+                            <Icons.Plus /> Add {activeMeta.label}
+                        </button>
+                    </div>
+                )}
+            </div>
             <div class="tab-content" style="margin-top: 0;">
-                {activeTab === 'History' ? renderHistory() : renderForm()}
+                {isFormView ? renderForm() : renderHistory()}
             </div>
 
             {previewItem && (

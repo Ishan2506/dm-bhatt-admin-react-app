@@ -99,81 +99,101 @@ export function Chapters() {
 
     return (
         <div>
+            <div class="page-header">
+                <div class="page-header-titles">
+                    <div class="page-header-eyebrow"><Icons.Chapters /> Management</div>
+                    <h1>Chapters</h1>
+                    <p class="page-subtitle">Break subjects down into units and chapters.</p>
+                    <div class="header-metrics">
+                        <div class="header-metric">
+                            <span class="hm-value">{chapters.length}</span>
+                            <span class="hm-label">Showing</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="page-header-actions">
+                    <button id="add-chapter-btn" class="btn btn-primary" onClick={openAdd}>
+                        <Icons.Plus /> Add Chapter
+                    </button>
+                </div>
+            </div>
+
             <div class="table-container">
                 <div class="table-header">
-                    <h3><Icons.Clipboard /> All Chapters / Units</h3>
-                    <div class="table-filters">
-                        <select
-                            id="chapter-filter-standard"
-                            class="form-control"
-                            value={filterStd}
-                            onChange={(e) => setFilterStd(e.target.value)}
-                        >
-                            <option value="">All Standards</option>
-                            {standards.map(s => (
-                                <option key={s._id} value={s._id}>{s.name}</option>
-                            ))}
-                        </select>
-                        <select
-                            id="chapter-filter-subject"
-                            class="form-control"
-                            value={filterSubj}
-                            onChange={(e) => setFilterSubj(e.target.value)}
-                            disabled={!filterStd}
-                        >
-                            <option value="">All Subjects</option>
-                            {subjects.map(s => (
-                                <option key={s._id} value={s._id}>{s.name} {s.stream && s.stream !== 'None' ? `(${s.stream})` : ''}</option>
-                            ))}
-                        </select>
-                        <button id="add-chapter-btn" class="btn btn-primary" onClick={openAdd}>
-                            <Icons.Plus /> Add Chapter
-                        </button>
+                    <div class="toolbar" style="width:100%;">
+                        <div class="toolbar-group">
+                            <select
+                                id="chapter-filter-standard"
+                                class="form-control"
+                                value={filterStd}
+                                onChange={(e) => setFilterStd(e.target.value)}
+                            >
+                                <option value="">All Standards</option>
+                                {standards.map(s => (
+                                    <option key={s._id} value={s._id}>{s.name}</option>
+                                ))}
+                            </select>
+                            <select
+                                id="chapter-filter-subject"
+                                class="form-control"
+                                value={filterSubj}
+                                onChange={(e) => setFilterSubj(e.target.value)}
+                                disabled={!filterStd}
+                            >
+                                <option value="">All Subjects</option>
+                                {subjects.map(s => (
+                                    <option key={s._id} value={s._id}>{s.name} {s.stream && s.stream !== 'None' ? `(${s.stream})` : ''}</option>
+                                ))}
+                            </select>
+                        </div>
                     </div>
                 </div>
                 {loading ? (
                     <div class="loading-spinner" />
                 ) : chapters.length === 0 ? (
-                    <div class="table-empty">
-                        <div class="empty-icon"><Icons.Chapters /></div>
-                        <p>No chapters found. Add your first chapter!</p>
+                    <div class="empty-state">
+                        <div class="empty-state-icon"><Icons.Chapters /></div>
+                        <h3>No chapters found</h3>
+                        <p>Add your first chapter, or adjust the filters above.</p>
                     </div>
                 ) : (
+                    <div class="table-scroll">
                     <table>
                         <thead>
                             <tr>
-                                <th>Unit No</th>
-                                <th>Chapter Name</th>
+                                <th style="width:80px;">Unit</th>
+                                <th>Chapter</th>
                                 <th>Subject</th>
                                 <th>Standard</th>
                                 <th>Status</th>
-                                <th>Actions</th>
+                                <th style="text-align:right;">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             {chapters.map(ch => (
                                 <tr key={ch._id}>
                                     <td>
-                                        <span class="badge badge-info">{ch.unitNo}</span>
+                                        <span class="cell-chip" style="font-variant-numeric:tabular-nums;">Unit {ch.unitNo}</span>
                                     </td>
-                                    <td style="font-weight: 600;">{ch.name}</td>
-                                    <td>{ch.subjectId?.name ? `${ch.subjectId.name} ${ch.subjectId.stream && ch.subjectId.stream !== 'None' ? `(${ch.subjectId.stream})` : ''}` : '—'}</td>
                                     <td>
-                                        <span class="badge badge-warning">
-                                            {ch.subjectId?.standardId?.name || '—'}
-                                        </span>
+                                        <div class="identity">
+                                            <div class="avatar avatar-sm" style={{ background: 'var(--chart-amber)' }}><Icons.Chapters /></div>
+                                            <div class="identity-name">{ch.name}</div>
+                                        </div>
                                     </td>
+                                    <td>{ch.subjectId?.name ? `${ch.subjectId.name}${ch.subjectId.stream && ch.subjectId.stream !== 'None' ? ` (${ch.subjectId.stream})` : ''}` : '—'}</td>
+                                    <td><span class="cell-chip">{ch.subjectId?.standardId?.name || '—'}</span></td>
                                     <td>
                                         <span class={`badge ${ch.isActive ? 'badge-success' : 'badge-danger'}`}>
                                             {ch.isActive ? 'Active' : 'Inactive'}
                                         </span>
                                     </td>
                                     <td>
-                                        <div class="td-actions">
-                                            <button class="btn btn-outline btn-sm" onClick={() => openEdit(ch)}>
-                                                <Icons.Edit /> Edit
+                                        <div class="td-actions" style="justify-content:flex-end;">
+                                            <button class="icon-btn primary" title="Edit" onClick={() => openEdit(ch)}>
+                                                <Icons.Edit />
                                             </button>
-                                            <button class="btn btn-danger btn-sm" onClick={() => setDeleteConfirm(ch)}>
+                                            <button class="icon-btn danger" title="Delete" onClick={() => setDeleteConfirm(ch)}>
                                                 <Icons.Trash />
                                             </button>
                                         </div>
@@ -182,6 +202,7 @@ export function Chapters() {
                             ))}
                         </tbody>
                     </table>
+                    </div>
                 )}
             </div>
 

@@ -50,7 +50,6 @@ const navigation = [
                     { path: '/admin/materials/school-paper', label: 'School Paper' },
                     { path: '/admin/materials/notes', label: 'Notes' },
                     { path: '/admin/materials/images', label: 'Images' },
-                    { path: '/admin/materials/history', label: 'History' },
                 ]
             },
             { path: '/admin/mindmaps', label: 'Mind Maps', icon: <Icons.MindMaps /> },

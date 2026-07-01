@@ -116,39 +116,62 @@ export function RedeemCodes() {
         }
     };
 
+    const activeCodes = codes.filter(c => {
+        const isUnlimited = !c.maxUses || c.maxUses <= 0;
+        const exhausted = !isUnlimited && (c.usedCount || 0) >= c.maxUses;
+        const expired = !!c.expiresAt && new Date(c.expiresAt) <= new Date();
+        return !expired && !exhausted;
+    }).length;
+
     return (
         <div>
-            <div class="table-container">
-                <div class="table-header">
-                    <h3><Icons.Sparkles /> Redeem Codes</h3>
+            <div class="page-header">
+                <div class="page-header-titles">
+                    <div class="page-header-eyebrow"><Icons.Sparkles /> Payments</div>
+                    <h1>Redeem Codes</h1>
+                    <p class="page-subtitle">Create and track promotional discount codes for students.</p>
+                    <div class="header-metrics">
+                        <div class="header-metric">
+                            <span class="hm-value">{codes.length}</span>
+                            <span class="hm-label">Total</span>
+                        </div>
+                        <div class="header-metric">
+                            <span class="hm-value">{activeCodes}</span>
+                            <span class="hm-label">Available</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="page-header-actions">
                     <button class="btn btn-primary" onClick={openAdd}>
                         <Icons.Plus /> Generate Code
                     </button>
                 </div>
+            </div>
 
-                {error && <div class="alert alert-danger">{error}</div>}
+            <div class="table-container">
+                {error && <div class="error-state" style="margin:1rem;">{error}</div>}
 
                 {loading ? (
                     <div class="loading-spinner" />
                 ) : codes.length === 0 ? (
-                    <div class="table-empty">
-                        <div class="empty-icon"><Icons.Sparkles /></div>
-                        <p>No redeem codes yet. Generate your first code!</p>
+                    <div class="empty-state">
+                        <div class="empty-state-icon"><Icons.Sparkles /></div>
+                        <h3>No redeem codes yet</h3>
+                        <p>Generate your first promotional code to offer discounts.</p>
                     </div>
                 ) : (
+                    <div class="table-scroll">
                     <table>
                         <thead>
                             <tr>
                                 <th>Code</th>
                                 <th>Discount</th>
-                                <th>Standard</th>
-                                <th>Medium</th>
-                                <th>Stream</th>
+                                <th>Scope</th>
                                 <th>Usage</th>
                                 <th>Expires</th>
                                 <th>Created By</th>
                                 <th>Status</th>
-                                <th>Actions</th>
+                                <th style="text-align:right;">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -160,28 +183,29 @@ export function RedeemCodes() {
                                 const usageLabel = c.maxUses === 1
                                     ? 'Single-use'
                                     : isUnlimited
-                                        ? `${usedCount} used (unlimited)`
+                                        ? `${usedCount} used · unlimited`
                                         : `${usedCount} / ${c.maxUses} used`;
                                 const statusLabel = expired ? 'Expired' : exhausted ? 'Exhausted' : 'Available';
+                                const scope = [c.std, c.medium, c.stream].filter(Boolean).join(' · ') || 'Any';
                                 return (
                                     <tr key={c._id}>
-                                        <td style="font-weight: 600; letter-spacing: 1px;">{c.code}</td>
-                                        <td>{c.discountType === 'flat' ? `₹${c.discount}` : `${c.discount}%`}</td>
-                                        <td>{c.std || 'Any'}</td>
-                                        <td>{c.medium || 'Any'}</td>
-                                        <td>{c.stream || 'Any'}</td>
-                                        <td>{usageLabel}</td>
-                                        <td>{c.expiresAt ? new Date(c.expiresAt).toLocaleDateString() : 'Never'}</td>
-                                        <td>{c.createdBy}</td>
+                                        <td>
+                                            <span class="font-mono" style="font-weight:700;letter-spacing:1px;color:var(--text-primary);background:var(--bg-subtle-2);padding:3px 8px;border-radius:var(--radius-sm);">{c.code}</span>
+                                        </td>
+                                        <td style="font-weight:600;color:var(--text-primary);">{c.discountType === 'flat' ? `₹${c.discount}` : `${c.discount}%`}</td>
+                                        <td><span class="cell-chip">{scope}</span></td>
+                                        <td class="text-muted">{usageLabel}</td>
+                                        <td class="text-muted" style="font-size:var(--font-xs);">{c.expiresAt ? new Date(c.expiresAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : 'Never'}</td>
+                                        <td class="text-muted">{c.createdBy}</td>
                                         <td>
                                             <span class={`badge ${(expired || exhausted) ? 'badge-danger' : 'badge-success'}`}>
                                                 {statusLabel}
                                             </span>
                                         </td>
                                         <td>
-                                            <div class="td-actions">
+                                            <div class="td-actions" style="justify-content:flex-end;">
                                                 <button
-                                                    class="btn btn-danger btn-sm"
+                                                    class="icon-btn danger"
                                                     disabled={usedCount > 0}
                                                     title={usedCount > 0 ? 'Cannot delete a code that has been used' : 'Delete'}
                                                     onClick={() => setDeleteConfirm(c)}
@@ -195,6 +219,7 @@ export function RedeemCodes() {
                             })}
                         </tbody>
                     </table>
+                    </div>
                 )}
             </div>
 

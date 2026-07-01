@@ -140,11 +140,11 @@ export function NotificationConfig() {
     return (
         <div>
             <div class="config-page">
-                <div class="config-header">
-                    <div class="config-header-icon"><Icons.Notification /></div>
-                    <div>
-                        <h2 class="config-title">Notification Configuration</h2>
-                        <p class="config-subtitle">Configure WhatsApp, SMS, and Email notification channels</p>
+                <div class="page-header">
+                    <div class="page-header-titles">
+                        <div class="page-header-eyebrow"><Icons.Notification /> Notifications</div>
+                        <h1>Notification Settings</h1>
+                        <p class="page-subtitle">Configure WhatsApp, SMS, Email, and push notification channels.</p>
                     </div>
                 </div>
 
@@ -492,12 +492,12 @@ export function NotificationConfig() {
                         </div>
                     </div>
 
-                    <div class="config-footer">
+                    <div class="sticky-actions">
                         {saved && (
-                            <span class="save-success"><Icons.Success /> Saved successfully!</span>
+                            <span class="save-success"><Icons.Success /> Saved successfully</span>
                         )}
-                        <button class="btn btn-primary" type="submit" disabled={saving}>
-                            {saving ? 'Saving...' : 'Save Configuration'}
+                        <button class="btn btn-primary btn-lg" type="submit" disabled={saving}>
+                            {saving ? 'Saving…' : 'Save Configuration'}
                         </button>
                     </div>
                 </form>

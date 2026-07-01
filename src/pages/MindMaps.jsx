@@ -56,7 +56,7 @@ const NodeEditor = ({ node, onUpdate, onDelete, isRoot = false }) => {
 };
 
 export function MindMaps() {
-    const [activeTab, setActiveTab] = useState('Create');
+    const [activeTab, setActiveTab] = useState('History');
     const [mindMaps, setMindMaps] = useState([]);
     const [loading, setLoading] = useState(false);
     const [saving, setSaving] = useState(false);
@@ -204,31 +204,46 @@ export function MindMaps() {
                 </div>
             )}
 
-            <div class="tabs">
-                <button 
-                    class={`tab ${activeTab === 'Create' ? 'active' : ''}`}
-                    onClick={() => { setActiveTab('Create'); if (editing) resetForm(); }}
-                >
-                    {editing ? <Icons.Edit /> : <Icons.Sparkles />} {editing ? 'Edit Mind Map' : 'Create Mind Map'}
-                </button>
-                <button 
-                    class={`tab ${activeTab === 'History' ? 'active' : ''}`}
-                    onClick={() => { setActiveTab('History'); if (editing) resetForm(); }}
-                >
-                    <Icons.History /> History
-                </button>
+            <div class="page-header">
+                <div class="page-header-titles">
+                    <div class="page-header-eyebrow"><Icons.MindMaps /> Resources</div>
+                    <h1>{activeTab === 'Create' ? (editing ? 'Edit Mind Map' : 'Add Mind Map') : 'Mind Maps'}</h1>
+                    <p class="page-subtitle">
+                        {activeTab === 'Create'
+                            ? 'Build a hierarchical mind map for a subject unit.'
+                            : 'Browse and manage every mind map published to the app.'}
+                    </p>
+                    {activeTab === 'History' && (
+                        <div class="header-metrics">
+                            <div class="header-metric">
+                                <span class="hm-value">{mindMaps.length.toLocaleString()}</span>
+                                <span class="hm-label">Total Mind Maps</span>
+                            </div>
+                        </div>
+                    )}
+                </div>
+                <div class="page-header-actions">
+                    {activeTab === 'History' ? (
+                        <button class="btn btn-primary" onClick={() => { resetForm(); setActiveTab('Create'); }}>
+                            <Icons.Plus /> Add Mind Map
+                        </button>
+                    ) : (
+                        <button class="btn btn-outline" onClick={() => { resetForm(); setActiveTab('History'); }}>
+                            <Icons.ChevronLeft /> Back to list
+                        </button>
+                    )}
+                </div>
             </div>
 
             <div class="tab-content">
                 {activeTab === 'Create' ? (
-                    <div class="card">
-                        <div class="table-header" style="margin-bottom: 1.5rem; padding: 0; border: none;">
-                            <h3>{editing ? 'Edit Existing Mind Map' : 'Assign New Mind Map'}</h3>
-                            {editing && (
-                                <button class="btn btn-outline btn-sm" onClick={resetForm}>
-                                    Cancel Edit
-                                </button>
-                            )}
+                    <div class="config-section">
+                        <div class="config-section-head">
+                            <div class="config-section-badge">{editing ? <Icons.Edit /> : <Icons.Sparkles />}</div>
+                            <div>
+                                <h3 class="config-section-title">{editing ? 'Edit Existing Mind Map' : 'Assign New Mind Map'}</h3>
+                                <p class="config-section-desc">Set the academic context, then build the topic tree below.</p>
+                            </div>
                         </div>
                         <form onSubmit={handleSubmit}>
                             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
@@ -325,56 +340,62 @@ export function MindMaps() {
                 ) : (
                     <div class="table-container">
                         <div class="table-header">
-                            <h3><Icons.MindMaps /> Mind Map Repository</h3>
-                            <button class="btn btn-outline btn-sm" onClick={loadMindMaps} disabled={loading}>
-                                {loading ? <div class="loading-spinner-xs" /> : <Icons.Refresh />} {loading ? 'Refresing...' : 'Refresh'}
-                            </button>
+                            <div class="toolbar" style="width:100%;">
+                                <div class="toolbar-group">
+                                    <h3 style="font-size:var(--font-md);font-weight:600;">Repository</h3>
+                                </div>
+                                <div class="toolbar-group">
+                                    <button class="btn btn-outline" onClick={loadMindMaps} disabled={loading}>
+                                        <Icons.Refresh /> {loading ? 'Refreshing…' : 'Refresh'}
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     {loading ? (
-                        <div class="loading-state">
-                            <div class="loading-spinner"></div>
-                            <p>Fetching mind maps...</p>
-                        </div>
+                        <div class="loading-spinner" />
                     ) : mindMaps.length === 0 ? (
                         <div class="empty-state">
-                            <div class="empty-icon"><Icons.MindMaps /></div>
-                            <p>No mind maps found. Create your first one!</p>
+                            <div class="empty-state-icon"><Icons.MindMaps /></div>
+                            <h3>No mind maps yet</h3>
+                            <p>Create your first mind map to help students visualise a topic.</p>
                         </div>
                     ) : (
-                        <div class="table-responsive">
-                            <table class="table">
+                        <div class="table-scroll">
+                            <table>
                                 <thead>
                                     <tr>
-                                        <th>Title</th>
+                                        <th>Mind Map</th>
                                         <th>Subject</th>
-                                        <th>Std</th>
+                                        <th>Standard</th>
                                         <th>Unit</th>
-                                        <th>Date</th>
-                                        <th>Actions</th>
+                                        <th>Created</th>
+                                        <th style="text-align:right;">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {mindMaps.map(item => (
                                         <tr key={item._id}>
-                                            <td class="font-bold">{item.title}</td>
-                                            <td>{item.subject}</td>
-                                            <td>{item.std} {item.stream !== 'None' ? `(${item.stream})` : ''}</td>
-                                            <td>{item.unit}</td>
-                                            <td class="font-mono text-xs">{new Date(item.createdAt).toLocaleDateString()}</td>
                                             <td>
-                                                <div class="td-actions">
-                                                    <button 
-                                                        class="btn btn-icon btn-outline btn-sm" 
-                                                        title="Edit"
-                                                        onClick={() => handleEdit(item)}
-                                                    >
+                                                <div class="identity">
+                                                    <div class="avatar avatar-sm" style={{ background: 'var(--chart-violet)' }}>
+                                                        <Icons.MindMaps />
+                                                    </div>
+                                                    <div class="identity-body">
+                                                        <div class="identity-name">{item.title}</div>
+                                                        <div class="identity-sub">{item.board}</div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>{item.subject}</td>
+                                            <td><span class="cell-chip">{item.std}{item.stream !== 'None' ? ` · ${item.stream}` : ''}</span></td>
+                                            <td>{item.unit}</td>
+                                            <td style="font-size:var(--font-xs);">{new Date(item.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</td>
+                                            <td>
+                                                <div class="td-actions" style="justify-content:flex-end;">
+                                                    <button class="icon-btn primary" title="Edit" onClick={() => handleEdit(item)}>
                                                         <Icons.Edit />
                                                     </button>
-                                                    <button 
-                                                        class="btn btn-icon btn-outline btn-danger btn-sm" 
-                                                        title="Delete"
-                                                        onClick={() => handleDelete(item._id)}
-                                                    >
+                                                    <button class="icon-btn danger" title="Delete" onClick={() => handleDelete(item._id)}>
                                                         <Icons.Trash />
                                                     </button>
                                                 </div>

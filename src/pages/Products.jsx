@@ -139,92 +139,100 @@ export function Products() {
 
     return (
         <div class="page-container">
+            <div class="page-header">
+                <div class="page-header-titles">
+                    <div class="page-header-eyebrow"><Icons.Materials /> Management</div>
+                    <h1>Products</h1>
+                    <p class="page-subtitle">Manage the digital products available for purchase in the app.</p>
+                    <div class="header-metrics">
+                        <div class="header-metric">
+                            <span class="hm-value">{products.length}</span>
+                            <span class="hm-label">Showing</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="page-header-actions">
+                    <button class="btn btn-primary" onClick={() => handleOpenModal()}>
+                        <Icons.Plus /> Add Product
+                    </button>
+                </div>
+            </div>
+
             <div class="table-container">
                 <div class="table-header">
-                    <h3><Icons.Materials /> All Products</h3>
-                    <div class="table-filters" style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-                        <select
-                            class="form-control"
-                            value={filterCategory}
-                            onChange={(e) => setFilterCategory(e.target.value)}
-                        >
-                            <option value="">All Categories</option>
-                            {categories.map(cat => (
-                                <option key={cat} value={cat}>{cat}</option>
-                            ))}
-                        </select>
-                        <button class="btn btn-primary" onClick={() => handleOpenModal()}>
-                            <Icons.Plus /> Add Product
-                        </button>
+                    <div class="toolbar" style="width:100%;">
+                        <div class="toolbar-group">
+                            <select
+                                class="form-control"
+                                value={filterCategory}
+                                onChange={(e) => setFilterCategory(e.target.value)}
+                            >
+                                <option value="">All Categories</option>
+                                {categories.map(cat => (
+                                    <option key={cat} value={cat}>{cat}</option>
+                                ))}
+                            </select>
+                        </div>
                     </div>
                 </div>
 
                 {loading ? (
                     <div class="loading-spinner" />
                 ) : products.length === 0 ? (
-                    <div class="table-empty">
-                        <div class="empty-icon"><Icons.Subjects /></div>
-                        <p>No products found. Add your first product!</p>
+                    <div class="empty-state">
+                        <div class="empty-state-icon"><Icons.Materials /></div>
+                        <h3>No products yet</h3>
+                        <p>Add your first product to make it available for purchase.</p>
                     </div>
                 ) : (
+                    <div class="table-scroll">
                     <table>
                         <thead>
                             <tr>
-                                <th>#</th>
-                                <th>Image</th>
-                                <th>Product Name</th>
+                                <th>Product</th>
                                 <th>Category</th>
-                                <th>Pricing</th>
-                                <th>Actions</th>
+                                <th>Price</th>
+                                <th style="text-align:right;">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {products.map((product, i) => (
+                            {products.map((product) => (
                                 <tr key={product._id}>
-                                    <td>{i + 1}</td>
                                     <td>
-                                        <div class="product-img-preview" style={{ 
-                                            width: '50px', 
-                                            height: '50px', 
-                                            borderRadius: '8px', 
-                                            overflow: 'hidden', 
-                                            border: '1px solid var(--border)',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            justifyContent: 'center',
-                                            background: 'var(--bg-primary)',
-                                            position: 'relative'
-                                        }}>
-                                            {isPDF(product) ? (
-                                                <Icons.FilePdf />
-                                            ) : (
-                                                <img src={getImageUrl(product.image)} alt={product.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                                            )}
+                                        <div class="identity">
+                                            <div style={{
+                                                width: '40px', height: '40px', borderRadius: 'var(--radius-md)',
+                                                overflow: 'hidden', border: '1px solid var(--border)',
+                                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                                background: 'var(--bg-subtle)', flexShrink: 0
+                                            }}>
+                                                {isPDF(product) ? (
+                                                    <Icons.FilePdf />
+                                                ) : (
+                                                    <img src={getImageUrl(product.image)} alt={product.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                                )}
+                                            </div>
+                                            <div class="identity-body">
+                                                <div class="identity-name">{product.name}</div>
+                                                <div class="identity-sub">{product.subject || 'General'}</div>
+                                            </div>
                                         </div>
                                     </td>
+                                    <td><span class="badge badge-info">{product.category}</span></td>
                                     <td>
-                                        <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                            <span style={{ fontWeight: 600 }}>{product.name}</span>
-                                            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{product.subject || 'General'}</span>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <span class="badge badge-info">{product.category}</span>
-                                    </td>
-                                    <td>
-                                        <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                            <span style={{ fontWeight: 600 }}>₹{product.price}</span>
+                                        <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
+                                            <span style={{ fontWeight: 700, color: 'var(--text-primary)' }}>₹{product.price}</span>
                                             {product.originalPrice > product.price && (
-                                                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textDecoration: 'line-through' }}>₹{product.originalPrice}</span>
+                                                <span style={{ fontSize: 'var(--font-xs)', color: 'var(--text-muted)', textDecoration: 'line-through' }}>₹{product.originalPrice}</span>
                                             )}
                                         </div>
                                     </td>
                                     <td>
-                                        <div class="td-actions">
-                                            <button class="btn btn-outline btn-sm" onClick={() => handleOpenModal(product)}>
-                                                <Icons.Edit /> Edit
+                                        <div class="td-actions" style="justify-content:flex-end;">
+                                            <button class="icon-btn primary" title="Edit" onClick={() => handleOpenModal(product)}>
+                                                <Icons.Edit />
                                             </button>
-                                            <button class="btn btn-danger btn-sm" onClick={() => handleDelete(product._id)}>
+                                            <button class="icon-btn danger" title="Delete" onClick={() => handleDelete(product._id)}>
                                                 <Icons.Trash />
                                             </button>
                                         </div>
@@ -233,6 +241,7 @@ export function Products() {
                             ))}
                         </tbody>
                     </table>
+                    </div>
                 )}
             </div>
 

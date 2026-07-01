@@ -125,52 +125,72 @@ export function MatchFollowingExams() {
 
     return (
         <div class="materials-page">
-            <div class="table-container">
-                <div class="table-header">
-                    <h3><Icons.Reports /> Match The Following Exams</h3>
-                    <div class="table-actions">
-                        <button class="btn btn-primary btn-sm" onClick={() => { resetForm(); setShowAddModal(true); }}>
-                            <Icons.Plus /> Add New Exam
-                        </button>
-                        <button class="btn btn-outline btn-sm" onClick={loadExams}>
-                            <Icons.Refresh /> Refresh
-                        </button>
+            <div class="page-header">
+                <div class="page-header-titles">
+                    <div class="page-header-eyebrow"><Icons.Reports /> Exams</div>
+                    <h1>Match The Following</h1>
+                    <p class="page-subtitle">Pairing exercises that test association and recall.</p>
+                    <div class="header-metrics">
+                        <div class="header-metric">
+                            <span class="hm-value">{exams.length.toLocaleString()}</span>
+                            <span class="hm-label">Total Exams</span>
+                        </div>
                     </div>
                 </div>
+                <div class="page-header-actions">
+                    <button class="btn btn-outline" onClick={loadExams}>
+                        <Icons.Refresh /> Refresh
+                    </button>
+                    <button class="btn btn-primary" onClick={() => { resetForm(); setShowAddModal(true); }}>
+                        <Icons.Plus /> Add New Exam
+                    </button>
+                </div>
+            </div>
 
+            <div class="table-container">
                 {loading ? (
-                    <div style="padding: 2rem; text-align: center;"><div class="loading-spinner" /></div>
+                    <div class="loading-spinner" />
                 ) : exams.length === 0 ? (
-                    <div class="table-empty">
-                        <div class="empty-icon"><Icons.Reports /></div>
-                        <p>No match the following exams found.</p>
+                    <div class="empty-state">
+                        <div class="empty-state-icon"><Icons.Reports /></div>
+                        <h3>No match-the-following exams yet</h3>
+                        <p>Add your first pairing exam to get started.</p>
                     </div>
                 ) : (
+                    <div class="table-scroll">
                     <table>
                         <thead>
                             <tr>
-                                <th>Title</th>
+                                <th>Exam</th>
                                 <th>Subject</th>
-                                <th>Std</th>
+                                <th>Standard</th>
                                 <th>Unit</th>
                                 <th>Pairs</th>
-                                <th>Actions</th>
+                                <th style="text-align:right;">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             {exams.map(item => (
                                 <tr key={item._id}>
-                                    <td style="font-weight: 600;">{item.title}</td>
-                                    <td>{item.subject}</td>
-                                    <td>{item.std} ({item.board})</td>
-                                    <td>{item.unit}</td>
-                                    <td>{item.pairs?.length || 0}</td>
                                     <td>
-                                        <div class="td-actions">
-                                            <button class="btn btn-outline btn-sm" onClick={() => handleEdit(item)} title="Edit Exam">
+                                        <div class="identity">
+                                            <div class="avatar avatar-sm" style={{ background: 'var(--chart-indigo)' }}><Icons.MindMaps /></div>
+                                            <div class="identity-body">
+                                                <div class="identity-name">{item.title}</div>
+                                                <div class="identity-sub">{item.board}</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>{item.subject}</td>
+                                    <td><span class="cell-chip">{item.std}</span></td>
+                                    <td>{item.unit}</td>
+                                    <td><span class="badge badge-neutral">{item.pairs?.length || 0} pairs</span></td>
+                                    <td>
+                                        <div class="td-actions" style="justify-content:flex-end;">
+                                            <button class="icon-btn primary" onClick={() => handleEdit(item)} title="Edit Exam">
                                                 <Icons.Edit />
                                             </button>
-                                            <button class="btn btn-danger btn-sm" onClick={() => setDeleteConfirm(item)}>
+                                            <button class="icon-btn danger" onClick={() => setDeleteConfirm(item)} title="Delete">
                                                 <Icons.Trash />
                                             </button>
                                         </div>
@@ -179,6 +199,7 @@ export function MatchFollowingExams() {
                             ))}
                         </tbody>
                     </table>
+                    </div>
                 )}
             </div>
 

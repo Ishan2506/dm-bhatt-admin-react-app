@@ -102,68 +102,93 @@ export function SubscriptionPlans() {
         }
     };
 
-    return h('div', { class: 'page' },
-        h('div', { class: 'page-header' },
-            h('div', null,
-                h('h1', null, 'Subscription Plans'),
-                h('p', null, 'Manage pricing for each standard')
-            ),
-            h('div', { class: 'button-group' },
-                h('button', {
-                    class: 'btn btn-secondary',
-                    onClick: handleInitializeDefaults,
-                    disabled: saving || loading
-                }, h(Icons.Refresh, null), ' Initialize Defaults'),
-                h('button', {
-                    class: 'btn btn-primary',
-                    onClick: openAdd
-                }, h(Icons.Plus, null), ' Add Plan')
-            )
-        ),
+    const activeCount = plans.filter(p => p.isActive).length;
+    return h('div', null,
+        <div class="page-header">
+            <div class="page-header-titles">
+                <div class="page-header-eyebrow"><Icons.Gear /> Payments</div>
+                <h1>Subscription Plans</h1>
+                <p class="page-subtitle">Manage subscription pricing for each standard.</p>
+                <div class="header-metrics">
+                    <div class="header-metric">
+                        <span class="hm-value">{plans.length}</span>
+                        <span class="hm-label">Plans</span>
+                    </div>
+                    <div class="header-metric">
+                        <span class="hm-value">{activeCount}</span>
+                        <span class="hm-label">Active</span>
+                    </div>
+                </div>
+            </div>
+            <div class="page-header-actions">
+                <button class="btn btn-outline" onClick={handleInitializeDefaults} disabled={saving || loading}>
+                    <Icons.Refresh /> Initialize Defaults
+                </button>
+                <button class="btn btn-primary" onClick={openAdd}>
+                    <Icons.Plus /> Add Plan
+                </button>
+            </div>
+        </div>,
 
-        error && h('div', { class: 'alert alert-danger' }, error),
+        error && <div class="error-state" style="margin-bottom:1rem;">{error}</div>,
 
-        loading ? h('div', { class: 'loading' }, 'Loading plans...') :
-            h('table', { class: 'data-table' },
-                h('thead', null,
-                    h('tr', null,
-                        h('th', null, 'Standard'),
-                        h('th', null, 'Amount (₹)'),
-                        h('th', null, 'Description'),
-                        h('th', null, 'Status'),
-                        h('th', null, 'Actions')
-                    )
-                ),
-                h('tbody', null,
-                    plans && plans.length > 0 ? plans.map(plan =>
-                        h('tr', { key: plan._id },
-                            h('td', null, `Standard ${plan.standard}`),
-                            h('td', { style: 'text-align: right' }, `₹${plan.amount}`),
-                            h('td', null, plan.description || '-'),
-                            h('td', null,
-                                h('span', {
-                                    class: `badge ${plan.isActive ? 'badge-success' : 'badge-danger'}`
-                                }, plan.isActive ? 'Active' : 'Inactive')
-                            ),
-                            h('td', { class: 'action-buttons' },
-                                h('button', {
-                                    class: 'btn btn-sm btn-info',
-                                    onClick: () => toggleActive(plan),
-                                    title: plan.isActive ? 'Deactivate' : 'Activate'
-                                }, h(Icons.Eye, null)),
-                                h('button', {
-                                    class: 'btn btn-sm btn-warning',
-                                    onClick: () => openEdit(plan)
-                                }, h(Icons.Edit, null)),
-                                h('button', {
-                                    class: 'btn btn-sm btn-danger',
-                                    onClick: () => handleDelete(plan.standard)
-                                }, h(Icons.Trash, null))
-                            )
-                        )
-                    ) : h('tr', null, h('td', { colSpan: 5, style: 'text-align: center' }, 'No plans found'))
-                )
-            ),
+        <div class="table-container">
+            {loading ? (
+                <div class="loading-spinner" />
+            ) : !plans || plans.length === 0 ? (
+                <div class="empty-state">
+                    <div class="empty-state-icon"><Icons.Gear /></div>
+                    <h3>No plans yet</h3>
+                    <p>Add a plan or initialize the defaults to get started.</p>
+                </div>
+            ) : (
+                <div class="table-scroll">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Plan</th>
+                                <th>Amount</th>
+                                <th>Description</th>
+                                <th>Status</th>
+                                <th style="text-align:right;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {plans.map(plan => (
+                                <tr key={plan._id}>
+                                    <td>
+                                        <div class="identity">
+                                            <div class="avatar avatar-sm" style={{ background: 'var(--primary)' }}>{plan.standard}</div>
+                                            <div class="identity-name">Standard {plan.standard}</div>
+                                        </div>
+                                    </td>
+                                    <td><span class="amount" style="color:var(--text-primary);">₹{plan.amount}</span></td>
+                                    <td class="text-muted">{plan.description || '—'}</td>
+                                    <td>
+                                        <span class={`badge ${plan.isActive ? 'badge-success' : 'badge-danger'}`}>
+                                            {plan.isActive ? 'Active' : 'Inactive'}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="td-actions" style="justify-content:flex-end;">
+                                            <button class="icon-btn" title={plan.isActive ? 'Deactivate' : 'Activate'} onClick={() => toggleActive(plan)}>
+                                                <Icons.Eye />
+                                            </button>
+                                            <button class="icon-btn primary" title="Edit" onClick={() => openEdit(plan)}>
+                                                <Icons.Edit />
+                                            </button>
+                                            <button class="icon-btn danger" title="Delete" onClick={() => handleDelete(plan.standard)}>
+                                                <Icons.Trash />
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            )}
+        </div>,
 
         showModal && h(Modal, {
             title: editing ? `Edit Plan - Standard ${editing.standard}` : 'Add New Plan',

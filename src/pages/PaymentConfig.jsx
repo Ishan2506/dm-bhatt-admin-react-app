@@ -46,18 +46,23 @@ export function PaymentConfig() {
     return (
         <div>
             <div class="config-page">
-                <div class="config-header">
-                    <div class="config-header-icon"><Icons.Gear /></div>
-                    <div>
-                        <h2 class="config-title">Payment Configuration</h2>
-                        <p class="config-subtitle">Manage payment gateway credentials</p>
+                <div class="page-header">
+                    <div class="page-header-titles">
+                        <div class="page-header-eyebrow"><Icons.Revenue /> Configuration</div>
+                        <h1>Payment Gateway</h1>
+                        <p class="page-subtitle">Manage the Razorpay credentials used to process student payments.</p>
                     </div>
                 </div>
 
                 <form onSubmit={handleSave}>
                     <div class="config-section">
-                        <h3 class="config-section-title">Gateway Credentials</h3>
-                        <p class="config-section-desc">Razorpay API keys for processing payments</p>
+                        <div class="config-section-head">
+                            <div class="config-section-badge"><Icons.Shield /></div>
+                            <div>
+                                <h3 class="config-section-title">Gateway Credentials</h3>
+                                <p class="config-section-desc">Razorpay API keys for processing payments. Keep these secret.</p>
+                            </div>
+                        </div>
                         <div class="config-grid">
                             <div class="form-group">
                                 <label>Razorpay Key ID</label>
@@ -70,12 +75,12 @@ export function PaymentConfig() {
                         </div>
                     </div>
 
-                    <div class="config-footer">
+                    <div class="sticky-actions">
                         {saved && (
-                            <span class="save-success"><Icons.Success /> Saved successfully!</span>
+                            <span class="save-success"><Icons.Success /> Saved successfully</span>
                         )}
-                        <button class="btn btn-primary" type="submit" disabled={saving}>
-                            {saving ? 'Saving...' : 'Save Configuration'}
+                        <button class="btn btn-primary btn-lg" type="submit" disabled={saving}>
+                            {saving ? 'Saving…' : 'Save Configuration'}
                         </button>
                     </div>
                 </form>

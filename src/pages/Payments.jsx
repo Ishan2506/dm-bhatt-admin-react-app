@@ -39,33 +39,38 @@ export function Payments({ type }) {
     const formatAmount = (amt) => '₹' + (amt || 0).toLocaleString('en-IN');
     const formatDate = (d) => d ? new Date(d).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
 
+    const isPurchases = activeTab === 'purchases';
     return (
         <div>
-            <div class="table-container">
-                <div class="table-header">
-                    <h3>
-                        <Icons.Payments /> 
-                        {activeTab === 'purchases' ? 'Product Purchases' : 'Plan Purchases'}
-                    </h3>
+            <div class="page-header">
+                <div class="page-header-titles">
+                    <div class="page-header-eyebrow"><Icons.Payments /> Payments</div>
+                    <h1>{isPurchases ? 'Product Purchases' : 'Plan Purchases'}</h1>
+                    <p class="page-subtitle">
+                        {isPurchases
+                            ? 'Every product bought by students in the app.'
+                            : 'Standard upgrades and plan purchases by students.'}
+                    </p>
                 </div>
+            </div>
+
+            <div class="table-container">
                 {loading ? (
-                    <div style="padding: 2rem; text-align: center;">Loading...</div>
+                    <div class="loading-spinner" />
                 ) : data.length === 0 ? (
-                    <div class="table-empty">
-                        <div class="empty-icon"><Icons.Payments /></div>
-                        <p>No {activeTab === 'purchases' ? 'Product' : 'Plan'} data found</p>
+                    <div class="empty-state">
+                        <div class="empty-state-icon"><Icons.Payments /></div>
+                        <h3>No transactions yet</h3>
+                        <p>No {isPurchases ? 'product' : 'plan'} purchases have been recorded.</p>
                     </div>
                 ) : (
                     <>
-
-
-                        {activeTab === 'purchases' && (
+                        <div class="table-scroll">
+                        {isPurchases ? (
                             <table>
                                 <thead>
                                     <tr>
-                                        <th>#</th>
                                         <th>Student</th>
-                                        <th>Phone</th>
                                         <th>Product</th>
                                         <th>Category</th>
                                         <th>Amount</th>
@@ -73,61 +78,80 @@ export function Payments({ type }) {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {data.map((item, i) => (
+                                    {data.map((item) => (
                                         <tr key={item._id}>
-                                            <td>{(page - 1) * 15 + i + 1}</td>
-                                            <td style="font-weight: 600;">{item.studentName || '—'}</td>
-                                            <td class="text-muted">{item.studentPhone || '—'}</td>
-                                            <td style="font-weight: 600;">{item.productName || '—'}</td>
+                                            <td>
+                                                <div class="identity">
+                                                    <div class="avatar avatar-sm" style={{ background: avatarColor(item.studentName) }}>
+                                                        {(item.studentName || '?').charAt(0).toUpperCase()}
+                                                    </div>
+                                                    <div class="identity-body">
+                                                        <div class="identity-name">{item.studentName || '—'}</div>
+                                                        <div class="identity-sub">{item.studentPhone || '—'}</div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td style="font-weight:600;color:var(--text-primary);">{item.productName || '—'}</td>
                                             <td><span class="badge badge-warning">{item.productCategory || '—'}</span></td>
                                             <td><span class="amount text-success">{formatAmount(item.amount)}</span></td>
-                                            <td class="text-muted">{formatDate(item.createdAt)}</td>
+                                            <td class="text-muted" style="font-size:var(--font-xs);">{formatDate(item.createdAt)}</td>
                                         </tr>
                                     ))}
                                 </tbody>
                             </table>
-                        )}
-
-                        {activeTab === 'upgrades' && (
+                        ) : (
                             <table>
                                 <thead>
                                     <tr>
-                                        <th>#</th>
                                         <th>Student</th>
-                                        <th>Phone</th>
-                                        <th>Old Std</th>
-                                        <th>New Std</th>
+                                        <th>Upgrade</th>
                                         <th>Medium</th>
                                         <th>Amount</th>
                                         <th>Date</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {data.map((item, i) => (
+                                    {data.map((item) => (
                                         <tr key={item._id}>
-                                            <td>{(page - 1) * 15 + i + 1}</td>
-                                            <td style="font-weight: 600;">{item.studentName || '—'}</td>
-                                            <td class="text-muted">{item.studentPhone || '—'}</td>
-                                            <td><span class="badge badge-danger">{item.oldStandard || '—'}</span></td>
-                                            <td><span class="badge badge-success">{item.newStandard || '—'}</span></td>
+                                            <td>
+                                                <div class="identity">
+                                                    <div class="avatar avatar-sm" style={{ background: avatarColor(item.studentName) }}>
+                                                        {(item.studentName || '?').charAt(0).toUpperCase()}
+                                                    </div>
+                                                    <div class="identity-body">
+                                                        <div class="identity-name">{item.studentName || '—'}</div>
+                                                        <div class="identity-sub">{item.studentPhone || '—'}</div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div style="display:flex;align-items:center;gap:6px;">
+                                                    <span class="cell-chip">{item.oldStandard || '—'}</span>
+                                                    <span style="color:var(--text-muted);">→</span>
+                                                    <span class="badge badge-success">{item.newStandard || '—'}</span>
+                                                </div>
+                                            </td>
                                             <td>{item.medium || '—'}</td>
                                             <td><span class="amount text-success">{formatAmount(item.amount)}</span></td>
-                                            <td class="text-muted">{formatDate(item.createdAt)}</td>
+                                            <td class="text-muted" style="font-size:var(--font-xs);">{formatDate(item.createdAt)}</td>
                                         </tr>
                                     ))}
                                 </tbody>
                             </table>
                         )}
+                        </div>
 
                         {totalPages > 1 && (
                             <div class="pagination">
-                                <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page <= 1}>
-                                    ← Prev
-                                </button>
                                 <span>Page {page} of {totalPages}</span>
-                                <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page >= totalPages}>
-                                    Next →
-                                </button>
+                                <div class="pagination-controls">
+                                    <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page <= 1}>
+                                        <Icons.ChevronLeft />
+                                    </button>
+                                    <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page >= totalPages}>
+                                        <Icons.ChevronRight />
+                                    </button>
+                                </div>
                             </div>
                         )}
                     </>
@@ -135,4 +159,11 @@ export function Payments({ type }) {
             </div>
         </div>
     );
+}
+
+const _avatarColors = ['#2563eb', '#7c3aed', '#16a34a', '#f59e0b', '#dc2626', '#0ea5e9', '#db2777'];
+function avatarColor(name = '') {
+    let h = 0;
+    for (let i = 0; i < (name || '').length; i++) h = name.charCodeAt(i) + ((h << 5) - h);
+    return _avatarColors[Math.abs(h) % _avatarColors.length];
 }

@@ -121,126 +121,136 @@ export function ReportsPage({ section, type: initialType }) {
 
     return (
         <div class="reports-page">
-            <div class="reports-tabs">
-                <div 
-                    class={`report-tab ${view === 'exams' ? 'active' : ''}`} 
-                    onClick={() => { setView('exams'); setExamType('COMBINED'); }}
-                >
-                    Exam Reports
+            <div class="page-header">
+                <div class="page-header-titles">
+                    <div class="page-header-eyebrow"><Icons.Reports /> Reports</div>
+                    <h1>{view === 'students' ? 'Student Reports' : 'Exam Reports'}</h1>
+                    <p class="page-subtitle">
+                        {view === 'students'
+                            ? 'Per-student performance across all exams.'
+                            : 'Detailed results by exam and student.'}
+                    </p>
+                    <div class="header-metrics">
+                        <div class="header-metric">
+                            <span class="hm-value">{totalCount.toLocaleString()}</span>
+                            <span class="hm-label">Records</span>
+                        </div>
+                    </div>
                 </div>
-                <div 
-                    class={`report-tab ${view === 'students' ? 'active' : ''}`} 
-                    onClick={() => setView('students')}
-                >
-                    Student Reports
+                <div class="page-header-actions">
+                    <div class="segmented">
+                        <button class={view === 'exams' ? 'active' : ''} onClick={() => { setView('exams'); setExamType('COMBINED'); }}>Exam Reports</button>
+                        <button class={view === 'students' ? 'active' : ''} onClick={() => setView('students')}>Student Reports</button>
+                    </div>
                 </div>
             </div>
 
-            <div class="reports-filters">
-                <div class="filter-group">
-                    <label>Board</label>
-                    <select class="form-control" value={filters.board} onChange={(e) => handleFilterChange('board', e.target.value)}>
-                        <option value="">All Boards</option>
-                        {BOARDS.map(b => <option value={b}>{b}</option>)}
-                    </select>
-                </div>
-                <div class="filter-group">
-                    <label>Standard</label>
-                    <select class="form-control" value={filters.std} onChange={(e) => handleFilterChange('std', e.target.value)}>
-                        <option value="">All Standards</option>
-                        {standards.map(s => <option value={s.name}>{s.name}</option>)}
-                    </select>
-                </div>
-                <div class="filter-group">
-                    <label>Medium</label>
-                    <select class="form-control" value={filters.medium} onChange={(e) => handleFilterChange('medium', e.target.value)}>
-                        <option value="">All Mediums</option>
-                        {MEDIUMS.map(m => <option value={m}>{m}</option>)}
-                    </select>
-                </div>
-                <div class="filter-group">
-                    <label>Stream</label>
-                    <select class="form-control" value={filters.stream} onChange={(e) => handleFilterChange('stream', e.target.value)}>
-                        <option value="">All Streams</option>
-                        {STREAMS.map(s => <option value={s}>{s}</option>)}
-                    </select>
-                </div>
-                {view === 'exams' && (
+            <div class="card" style="margin-bottom: var(--space-lg); padding: var(--space-lg);">
+                <div class="reports-filters" style="margin:0;">
                     <div class="filter-group">
-                        <label>Exam Type</label>
-                        <select class="form-control" value={examType} onChange={(e) => setExamType(e.target.value)}>
-                            {EXAM_TYPES.map(t => <option value={t.id}>{t.label}</option>)}
+                        <label>Board</label>
+                        <select class="form-control" value={filters.board} onChange={(e) => handleFilterChange('board', e.target.value)}>
+                            <option value="">All Boards</option>
+                            {BOARDS.map(b => <option value={b}>{b}</option>)}
                         </select>
                     </div>
-                )}
-                <button class="btn btn-outline" style="margin-bottom: 0;" onClick={() => {
-                    setFilters({ board: '', std: '', medium: '', stream: '' });
-                    setExamType('COMBINED');
-                }}>
-                    Reset
-                </button>
+                    <div class="filter-group">
+                        <label>Standard</label>
+                        <select class="form-control" value={filters.std} onChange={(e) => handleFilterChange('std', e.target.value)}>
+                            <option value="">All Standards</option>
+                            {standards.map(s => <option value={s.name}>{s.name}</option>)}
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Medium</label>
+                        <select class="form-control" value={filters.medium} onChange={(e) => handleFilterChange('medium', e.target.value)}>
+                            <option value="">All Mediums</option>
+                            {MEDIUMS.map(m => <option value={m}>{m}</option>)}
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Stream</label>
+                        <select class="form-control" value={filters.stream} onChange={(e) => handleFilterChange('stream', e.target.value)}>
+                            <option value="">All Streams</option>
+                            {STREAMS.map(s => <option value={s}>{s}</option>)}
+                        </select>
+                    </div>
+                    {view === 'exams' && (
+                        <div class="filter-group">
+                            <label>Exam Type</label>
+                            <select class="form-control" value={examType} onChange={(e) => setExamType(e.target.value)}>
+                                {EXAM_TYPES.map(t => <option value={t.id}>{t.label}</option>)}
+                            </select>
+                        </div>
+                    )}
+                    <button class="btn btn-outline" style="margin-bottom: 0;" onClick={() => {
+                        setFilters({ board: '', std: '', medium: '', stream: '' });
+                        setExamType('COMBINED');
+                    }}>
+                        <Icons.Refresh /> Reset
+                    </button>
+                </div>
             </div>
 
             <div class="table-container">
                 <div class="table-header">
-                    <h3>
-                        {view === 'students' ? <Icons.User /> : <Icons.Reports />}
-                        {view === 'students' ? ' Student Wise Reports' : ` ${EXAM_TYPES.find(t => t.id === examType)?.label} Reports`}
-                    </h3>
-                    <div style="display: flex; gap: 1rem; align-items: center;">
-                        <select
-                            value={pageSize}
-                            onChange={(e) => {
-                                const newPageSize = parseInt(e.target.value);
-                                setPageSize(newPageSize);
-                                setCurrentPage(1);
-                                const skip = 0;
-                                const query = new URLSearchParams();
-                                if (filters.board) query.append('board', filters.board);
-                                if (filters.std) query.append('std', filters.std);
-                                if (filters.medium) query.append('medium', filters.medium);
-                                if (filters.stream) query.append('stream', filters.stream);
-                                query.append('skip', skip);
-                                query.append('limit', newPageSize);
+                    <div class="toolbar" style="width:100%;">
+                        <div class="toolbar-group">
+                            <h3 style="font-size:var(--font-md);font-weight:600;">
+                                {view === 'students' ? 'Student-wise Results' : `${EXAM_TYPES.find(t => t.id === examType)?.label} Results`}
+                            </h3>
+                        </div>
+                        <div class="toolbar-group">
+                            <select
+                                class="form-control"
+                                value={pageSize}
+                                onChange={(e) => {
+                                    const newPageSize = parseInt(e.target.value);
+                                    setPageSize(newPageSize);
+                                    setCurrentPage(1);
+                                    const query = new URLSearchParams();
+                                    if (filters.board) query.append('board', filters.board);
+                                    if (filters.std) query.append('std', filters.std);
+                                    if (filters.medium) query.append('medium', filters.medium);
+                                    if (filters.stream) query.append('stream', filters.stream);
+                                    query.append('skip', 0);
+                                    query.append('limit', newPageSize);
 
-                                setLoading(true);
-                                if (view === 'students') {
-                                    api.get(`/reports/students?${query.toString()}`)
-                                        .then(res => {
-                                            setData(res.data || res);
-                                            setTotalCount(res.total || res.length);
-                                        })
-                                        .finally(() => setLoading(false));
-                                } else {
-                                    if (examType !== 'COMBINED') query.append('type', examType);
-                                    api.get(`/reports/exams?${query.toString()}`)
-                                        .then(res => {
-                                            setData(res.data || res);
-                                            setTotalCount(res.total || res.length);
-                                        })
-                                        .finally(() => setLoading(false));
-                                }
-                            }}
-                            style="padding: 0.5rem 0.75rem; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg-secondary); color: var(--text-primary); font-size: var(--font-sm); cursor: pointer;"
-                        >
-                            <option value={10}>10 per page</option>
-                            <option value={25} selected>25 per page</option>
-                            <option value={50}>50 per page</option>
-                            <option value={100}>100 per page</option>
-                        </select>
-                        <span class="badge badge-primary">{totalCount} Total</span>
+                                    setLoading(true);
+                                    if (view === 'students') {
+                                        api.get(`/reports/students?${query.toString()}`)
+                                            .then(res => {
+                                                setData(res.data || res);
+                                                setTotalCount(res.total || res.length);
+                                            })
+                                            .finally(() => setLoading(false));
+                                    } else {
+                                        if (examType !== 'COMBINED') query.append('type', examType);
+                                        api.get(`/reports/exams?${query.toString()}`)
+                                            .then(res => {
+                                                setData(res.data || res);
+                                                setTotalCount(res.total || res.length);
+                                            })
+                                            .finally(() => setLoading(false));
+                                    }
+                                }}
+                            >
+                                <option value={10}>10 / page</option>
+                                <option value={25}>25 / page</option>
+                                <option value={50}>50 / page</option>
+                                <option value={100}>100 / page</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
 
                 {loading ? (
-                    <div style="padding: 3rem; text-align: center;">
-                        <div class="loading-spinner" style="margin: 0 auto 1rem;"></div>
-                        <p>Fetching reports...</p>
-                    </div>
+                    <div class="loading-spinner" />
                 ) : data.length === 0 ? (
-                    <div class="table-empty">
-                        <div class="empty-icon"><Icons.Reports /></div>
-                        <p>No reports found matching your filters.</p>
+                    <div class="empty-state">
+                        <div class="empty-state-icon"><Icons.Reports /></div>
+                        <h3>No reports found</h3>
+                        <p>No records match your current filters. Try broadening them.</p>
                     </div>
                 ) : view === 'students' ? (
                     <>

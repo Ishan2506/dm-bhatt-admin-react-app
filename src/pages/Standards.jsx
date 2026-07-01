@@ -63,48 +63,73 @@ export function Standards() {
         }
     };
 
+    const activeCount = standards.filter(s => s.isActive).length;
     return (
         <div>
-            <div class="table-container">
-                <div class="table-header">
-                    <h3><Icons.Clipboard /> All Standards</h3>
+            <div class="page-header">
+                <div class="page-header-titles">
+                    <div class="page-header-eyebrow"><Icons.Standards /> Management</div>
+                    <h1>Standards</h1>
+                    <p class="page-subtitle">Define the academic standards students can be enrolled into.</p>
+                    <div class="header-metrics">
+                        <div class="header-metric">
+                            <span class="hm-value">{standards.length}</span>
+                            <span class="hm-label">Total</span>
+                        </div>
+                        <div class="header-metric">
+                            <span class="hm-value">{activeCount}</span>
+                            <span class="hm-label">Active</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="page-header-actions">
                     <button id="add-standard-btn" class="btn btn-primary" onClick={openAdd}>
                         <Icons.Plus /> Add Standard
                     </button>
                 </div>
+            </div>
+
+            <div class="table-container">
                 {loading ? (
                     <div class="loading-spinner" />
                 ) : standards.length === 0 ? (
-                    <div class="table-empty">
-                        <div class="empty-icon"><Icons.Standards /></div>
-                        <p>No standards yet. Add your first standard!</p>
+                    <div class="empty-state">
+                        <div class="empty-state-icon"><Icons.Standards /></div>
+                        <h3>No standards yet</h3>
+                        <p>Add your first standard to start building the curriculum.</p>
                     </div>
                 ) : (
+                    <div class="table-scroll">
                     <table>
                         <thead>
                             <tr>
-                                <th>#</th>
-                                <th>Name</th>
+                                <th style="width:56px;">#</th>
+                                <th>Standard</th>
                                 <th>Status</th>
-                                <th>Actions</th>
+                                <th style="text-align:right;">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             {standards.map((std, i) => (
                                 <tr key={std._id}>
-                                    <td>{i + 1}</td>
-                                    <td style="font-weight: 600;">{std.name}</td>
+                                    <td style="color:var(--text-muted);font-variant-numeric:tabular-nums;">{i + 1}</td>
+                                    <td>
+                                        <div class="identity">
+                                            <div class="avatar avatar-sm" style={{ background: 'var(--primary)' }}>{std.name?.toString().slice(0, 2)}</div>
+                                            <div class="identity-name">{std.name}</div>
+                                        </div>
+                                    </td>
                                     <td>
                                         <span class={`badge ${std.isActive ? 'badge-success' : 'badge-danger'}`}>
                                             {std.isActive ? 'Active' : 'Inactive'}
                                         </span>
                                     </td>
                                     <td>
-                                        <div class="td-actions">
-                                            <button class="btn btn-outline btn-sm" onClick={() => openEdit(std)}>
-                                                <Icons.Edit /> Edit
+                                        <div class="td-actions" style="justify-content:flex-end;">
+                                            <button class="icon-btn primary" title="Edit" onClick={() => openEdit(std)}>
+                                                <Icons.Edit />
                                             </button>
-                                            <button class="btn btn-danger btn-sm" onClick={() => setDeleteConfirm(std)}>
+                                            <button class="icon-btn danger" title="Delete" onClick={() => setDeleteConfirm(std)}>
                                                 <Icons.Trash />
                                             </button>
                                         </div>
@@ -113,6 +138,7 @@ export function Standards() {
                             ))}
                         </tbody>
                     </table>
+                    </div>
                 )}
             </div>
 

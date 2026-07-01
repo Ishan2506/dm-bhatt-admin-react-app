@@ -52,78 +52,97 @@ export function Exams() {
 
     return (
         <div class="materials-page">
-            <div class="table-container">
-                <div class="table-header">
-                    <h3><Icons.Reports /> Exam Management History</h3>
-                    <button class="btn btn-outline btn-sm" onClick={loadExams}>
+            <div class="page-header">
+                <div class="page-header-titles">
+                    <div class="page-header-eyebrow"><Icons.Reports /> Resources</div>
+                    <h1>Exam History</h1>
+                    <p class="page-subtitle">A complete audit trail of every exam created across the platform.</p>
+                    <div class="header-metrics">
+                        <div class="header-metric">
+                            <span class="hm-value">{exams.length.toLocaleString()}</span>
+                            <span class="hm-label">Total Exams</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="page-header-actions">
+                    <button class="btn btn-outline" onClick={loadExams}>
                         <Icons.Refresh /> Refresh
                     </button>
                 </div>
+            </div>
+
+            <div class="table-container">
                 {loading ? (
-                    <div style="padding: 2rem; text-align: center;"><div class="loading-spinner" /></div>
+                    <div class="loading-spinner" />
                 ) : exams.length === 0 ? (
                     <div class="table-empty">
                         <div class="empty-icon"><Icons.Reports /></div>
                         <p>No exams found.</p>
                     </div>
                 ) : (
+                    <div class="table-scroll">
                     <table>
                         <thead>
                             <tr>
-                                <th>Title</th>
-                                <th>Subject</th>
-                                <th>Std</th>
+                                <th>Exam</th>
+                                <th>Standard</th>
                                 <th>Medium</th>
                                 <th>Board</th>
                                 <th>Created By</th>
-                                <th>Updated By</th>
-                                <th>Created Time</th>
-                                <th>Updated Time</th>
-                                <th>Actions</th>
+                                <th>Last Updated By</th>
+                                <th>Created</th>
+                                <th style="text-align:right;">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {exams.map(item => (
+                            {exams.map(item => {
+                                const editor = item.updatedBy || item.createdBy;
+                                return (
                                 <tr key={item._id}>
-                                    <td style="font-weight: 600;">{item.title}</td>
-                                    <td>{item.subject}</td>
-                                    <td>{item.std}</td>
+                                    <td>
+                                        <div class="identity-body">
+                                            <div class="identity-name">{item.title}</div>
+                                            <div class="identity-sub">{item.subject}</div>
+                                        </div>
+                                    </td>
+                                    <td><span class="cell-chip">{item.std}</span></td>
                                     <td>{item.medium}</td>
                                     <td><span class="badge badge-info">{item.board}</span></td>
                                     <td>
                                         {item.createdBy ? (
-                                            <div style={{ lineHeight: '1.2' }}>
-                                                {item.createdBy.firstName}<br />
-                                                {item.createdBy.email && <small style={{ color: 'var(--text-secondary)' }}>{item.createdBy.email}</small>}
+                                            <div class="identity">
+                                                <div class="avatar avatar-sm" style={{ background: 'var(--primary)' }}>
+                                                    {(item.createdBy.firstName || '?').charAt(0).toUpperCase()}
+                                                </div>
+                                                <div class="identity-body">
+                                                    <div class="identity-name">{item.createdBy.firstName}</div>
+                                                    {item.createdBy.email && <div class="identity-sub">{item.createdBy.email}</div>}
+                                                </div>
                                             </div>
-                                        ) : 'System'}
+                                        ) : <span class="cell-chip">System</span>}
                                     </td>
                                     <td>
-                                        {item.updatedBy ? (
-                                            <div style={{ lineHeight: '1.2' }}>
-                                                {item.updatedBy.firstName}<br />
-                                                {item.updatedBy.email && <small style={{ color: 'var(--text-secondary)' }}>{item.updatedBy.email}</small>}
+                                        {editor ? (
+                                            <div class="identity-body">
+                                                <div class="identity-name">{editor.firstName}</div>
+                                                {editor.email && <div class="identity-sub">{editor.email}</div>}
                                             </div>
-                                        ) : (item.createdBy ? (
-                                            <div style={{ lineHeight: '1.2' }}>
-                                                {item.createdBy.firstName}<br />
-                                                {item.createdBy.email && <small style={{ color: 'var(--text-secondary)' }}>{item.createdBy.email}</small>}
-                                            </div>
-                                        ) : 'System')}
+                                        ) : <span class="cell-chip">System</span>}
                                     </td>
-                                    <td style="font-size: var(--font-xs); color: var(--text-secondary);">{formatDateTime(item.createdAt)}</td>
-                                    <td style="font-size: var(--font-xs); color: var(--text-secondary);">{formatDateTime(item.updatedAt || item.createdAt)}</td>
+                                    <td style="font-size: var(--font-xs);">{formatDateTime(item.createdAt)}</td>
                                     <td>
-                                        <div class="td-actions">
-                                            <button class="btn btn-danger btn-sm" onClick={() => setDeleteConfirm(item)}>
+                                        <div class="td-actions" style="justify-content:flex-end;">
+                                            <button class="icon-btn danger" title="Delete" onClick={() => setDeleteConfirm(item)}>
                                                 <Icons.Trash />
                                             </button>
                                         </div>
                                     </td>
                                 </tr>
-                            ))}
+                                );
+                            })}
                         </tbody>
                     </table>
+                    </div>
                 )}
             </div>
 

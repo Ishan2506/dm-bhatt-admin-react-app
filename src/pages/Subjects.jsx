@@ -93,71 +93,88 @@ export function Subjects() {
 
     return (
         <div>
+            <div class="page-header">
+                <div class="page-header-titles">
+                    <div class="page-header-eyebrow"><Icons.Subjects /> Management</div>
+                    <h1>Subjects</h1>
+                    <p class="page-subtitle">Organise subjects under each standard and stream.</p>
+                    <div class="header-metrics">
+                        <div class="header-metric">
+                            <span class="hm-value">{subjects.length}</span>
+                            <span class="hm-label">Showing</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="page-header-actions">
+                    <button id="add-subject-btn" class="btn btn-primary" onClick={openAdd}>
+                        <Icons.Plus /> Add Subject
+                    </button>
+                </div>
+            </div>
+
             <div class="table-container">
                 <div class="table-header">
-                    <h3><Icons.Clipboard /> All Subjects</h3>
-                    <div class="table-filters">
-                        <select
-                            id="subject-filter-standard"
-                            class="form-control"
-                            value={filterStd}
-                            onChange={(e) => {
-                                setFilterStd(e.target.value);
-                                setFilterStream('');
-                            }}
-                        >
-                            <option value="">All Standards</option>
-                            {standards.map(s => (
-                                <option key={s._id} value={s._id}>{s.name}</option>
-                            ))}
-                        </select>
-                        <select
-                            id="subject-filter-stream"
-                            class="form-control"
-                            value={filterStream}
-                            onChange={(e) => setFilterStream(e.target.value)}
-                            disabled={!isFilterHigherSecondary}
-                        >
-                            <option value="">All Streams</option>
-                            <option value="Science">Science</option>
-                            <option value="Commerce">Commerce</option>
-                        </select>
-                        <button id="add-subject-btn" class="btn btn-primary" onClick={openAdd}>
-                            <Icons.Plus /> Add Subject
-                        </button>
+                    <div class="toolbar" style="width:100%;">
+                        <div class="toolbar-group">
+                            <select
+                                id="subject-filter-standard"
+                                class="form-control"
+                                value={filterStd}
+                                onChange={(e) => { setFilterStd(e.target.value); setFilterStream(''); }}
+                            >
+                                <option value="">All Standards</option>
+                                {standards.map(s => (
+                                    <option key={s._id} value={s._id}>{s.name}</option>
+                                ))}
+                            </select>
+                            <select
+                                id="subject-filter-stream"
+                                class="form-control"
+                                value={filterStream}
+                                onChange={(e) => setFilterStream(e.target.value)}
+                                disabled={!isFilterHigherSecondary}
+                            >
+                                <option value="">All Streams</option>
+                                <option value="Science">Science</option>
+                                <option value="Commerce">Commerce</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
                 {loading ? (
                     <div class="loading-spinner" />
                 ) : subjects.length === 0 ? (
-                    <div class="table-empty">
-                        <div class="empty-icon"><Icons.Subjects /></div>
-                        <p>No subjects found. Add your first subject!</p>
+                    <div class="empty-state">
+                        <div class="empty-state-icon"><Icons.Subjects /></div>
+                        <h3>No subjects found</h3>
+                        <p>Add your first subject, or adjust the filters above.</p>
                     </div>
                 ) : (
+                    <div class="table-scroll">
                     <table>
                         <thead>
                             <tr>
-                                <th>#</th>
-                                <th>Subject Name</th>
+                                <th style="width:56px;">#</th>
+                                <th>Subject</th>
                                 <th>Standard</th>
                                 <th>Stream</th>
                                 <th>Status</th>
-                                <th>Actions</th>
+                                <th style="text-align:right;">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             {subjects.map((subj, i) => (
                                 <tr key={subj._id}>
-                                    <td>{i + 1}</td>
-                                    <td style="font-weight: 600;">{subj.name}</td>
+                                    <td style="color:var(--text-muted);font-variant-numeric:tabular-nums;">{i + 1}</td>
                                     <td>
-                                        <span class="badge badge-info">
-                                            {subj.standardId?.name || '—'}
-                                        </span>
+                                        <div class="identity">
+                                            <div class="avatar avatar-sm" style={{ background: 'var(--chart-green)' }}><Icons.Subjects /></div>
+                                            <div class="identity-name">{subj.name}</div>
+                                        </div>
                                     </td>
+                                    <td><span class="cell-chip">{subj.standardId?.name || '—'}</span></td>
                                     <td>
-                                        {subj.stream ? <span class="badge badge-secondary">{subj.stream}</span> : '—'}
+                                        {subj.stream ? <span class="badge badge-info">{subj.stream}</span> : <span style="color:var(--text-muted);">—</span>}
                                     </td>
                                     <td>
                                         <span class={`badge ${subj.isActive ? 'badge-success' : 'badge-danger'}`}>
@@ -165,11 +182,11 @@ export function Subjects() {
                                         </span>
                                     </td>
                                     <td>
-                                        <div class="td-actions">
-                                            <button class="btn btn-outline btn-sm" onClick={() => openEdit(subj)}>
-                                                <Icons.Edit /> Edit
+                                        <div class="td-actions" style="justify-content:flex-end;">
+                                            <button class="icon-btn primary" title="Edit" onClick={() => openEdit(subj)}>
+                                                <Icons.Edit />
                                             </button>
-                                            <button class="btn btn-danger btn-sm" onClick={() => setDeleteConfirm(subj)}>
+                                            <button class="icon-btn danger" title="Delete" onClick={() => setDeleteConfirm(subj)}>
                                                 <Icons.Trash />
                                             </button>
                                         </div>
@@ -178,6 +195,7 @@ export function Subjects() {
                             ))}
                         </tbody>
                     </table>
+                    </div>
                 )}
             </div>
 

@@ -88,128 +88,111 @@ export function ScheduledNotifications() {
                 </div>
             )}
 
-            <div class="table-header" style="margin-bottom: 1.5rem;">
-                <div>
-                    <h2 style="margin: 0; display: flex; align-items: center; gap: 0.75rem;">
-                        <Icons.Clock /> Scheduled Notifications
-                    </h2>
-                    <p style="margin: 0.5rem 0 0 0; color: var(--text-secondary); font-size: 0.9rem;">
-                        View and manage all scheduled push notifications
-                    </p>
+            <div class="page-header">
+                <div class="page-header-titles">
+                    <div class="page-header-eyebrow"><Icons.Clock /> Notifications</div>
+                    <h1>Scheduled Notifications</h1>
+                    <p class="page-subtitle">View and manage every scheduled push notification.</p>
+                    <div class="header-metrics">
+                        <div class="header-metric">
+                            <span class="hm-value">{totalCount.toLocaleString()}</span>
+                            <span class="hm-label">Total</span>
+                        </div>
+                    </div>
                 </div>
-                <button class="btn btn-outline btn-sm" onClick={() => loadNotifications(currentPage)} disabled={loading}>
-                    {loading ? <div class="loading-spinner-xs" /> : <Icons.Refresh />} {loading ? 'Refreshing...' : 'Refresh'}
-                </button>
+                <div class="page-header-actions">
+                    <button class="btn btn-outline" onClick={() => loadNotifications(currentPage)} disabled={loading}>
+                        <Icons.Refresh /> {loading ? 'Refreshing…' : 'Refresh'}
+                    </button>
+                </div>
             </div>
 
-            <div style="margin-bottom: 1.5rem; display: flex; gap: 0.75rem; align-items: center;">
-                <label style="font-weight: 600; font-size: 0.9rem;">Filter by Status:</label>
-                <select
-                    value={filterStatus}
-                    onChange={(e) => setFilterStatus(e.target.value)}
-                    style="padding: 0.5rem 0.75rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg-input); color: var(--text-primary);"
-                >
-                    <option value="all">All Notifications</option>
-                    <option value="pending">Pending</option>
-                    <option value="sent">Sent</option>
-                    <option value="failed">Failed</option>
-                </select>
-            </div>
+            <div class="table-container">
+                <div class="table-header">
+                    <div class="toolbar" style="width:100%;">
+                        <div class="toolbar-group">
+                            <div class="segmented">
+                                {['all', 'pending', 'sent', 'failed'].map(s => (
+                                    <button
+                                        key={s}
+                                        class={filterStatus === s ? 'active' : ''}
+                                        onClick={() => setFilterStatus(s)}
+                                    >
+                                        {s === 'all' ? 'All' : s.charAt(0).toUpperCase() + s.slice(1)}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
-            {loading && !notifications.length ? (
-                <div class="loading-state">
-                    <div class="loading-spinner"></div>
-                    <p>Loading scheduled notifications...</p>
-                </div>
-            ) : notifications.length === 0 ? (
-                <div class="empty-state">
-                    <div class="empty-icon"><Icons.Clock /></div>
-                    <p>No scheduled notifications found</p>
-                    <p style="font-size: 0.9rem; color: var(--text-secondary); margin-top: 0.5rem;">
-                        Schedule notifications from the Notification Configuration page
-                    </p>
-                </div>
-            ) : (
-                <div class="table-responsive">
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th>Title</th>
-                                <th>Message</th>
-                                <th>Target</th>
-                                <th>Scheduled For</th>
-                                <th>Status</th>
-                                <th>Sent At</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {notifications.map(notif => (
-                                <tr key={notif._id}>
-                                    <td class="font-bold" style="max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                                        {notif.title}
-                                    </td>
-                                    <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text-secondary);">
-                                        {notif.body}
-                                    </td>
-                                    <td>
-                                        <span style="background: var(--bg-secondary); padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.85rem;">
-                                            {notif.std === 'all' ? 'All Students' : `Std ${notif.std}`}
-                                        </span>
-                                    </td>
-                                    <td class="font-mono text-xs">
-                                        {formatDateTime(notif.scheduledTime)}
-                                    </td>
-                                    <td>
-                                        {getStatusBadge(notif.status)}
-                                    </td>
-                                    <td class="font-mono text-xs">
-                                        {notif.sentAt ? formatDateTime(notif.sentAt) : '—'}
-                                    </td>
-                                    <td>
-                                        <div class="td-actions">
-                                            {notif.status === 'pending' && (
-                                                <button
-                                                    class="btn btn-icon btn-outline btn-danger btn-sm"
-                                                    title="Delete"
-                                                    onClick={() => handleDelete(notif._id)}
-                                                >
-                                                    <Icons.Trash />
-                                                </button>
-                                            )}
-                                            {notif.status === 'failed' && (
-                                                <span title={notif.error} style="color: #dc3545; font-size: 0.75rem; cursor: help;">
-                                                    Error
-                                                </span>
-                                            )}
-                                        </div>
-                                    </td>
+                {loading && !notifications.length ? (
+                    <div class="loading-spinner" />
+                ) : notifications.length === 0 ? (
+                    <div class="empty-state">
+                        <div class="empty-state-icon"><Icons.Clock /></div>
+                        <h3>No scheduled notifications</h3>
+                        <p>Schedule notifications from the Notification Settings page.</p>
+                    </div>
+                ) : (
+                    <div class="table-scroll">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Notification</th>
+                                    <th>Target</th>
+                                    <th>Scheduled For</th>
+                                    <th>Status</th>
+                                    <th>Sent At</th>
+                                    <th style="text-align:right;">Actions</th>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
-            )}
+                            </thead>
+                            <tbody>
+                                {notifications.map(notif => (
+                                    <tr key={notif._id}>
+                                        <td style="max-width:320px;">
+                                            <div class="identity-body">
+                                                <div class="identity-name">{notif.title}</div>
+                                                <div class="identity-sub" style="max-width:300px;">{notif.body}</div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <span class="cell-chip">{notif.std === 'all' ? 'All Students' : `Std ${notif.std}`}</span>
+                                        </td>
+                                        <td style="font-size:var(--font-xs);">{formatDateTime(notif.scheduledTime)}</td>
+                                        <td>{getStatusBadge(notif.status)}</td>
+                                        <td style="font-size:var(--font-xs);color:var(--text-muted);">{notif.sentAt ? formatDateTime(notif.sentAt) : '—'}</td>
+                                        <td>
+                                            <div class="td-actions" style="justify-content:flex-end;">
+                                                {notif.status === 'pending' && (
+                                                    <button class="icon-btn danger" title="Delete" onClick={() => handleDelete(notif._id)}>
+                                                        <Icons.Trash />
+                                                    </button>
+                                                )}
+                                                {notif.status === 'failed' && (
+                                                    <span title={notif.error} class="badge badge-danger" style="cursor:help;">Error</span>
+                                                )}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
+            </div>
 
             {totalPages > 1 && (
-                <div class="pagination" style="margin-top: 1.5rem;">
-                    <button
-                        class="btn btn-outline btn-sm"
-                        onClick={() => loadNotifications(currentPage - 1)}
-                        disabled={currentPage === 1 || loading}
-                    >
-                        Previous
-                    </button>
-                    <span style="padding: 0.5rem 1rem;">
-                        Page {currentPage} of {totalPages}
-                    </span>
-                    <button
-                        class="btn btn-outline btn-sm"
-                        onClick={() => loadNotifications(currentPage + 1)}
-                        disabled={currentPage === totalPages || loading}
-                    >
-                        Next
-                    </button>
+                <div class="pagination" style="margin-top: 1rem; border-top: none;">
+                    <span>Page {currentPage} of {totalPages}</span>
+                    <div class="pagination-controls">
+                        <button onClick={() => loadNotifications(currentPage - 1)} disabled={currentPage === 1 || loading}>
+                            <Icons.ChevronLeft />
+                        </button>
+                        <button onClick={() => loadNotifications(currentPage + 1)} disabled={currentPage === totalPages || loading}>
+                            <Icons.ChevronRight />
+                        </button>
+                    </div>
                 </div>
             )}
         </div>
