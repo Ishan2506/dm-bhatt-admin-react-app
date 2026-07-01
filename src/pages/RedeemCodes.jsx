@@ -8,7 +8,18 @@ const STANDARDS = ['6', '7', '8', '9', '10', '11', '12'];
 const MEDIUMS = ['English', 'Gujarati'];
 const STREAMS = ['Science', 'Commerce'];
 
-const emptyForm = { discount: 10, board: '', std: '', medium: '', stream: '' };
+const emptyForm = {
+    code: '', // optional custom code name; blank = auto-generated
+    discount: 10,
+    discountType: 'percentage',
+    board: '',
+    std: '',
+    medium: '',
+    stream: '',
+    usageType: 'single', // 'single' | 'multiple'
+    maxUses: '', // blank = unlimited when usageType is 'multiple'
+    expiresAt: '' // blank = never expires
+};
 
 export function RedeemCodes() {
     const [codes, setCodes] = useState([]);
@@ -48,19 +59,43 @@ export function RedeemCodes() {
     };
 
     const handleSave = async () => {
-        if (!form.discount || form.discount < 1 || form.discount > 70) {
-            alert('Discount must be between 1 and 70');
+        if (!form.discount || form.discount < 1) {
+            alert('Discount must be at least 1');
             return;
         }
+        if (form.discountType === 'percentage' && form.discount > 70) {
+            alert('Percentage discount cannot exceed 70%');
+            return;
+        }
+        const customCode = form.code.trim().toUpperCase();
+        if (customCode && !/^[A-Z0-9]{3,20}$/.test(customCode)) {
+            alert('Custom code must be 3-20 letters/numbers only');
+            return;
+        }
+        if (form.expiresAt && new Date(form.expiresAt) <= new Date()) {
+            alert('Expiry date must be in the future');
+            return;
+        }
+
+        // maxUses: single-use -> 1, multiple with blank field -> unlimited (0), multiple with a value -> that cap
+        let maxUses = 1;
+        if (form.usageType === 'multiple') {
+            maxUses = form.maxUses === '' ? 0 : parseInt(form.maxUses, 10) || 0;
+        }
+
         setSaving(true);
         try {
             await api.post('/admin/generate-redeem-code', {
+                code: customCode || undefined,
                 discount: form.discount,
+                discountType: form.discountType,
                 board: form.board || undefined,
                 std: form.std || undefined,
                 medium: form.medium || undefined,
                 stream: form.stream || undefined,
-                createdBy: getCreatorName()
+                createdBy: getCreatorName(),
+                maxUses,
+                expiresAt: form.expiresAt || undefined
             }, { noPrefix: true });
             setShowModal(false);
             load();
@@ -109,39 +144,55 @@ export function RedeemCodes() {
                                 <th>Standard</th>
                                 <th>Medium</th>
                                 <th>Stream</th>
+                                <th>Usage</th>
+                                <th>Expires</th>
                                 <th>Created By</th>
                                 <th>Status</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {codes.map((c) => (
-                                <tr key={c._id}>
-                                    <td style="font-weight: 600; letter-spacing: 1px;">{c.code}</td>
-                                    <td>{c.discount}%</td>
-                                    <td>{c.std || 'Any'}</td>
-                                    <td>{c.medium || 'Any'}</td>
-                                    <td>{c.stream || 'Any'}</td>
-                                    <td>{c.createdBy}</td>
-                                    <td>
-                                        <span class={`badge ${c.used ? 'badge-danger' : 'badge-success'}`}>
-                                            {c.used ? 'Used' : 'Available'}
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <div class="td-actions">
-                                            <button
-                                                class="btn btn-danger btn-sm"
-                                                disabled={c.used}
-                                                title={c.used ? 'Cannot delete a used code' : 'Delete'}
-                                                onClick={() => setDeleteConfirm(c)}
-                                            >
-                                                <Icons.Trash />
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            ))}
+                            {codes.map((c) => {
+                                const isUnlimited = !c.maxUses || c.maxUses <= 0;
+                                const usedCount = c.usedCount || 0;
+                                const exhausted = !isUnlimited && usedCount >= c.maxUses;
+                                const expired = !!c.expiresAt && new Date(c.expiresAt) <= new Date();
+                                const usageLabel = c.maxUses === 1
+                                    ? 'Single-use'
+                                    : isUnlimited
+                                        ? `${usedCount} used (unlimited)`
+                                        : `${usedCount} / ${c.maxUses} used`;
+                                const statusLabel = expired ? 'Expired' : exhausted ? 'Exhausted' : 'Available';
+                                return (
+                                    <tr key={c._id}>
+                                        <td style="font-weight: 600; letter-spacing: 1px;">{c.code}</td>
+                                        <td>{c.discountType === 'flat' ? `₹${c.discount}` : `${c.discount}%`}</td>
+                                        <td>{c.std || 'Any'}</td>
+                                        <td>{c.medium || 'Any'}</td>
+                                        <td>{c.stream || 'Any'}</td>
+                                        <td>{usageLabel}</td>
+                                        <td>{c.expiresAt ? new Date(c.expiresAt).toLocaleDateString() : 'Never'}</td>
+                                        <td>{c.createdBy}</td>
+                                        <td>
+                                            <span class={`badge ${(expired || exhausted) ? 'badge-danger' : 'badge-success'}`}>
+                                                {statusLabel}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <div class="td-actions">
+                                                <button
+                                                    class="btn btn-danger btn-sm"
+                                                    disabled={usedCount > 0}
+                                                    title={usedCount > 0 ? 'Cannot delete a code that has been used' : 'Delete'}
+                                                    onClick={() => setDeleteConfirm(c)}
+                                                >
+                                                    <Icons.Trash />
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                );
+                            })}
                         </tbody>
                     </table>
                 )}
@@ -161,14 +212,70 @@ export function RedeemCodes() {
                     }
                 >
                     <div class="form-group">
-                        <label>Discount (%)</label>
+                        <label>Code Name (optional - leave blank to auto-generate)</label>
+                        <input
+                            type="text"
+                            class="form-control"
+                            placeholder="e.g. DIWALI50"
+                            maxLength={20}
+                            value={form.code}
+                            onInput={(e) => setForm({ ...form, code: e.target.value.toUpperCase() })}
+                        />
+                    </div>
+                    <div class="form-group">
+                        <label>Discount Type</label>
+                        <select
+                            class="form-control"
+                            value={form.discountType}
+                            onChange={(e) => setForm({ ...form, discountType: e.target.value })}
+                        >
+                            <option value="percentage">Percentage (%)</option>
+                            <option value="flat">Flat Amount (₹)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>{form.discountType === 'flat' ? 'Discount Amount (₹)' : 'Discount (%)'}</label>
                         <input
                             type="number"
                             class="form-control"
                             min="1"
-                            max="70"
+                            max={form.discountType === 'percentage' ? '70' : undefined}
                             value={form.discount}
                             onInput={(e) => setForm({ ...form, discount: parseFloat(e.target.value) || 0 })}
+                        />
+                    </div>
+                    <div class="form-group">
+                        <label>Usage Type</label>
+                        <select
+                            class="form-control"
+                            value={form.usageType}
+                            onChange={(e) => setForm({ ...form, usageType: e.target.value })}
+                        >
+                            <option value="single">Single-use (one redemption total)</option>
+                            <option value="multiple">Multiple-use</option>
+                        </select>
+                    </div>
+                    {form.usageType === 'multiple' && (
+                        <div class="form-group">
+                            <label>Max Uses (leave blank for unlimited)</label>
+                            <input
+                                type="number"
+                                class="form-control"
+                                min="1"
+                                placeholder="Unlimited"
+                                value={form.maxUses}
+                                onInput={(e) => setForm({ ...form, maxUses: e.target.value })}
+                            />
+                        </div>
+                    )}
+                    <div class="form-group">
+                        <label>Expiry Date (optional - leave blank to never expire)</label>
+                        <input
+                            type="date"
+                            class="form-control"
+                            min={new Date().toISOString().split('T')[0]}
+                            value={form.expiresAt}
+                            onInput={(e) => setForm({ ...form, expiresAt: e.target.value })}
                         />
                     </div>
                     <div class="form-group">
