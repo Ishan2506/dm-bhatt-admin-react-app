@@ -1,4 +1,4 @@
-import { h } from 'preact';
+import { h, Fragment } from 'preact';
 import { useState, useEffect } from 'preact/hooks';
 import { api } from '../api';
 import { Modal } from '../components/Modal';
@@ -168,8 +168,17 @@ export function SubscriptionPlans() {
         showModal && h(Modal, {
             title: editing ? `Edit Plan - Standard ${editing.standard}` : 'Add New Plan',
             onClose: () => setShowModal(false),
-            onSave: handleSave,
-            saving
+            footer: h(Fragment, null,
+                h('button', {
+                    class: 'btn btn-outline',
+                    onClick: () => setShowModal(false)
+                }, 'Cancel'),
+                h('button', {
+                    class: 'btn btn-primary',
+                    onClick: handleSave,
+                    disabled: saving
+                }, saving ? 'Saving...' : editing ? 'Update' : 'Create')
+            )
         },
             h('div', { class: 'form-group' },
                 h('label', null, 'Standard'),
