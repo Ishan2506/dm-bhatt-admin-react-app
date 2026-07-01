@@ -163,8 +163,7 @@ export function SubscriptionPlans() {
                         )
                     ) : h('tr', null, h('td', { colSpan: 5, style: 'text-align: center' }, 'No plans found'))
                 )
-            )
-        ),
+            ),
 
         showModal && h(Modal, {
             title: editing ? `Edit Plan - Standard ${editing.standard}` : 'Add New Plan',
