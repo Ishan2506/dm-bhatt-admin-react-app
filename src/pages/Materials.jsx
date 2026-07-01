@@ -16,6 +16,8 @@ export function Materials({ type }) {
     const [toast, setToast] = useState(null);
     const [standards, setStandards] = useState([]);
     const [subjects, setSubjects] = useState([]);
+    const [filterSubjects, setFilterSubjects] = useState([]);
+    const [filterSubject, setFilterSubject] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
     const [pageSize, setPageSize] = useState(25);
     const [totalCount, setTotalCount] = useState(0);
@@ -81,10 +83,12 @@ export function Materials({ type }) {
         { id: 'History', label: 'History', icon: <Icons.History /> }
     ];
 
-    const loadMaterials = (page = 1) => {
+    const loadMaterials = (page = 1, size = pageSize, subject = filterSubject) => {
         setLoading(true);
-        const skip = (page - 1) * pageSize;
-        api.get(`/material/all?skip=${skip}&limit=${pageSize}`, { noPrefix: true })
+        const skip = (page - 1) * size;
+        let url = `/material/all?skip=${skip}&limit=${size}`;
+        if (subject) url += `&subject=${encodeURIComponent(subject)}`;
+        api.get(url, { noPrefix: true })
             .then(response => {
                 setMaterials(response.data || response);
                 setTotalCount(response.total || response.length);
@@ -109,6 +113,10 @@ export function Materials({ type }) {
 
     useEffect(() => {
         api.get('/standards').then(setStandards).catch(console.error);
+        api.get('/subjects').then(list => {
+            const names = [...new Set((list || []).map(s => s.name))].sort();
+            setFilterSubjects(names);
+        }).catch(console.error);
     }, []);
 
     useEffect(() => {
@@ -334,18 +342,23 @@ export function Materials({ type }) {
                 <h3><Icons.History /> Material Upload History</h3>
                 <div style="display: flex; gap: 0.75rem; align-items: center;">
                     <select
+                        value={filterSubject}
+                        onChange={(e) => {
+                            const newSubject = e.target.value;
+                            setFilterSubject(newSubject);
+                            loadMaterials(1, pageSize, newSubject);
+                        }}
+                        style="padding: 0.5rem 0.75rem; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg-secondary); color: var(--text-primary); font-size: var(--font-sm); cursor: pointer;"
+                    >
+                        <option value="">All Subjects</option>
+                        {filterSubjects.map(s => <option value={s}>{s}</option>)}
+                    </select>
+                    <select
                         value={pageSize}
                         onChange={(e) => {
                             const newPageSize = parseInt(e.target.value);
                             setPageSize(newPageSize);
-                            setCurrentPage(1);
-                            const skip = 0;
-                            api.get(`/material/all?skip=${skip}&limit=${newPageSize}`, { noPrefix: true })
-                                .then(response => {
-                                    setMaterials(response.data || response);
-                                    setTotalCount(response.total || response.length);
-                                })
-                                .catch(err => showToast(err.message, 'error'));
+                            loadMaterials(1, newPageSize, filterSubject);
                         }}
                         style="padding: 0.5rem 0.75rem; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg-secondary); color: var(--text-primary); font-size: var(--font-sm); cursor: pointer;"
                     >
