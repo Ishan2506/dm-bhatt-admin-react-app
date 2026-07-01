@@ -62,6 +62,7 @@ const navigation = [
                     { path: '/admin/exams/online', label: 'Online Exams' },
                     { path: '/admin/exams/quiz', label: '5 Min Quiz' },
                     { path: '/admin/exams/oneliner', label: 'One Liner Exams' },
+                    { path: '/admin/exams/matchfollowing', label: 'Match The Following' },
                 ]
             },
         ]

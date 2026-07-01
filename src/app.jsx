@@ -16,6 +16,7 @@ import { Exams } from './pages/Exams';
 import { OnlineExams } from './pages/OnlineExams';
 import { FiveMinQuiz } from './pages/FiveMinQuiz';
 import { OneLinerExams } from './pages/OneLinerExams';
+import { MatchFollowingExams } from './pages/MatchFollowingExams';
 import { PaymentConfig } from './pages/PaymentConfig';
 import { NotificationConfig } from './pages/NotificationConfig';
 import { ScheduledNotifications } from './pages/ScheduledNotifications';
@@ -152,6 +153,7 @@ export function App() {
           <OnlineExams path="/admin/exams/online" />
           <FiveMinQuiz path="/admin/exams/quiz" />
           <OneLinerExams path="/admin/exams/oneliner" />
+          <MatchFollowingExams path="/admin/exams/matchfollowing" />
           <ReportsPage path="/admin/reports/:section/:type?" key={currentPath} />
         </Router>
       </Layout>
