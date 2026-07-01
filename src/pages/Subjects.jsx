@@ -12,7 +12,7 @@ export function Subjects() {
     const [filterStream, setFilterStream] = useState('');
     const [showModal, setShowModal] = useState(false);
     const [editing, setEditing] = useState(null);
-    const [form, setForm] = useState({ name: '', standardId: '', stream: '' });
+    const [form, setForm] = useState({ name: '', standardId: '', stream: '', isActive: true });
     const [saving, setSaving] = useState(false);
     const [deleteConfirm, setDeleteConfirm] = useState(null);
 
@@ -42,7 +42,7 @@ export function Subjects() {
 
     const openAdd = () => {
         setEditing(null);
-        setForm({ name: '', standardId: filterStd || (standards[0]?._id || ''), stream: '' });
+        setForm({ name: '', standardId: filterStd || (standards[0]?._id || ''), stream: '', isActive: true });
         setShowModal(true);
     };
 
@@ -51,7 +51,8 @@ export function Subjects() {
         setForm({
             name: subj.name,
             standardId: subj.standardId?._id || subj.standardId || '',
-            stream: subj.stream || ''
+            stream: subj.stream || '',
+            isActive: subj.isActive ?? true
         });
         setShowModal(true);
     };
@@ -231,6 +232,18 @@ export function Subjects() {
                             onInput={(e) => setForm({ ...form, name: e.target.value })}
                         />
                     </div>
+                    {editing && (
+                        <div class="form-group">
+                            <label>
+                                <input
+                                    type="checkbox"
+                                    checked={form.isActive}
+                                    onChange={(e) => setForm({ ...form, isActive: e.target.checked })}
+                                />
+                                {' '}Active
+                            </label>
+                        </div>
+                    )}
                 </Modal>
             )}
 

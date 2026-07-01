@@ -9,7 +9,7 @@ export function Standards() {
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
     const [editing, setEditing] = useState(null);
-    const [form, setForm] = useState({ name: '', displayOrder: 0 });
+    const [form, setForm] = useState({ name: '', displayOrder: 0, isActive: true });
     const [saving, setSaving] = useState(false);
     const [deleteConfirm, setDeleteConfirm] = useState(null);
 
@@ -25,13 +25,13 @@ export function Standards() {
 
     const openAdd = () => {
         setEditing(null);
-        setForm({ name: '', displayOrder: standards.length });
+        setForm({ name: '', displayOrder: standards.length, isActive: true });
         setShowModal(true);
     };
 
     const openEdit = (std) => {
         setEditing(std);
-        setForm({ name: std.name, displayOrder: std.displayOrder || 0 });
+        setForm({ name: std.name, displayOrder: std.displayOrder || 0, isActive: std.isActive ?? true });
         setShowModal(true);
     };
 
@@ -139,6 +139,18 @@ export function Standards() {
                             onInput={(e) => setForm({ ...form, name: e.target.value })}
                         />
                     </div>
+                    {editing && (
+                        <div class="form-group">
+                            <label>
+                                <input
+                                    type="checkbox"
+                                    checked={form.isActive}
+                                    onChange={(e) => setForm({ ...form, isActive: e.target.checked })}
+                                />
+                                {' '}Active
+                            </label>
+                        </div>
+                    )}
                 </Modal>
             )}
 

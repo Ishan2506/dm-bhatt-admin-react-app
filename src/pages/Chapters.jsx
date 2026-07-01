@@ -13,7 +13,7 @@ export function Chapters() {
     const [filterSubj, setFilterSubj] = useState('');
     const [showModal, setShowModal] = useState(false);
     const [editing, setEditing] = useState(null);
-    const [form, setForm] = useState({ unitNo: '', name: '', subjectId: '' });
+    const [form, setForm] = useState({ unitNo: '', name: '', subjectId: '', isActive: true });
     const [formStdId, setFormStdId] = useState('');
     const [formSubjects, setFormSubjects] = useState([]);
     const [saving, setSaving] = useState(false);
@@ -47,7 +47,7 @@ export function Chapters() {
 
     const openAdd = () => {
         setEditing(null);
-        setForm({ unitNo: '', name: '', subjectId: filterSubj || '' });
+        setForm({ unitNo: '', name: '', subjectId: filterSubj || '', isActive: true });
         const stdId = filterStd || (standards[0]?._id || '');
         setFormStdId(stdId);
         if (stdId) loadFormSubjects(stdId);
@@ -61,7 +61,8 @@ export function Chapters() {
         setForm({
             unitNo: ch.unitNo,
             name: ch.name,
-            subjectId: ch.subjectId?._id || ch.subjectId || ''
+            subjectId: ch.subjectId?._id || ch.subjectId || '',
+            isActive: ch.isActive ?? true
         });
         if (stdId) loadFormSubjects(stdId);
         setShowModal(true);
@@ -251,6 +252,18 @@ export function Chapters() {
                             onInput={(e) => setForm({ ...form, name: e.target.value })}
                         />
                     </div>
+                    {editing && (
+                        <div class="form-group">
+                            <label>
+                                <input
+                                    type="checkbox"
+                                    checked={form.isActive}
+                                    onChange={(e) => setForm({ ...form, isActive: e.target.checked })}
+                                />
+                                {' '}Active
+                            </label>
+                        </div>
+                    )}
                 </Modal>
             )}
 
