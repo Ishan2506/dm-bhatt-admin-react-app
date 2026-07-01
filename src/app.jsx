@@ -1,4 +1,5 @@
 import { h, Fragment } from 'preact';
+import { Suspense, lazy } from 'preact/compat';
 import { useState, useEffect } from 'preact/hooks';
 import { Router, route } from 'preact-router';
 import { LoginPage } from './pages/LoginPage.jsx';
@@ -23,7 +24,7 @@ import { ScheduledNotifications } from './pages/ScheduledNotifications';
 import { AppConfig } from './pages/AppConfig';
 import { Products } from './pages/Products';
 import { ReportsPage } from './pages/ReportsPage';
-import { LandingPage } from './pages/LandingPage';
+const MarketingSite = lazy(() => import('./marketing/MarketingSite.jsx').then((m) => ({ default: m.MarketingSite })));
 import { ActivityLogs } from './pages/ActivityLogs';
 import { SubscriptionPlans } from './pages/SubscriptionPlans';
 import { RedeemCodes } from './pages/RedeemCodes';
@@ -90,6 +91,24 @@ export function App() {
 
   const [currentPath, setCurrentPath] = useState(window.location.pathname);
 
+  // Keep top-level path in sync for ALL navigations (marketing <-> admin),
+  // including programmatic route() calls made from the marketing site.
+  useEffect(() => {
+    const sync = () => setCurrentPath(window.location.pathname);
+    window.addEventListener('popstate', sync);
+    // preact-router uses history.pushState; patch it to notify us.
+    const origPush = window.history.pushState;
+    window.history.pushState = function (...args) {
+      const ret = origPush.apply(this, args);
+      sync();
+      return ret;
+    };
+    return () => {
+      window.removeEventListener('popstate', sync);
+      window.history.pushState = origPush;
+    };
+  }, []);
+
   const handleLoginSuccess = (userData) => {
     setUser(userData);
     route('/admin');
@@ -108,8 +127,13 @@ export function App() {
 
   const isAdminPath = currentPath.startsWith('/admin');
 
-  if (currentPath === '/') {
-    return <LandingPage />;
+  // Everything that isn't the admin panel is the premium marketing website.
+  if (!isAdminPath) {
+    return (
+      <Suspense fallback={null}>
+        <MarketingSite />
+      </Suspense>
+    );
   }
 
   if (isAdminPath) {
@@ -162,10 +186,10 @@ export function App() {
     );
   }
 
+  // Fallback (non-admin routes are handled by MarketingSite above).
   return (
-    <Router onChange={handleRoute}>
-      <LandingPage path="/" />
-      <LoginPage default onLoginSuccess={handleLoginSuccess} />
-    </Router>
+    <Suspense fallback={null}>
+      <MarketingSite />
+    </Suspense>
   );
 }
