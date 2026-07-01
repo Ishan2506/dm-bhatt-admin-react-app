@@ -27,6 +27,7 @@ import { LandingPage } from './pages/LandingPage';
 import { ActivityLogs } from './pages/ActivityLogs';
 import { SubscriptionPlans } from './pages/SubscriptionPlans';
 import { RedeemCodes } from './pages/RedeemCodes';
+import { TrueFalseExams } from './pages/TrueFalseExams';
 import './pages/LoginPage.css';
 
 export function App() {
@@ -153,6 +154,7 @@ export function App() {
           <OnlineExams path="/admin/exams/online" />
           <FiveMinQuiz path="/admin/exams/quiz" />
           <OneLinerExams path="/admin/exams/oneliner" />
+          <TrueFalseExams path="/admin/exams/true-false" />
           <MatchFollowingExams path="/admin/exams/matchfollowing" />
           <ReportsPage path="/admin/reports/:section/:type?" key={currentPath} />
         </Router>
