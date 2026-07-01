@@ -48,8 +48,8 @@ export function RedeemCodes() {
     };
 
     const handleSave = async () => {
-        if (!form.discount || form.discount < 1 || form.discount > 60) {
-            alert('Discount must be between 1 and 60');
+        if (!form.discount || form.discount < 1 || form.discount > 70) {
+            alert('Discount must be between 1 and 70');
             return;
         }
         setSaving(true);
@@ -166,7 +166,7 @@ export function RedeemCodes() {
                             type="number"
                             class="form-control"
                             min="1"
-                            max="60"
+                            max="70"
                             value={form.discount}
                             onInput={(e) => setForm({ ...form, discount: parseFloat(e.target.value) || 0 })}
                         />
