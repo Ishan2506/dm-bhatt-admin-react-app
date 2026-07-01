@@ -67,7 +67,7 @@ export function SubscriptionPlans() {
     const handleDelete = async (standard) => {
         if (!confirm(`Are you sure you want to delete plan for Standard ${standard}?`)) return;
         try {
-            await api.delete(`/plans/${standard}`);
+            await api.del(`/plans/${standard}`);
             load();
         } catch (err) {
             alert(err.message);
@@ -113,7 +113,7 @@ export function SubscriptionPlans() {
                     class: 'btn btn-secondary',
                     onClick: handleInitializeDefaults,
                     disabled: saving || loading
-                }, h(Icons.RotateCcw, null), ' Initialize Defaults'),
+                }, h(Icons.Refresh, null), ' Initialize Defaults'),
                 h('button', {
                     class: 'btn btn-primary',
                     onClick: openAdd
