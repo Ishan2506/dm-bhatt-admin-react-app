@@ -22,6 +22,7 @@ import { PaymentConfig } from './pages/PaymentConfig';
 import { NotificationConfig } from './pages/NotificationConfig';
 import { ScheduledNotifications } from './pages/ScheduledNotifications';
 import { AppConfig } from './pages/AppConfig';
+import { ReferAndEarnConfig } from './pages/ReferAndEarnConfig';
 import { Products } from './pages/Products';
 import { ReportsPage } from './pages/ReportsPage';
 const MarketingSite = lazy(() => import('./marketing/MarketingSite.jsx').then((m) => ({ default: m.MarketingSite })));
@@ -165,6 +166,7 @@ export function App() {
           {user.role === 'super admin' && <NotificationConfig path="/admin/config/notification" />}
           {user.role === 'super admin' && <ScheduledNotifications path="/admin/scheduled-notifications" />}
           {user.role === 'super admin' && <AppConfig path="/admin/config/app" />}
+          {user.role === 'super admin' && <ReferAndEarnConfig path="/admin/config/referral" />}
 
           <Standards path="/admin/standards" />
           <SubscriptionPlans path="/admin/subscription-plans" />

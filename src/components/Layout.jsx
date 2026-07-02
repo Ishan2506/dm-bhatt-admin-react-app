@@ -91,6 +91,7 @@ const navigation = [
         items: [
             { path: '/admin/config/payment', label: 'Payment', icon: <Icons.Revenue /> },
             { path: '/admin/config/app', label: 'App Version', icon: <Icons.Gear /> },
+            { path: '/admin/config/referral', label: 'Refer & Earn', icon: <Icons.User /> },
         ]
     }
 ];
