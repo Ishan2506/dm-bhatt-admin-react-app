@@ -4,8 +4,8 @@ import { api } from '../api';
 import { Icons } from '../components/Icons';
 
 const defaultForm = {
-    pointsPerReferral: 50,
-    maxReferralsAllowed: 10,
+    pointsPerReferral: [50, 50, 50, 50, 50],
+    maxReferralsAllowed: 5,
 };
 
 export function ReferAndEarnConfig() {
@@ -16,13 +16,58 @@ export function ReferAndEarnConfig() {
 
     useEffect(() => {
         api.get('/config/referral')
-            .then(res => { if (res) setForm({ ...defaultForm, ...res }); })
+            .then(res => {
+                if (res) {
+                    const maxAllowed = res.maxReferralsAllowed !== undefined ? Number(res.maxReferralsAllowed) : 5;
+                    let points = res.pointsPerReferral;
+                    if (!Array.isArray(points)) {
+                        const baseVal = points !== undefined ? Number(points) : 50;
+                        points = Array(maxAllowed).fill(baseVal);
+                    }
+                    // Resize to match maxAllowed if mismatch
+                    if (points.length !== maxAllowed) {
+                        if (points.length < maxAllowed) {
+                            points = [...points, ...Array(maxAllowed - points.length).fill(points[points.length - 1] || 50)];
+                        } else {
+                            points = points.slice(0, maxAllowed);
+                        }
+                    }
+                    setForm({
+                        maxReferralsAllowed: maxAllowed,
+                        pointsPerReferral: points
+                    });
+                }
+            })
             .catch(() => {}) // Silently fail if config not yet saved
             .finally(() => setLoading(false));
     }, []);
 
     const handleSave = async (e) => {
         e.preventDefault();
+        
+        // Input Validations
+        if (form.maxReferralsAllowed === "" || isNaN(form.maxReferralsAllowed)) {
+            alert('Please enter a valid number for maximum referrals');
+            return;
+        }
+        if (form.maxReferralsAllowed > 5) {
+            alert('Maximum referrals allowed cannot be greater than 5');
+            return;
+        }
+        if (form.maxReferralsAllowed < 1) {
+            alert('Maximum referrals allowed must be at least 1');
+            return;
+        }
+        
+        // Validate each stage points
+        for (let i = 0; i < form.pointsPerReferral.length; i++) {
+            const ptsVal = form.pointsPerReferral[i];
+            if (ptsVal === "" || ptsVal < 0 || isNaN(ptsVal)) {
+                alert(`Stage ${i + 1} Points cannot be less than 0 or empty`);
+                return;
+            }
+        }
+
         setSaving(true);
         setSaved(false);
         try {
@@ -36,10 +81,51 @@ export function ReferAndEarnConfig() {
         }
     };
 
-    const f = (key) => ({
-        value: form[key],
-        onInput: (e) => setForm({ ...form, [key]: Number(e.target.value) })
-    });
+    const handleMaxReferralsChange = (e) => {
+        const rawValue = e.target.value;
+        if (rawValue === "") {
+            setForm({
+                ...form,
+                maxReferralsAllowed: "",
+            });
+            return;
+        }
+
+        const val = Number(rawValue);
+        // Clamp length to 1-5 for safety of the array list sizing
+        const arraySize = Math.min(5, Math.max(1, val));
+        
+        let newPoints = [...form.pointsPerReferral];
+        if (newPoints.length < arraySize) {
+            newPoints = [...newPoints, ...Array(arraySize - newPoints.length).fill(newPoints[newPoints.length - 1] || 50)];
+        } else if (newPoints.length > arraySize) {
+            newPoints = newPoints.slice(0, arraySize);
+        }
+        
+        setForm({
+            ...form,
+            maxReferralsAllowed: val,
+            pointsPerReferral: newPoints
+        });
+    };
+
+    const handleStagePointChange = (idx, value) => {
+        if (value === "") {
+            const newPoints = [...form.pointsPerReferral];
+            newPoints[idx] = "";
+            setForm({
+                ...form,
+                pointsPerReferral: newPoints
+            });
+            return;
+        }
+        const newPoints = [...form.pointsPerReferral];
+        newPoints[idx] = Number(value);
+        setForm({
+            ...form,
+            pointsPerReferral: newPoints
+        });
+    };
 
     if (loading) return <div style="padding:2rem;text-align:center;">Loading configuration...</div>;
 
@@ -60,17 +146,39 @@ export function ReferAndEarnConfig() {
                             <div class="config-section-badge"><Icons.Sparkles /></div>
                             <div>
                                 <h3 class="config-section-title">Referral Program Rules</h3>
-                                <p class="config-section-desc">Set limits on how many people a user can refer and how many points they get.</p>
+                                <p class="config-section-desc">Set limits on how many people a user can refer and how many points they get at each stage.</p>
                             </div>
                         </div>
-                        <div class="config-grid">
-                            <div class="form-group">
-                                <label>Points Per Referral</label>
-                                <input class="form-control" type="number" placeholder="e.g. 50" {...f('pointsPerReferral')} />
-                            </div>
+                        <div class="config-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
                             <div class="form-group">
                                 <label>Max Referrals Allowed per User</label>
-                                <input class="form-control" type="number" placeholder="e.g. 10" {...f('maxReferralsAllowed')} />
+                                <input 
+                                    class="form-control" 
+                                    type="number" 
+                                    placeholder="e.g. 5" 
+                                    min="1" 
+                                    max="5" 
+                                    value={form.maxReferralsAllowed}
+                                    onInput={handleMaxReferralsChange} 
+                                />
+                            </div>
+                            <div class="stage-points-container" style="display: flex; flex-direction: column; gap: 1rem;">
+                                <label style="font-weight: bold; margin-bottom: 0.5rem;">Milestone Points Per Stage</label>
+                                {form.pointsPerReferral.map((pts, idx) => (
+                                    <div key={idx} class="form-group" style="display: flex; align-items: center; gap: 1rem; margin-bottom: 0;">
+                                        <span style="font-size: 0.9rem; color: var(--color-text-muted); min-width: 120px;">
+                                            Referral #{idx + 1} Points:
+                                        </span>
+                                        <input 
+                                            class="form-control" 
+                                            type="number" 
+                                            min="0"
+                                            value={pts} 
+                                            onInput={(e) => handleStagePointChange(idx, e.target.value)} 
+                                            style="flex: 1;"
+                                        />
+                                    </div>
+                                ))}
                             </div>
                         </div>
                     </div>
