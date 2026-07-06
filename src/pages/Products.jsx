@@ -49,7 +49,25 @@ export function Products() {
 
     useEffect(() => { loadProducts(); }, [filterCategory]);
 
-    const categories = ['Notes', 'Books', 'Question Bank', 'Diagrams', 'Material', 'Other'];
+    const categories = ['Material', 'Diagram', 'Phantom material', 'Books', 'Stationery', 'Notes', 'Question Bank', 'Other'];
+    
+    const subjects = [
+        "Science",
+        "Maths",
+        "English",
+        "Gujarati",
+        "Social Science",
+        "Sanskrit",
+        "Computer",
+        "Physics",
+        "Chemistry",
+        "Biology",
+        "Accountancy",
+        "BA",
+        "Economics",
+        "Statistics",
+        "Secretarial Practice"
+    ];
     
     const isPDF = (product) => {
         const cat = (product.category || '').toLowerCase();
@@ -289,22 +307,23 @@ export function Products() {
                                     onChange={e => setFormData({...formData, category: e.target.value})}
                                 >
                                     <option value="">Select Category</option>
-                                    <option value="Notes">Notes</option>
-                                    <option value="Books">Books</option>
-                                    <option value="Question Bank">Question Bank</option>
-                                    <option value="Diagrams">Diagrams</option>
-                                    <option value="Other">Other</option>
+                                    {categories.map(cat => (
+                                        <option key={cat} value={cat}>{cat}</option>
+                                    ))}
                                 </select>
                             </div>
                             <div class="form-group">
                                 <label>Subject (Optional)</label>
-                                <input 
+                                <select 
                                     class="form-control"
-                                    type="text"
                                     value={formData.subject} 
-                                    onInput={e => setFormData({...formData, subject: e.target.value})}
-                                    placeholder="e.g. Science"
-                                />
+                                    onChange={e => setFormData({...formData, subject: e.target.value})}
+                                >
+                                    <option value="">Select Subject</option>
+                                    {subjects.map(sub => (
+                                        <option key={sub} value={sub}>{sub}</option>
+                                    ))}
+                                </select>
                             </div>
                             <div class="form-group">
                                 <label>Selling Price (₹)</label>
@@ -337,14 +356,25 @@ export function Products() {
                                 <label>Product Image / File</label>
                                 <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
                                     {preview && (
-                                        <div style={{ width: '60px', height: '60px', borderRadius: '8px', overflow: 'hidden', border: '1px solid var(--border)' }}>
-                                            {isPDF({ category: formData.category, name: file?.name || formData.name }) ? (
-                                                <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-primary)' }}>
-                                                    <Icons.FilePdf />
-                                                </div>
-                                            ) : (
-                                                <img src={preview} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                                            )}
+                                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+                                            <a 
+                                                href={preview} 
+                                                target="_blank" 
+                                                rel="noopener noreferrer" 
+                                                title="Click to view/download current file"
+                                                style={{ display: 'block', width: '60px', height: '60px', borderRadius: '8px', overflow: 'hidden', border: '1px solid var(--border)' }}
+                                            >
+                                                {isPDF({ category: formData.category, name: file?.name || formData.name || formData.image }) ? (
+                                                    <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-primary)', cursor: 'pointer' }}>
+                                                        <Icons.FilePdf />
+                                                    </div>
+                                                ) : (
+                                                    <img src={preview} style={{ width: '100%', height: '100%', objectFit: 'cover', cursor: 'pointer' }} />
+                                                )}
+                                            </a>
+                                            <span style={{ fontSize: '10px', color: 'var(--text-muted)', maxWidth: '100px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                                {file ? file.name : (formData.image ? formData.image.substring(formData.image.lastIndexOf('/') + 1) : 'current file')}
+                                            </span>
                                         </div>
                                     )}
                                     <input 
