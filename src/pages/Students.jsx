@@ -203,6 +203,9 @@ export function Students() {
                                     <th>Standard</th>
                                     <th>Medium</th>
                                     <th>Points</th>
+                                    <th>Status</th>
+                                    <th>Amount</th>
+                                    <th>Referral/Redeem</th>
                                     <th>Joined</th>
                                     <th style="text-align:right;">Actions</th>
                                 </tr>
@@ -231,6 +234,36 @@ export function Students() {
                                         <td style="font-weight:600;color:var(--text-primary);font-variant-numeric:tabular-nums;">
                                             {student.totalRewardPoints || 0}
                                         </td>
+                                        <td>
+                                            {student.isPaid ? (
+                                                <span class="cell-chip" style={{ backgroundColor: '#def7ec', color: '#03543f', fontWeight: 'bold' }}>Paid</span>
+                                            ) : (
+                                                <span class="cell-chip" style={{ backgroundColor: '#fde8e8', color: '#9b1c1c', fontWeight: 'bold' }}>Unpaid</span>
+                                            )}
+                                        </td>
+                                        <td style="font-weight:600;color:var(--text-primary);font-variant-numeric:tabular-nums;">
+                                            {student.isPaid ? `₹${student.paidAmount || 0}` : '—'}
+                                        </td>
+                                        <td>
+                                            {(() => {
+                                                if (student.referrerCode) {
+                                                    return (
+                                                        <div style={{ fontSize: '0.85rem' }}>
+                                                            <strong>{student.referrerCode}</strong>
+                                                            <div style={{ fontSize: '0.75rem', color: '#6b7280' }}>Referred by {student.referrerName || 'User'}</div>
+                                                        </div>
+                                                    );
+                                                } else if (student.redeemCode) {
+                                                    return (
+                                                        <div style={{ fontSize: '0.85rem' }}>
+                                                            <strong>{student.redeemCode}</strong>
+                                                            <div style={{ fontSize: '0.75rem', color: '#6b7280' }}>Created by {student.redeemCodeCreatedBy || 'Admin'}</div>
+                                                        </div>
+                                                    );
+                                                }
+                                                return <span style={{ color: '#9ca3af' }}>—</span>;
+                                            })()}
+                                        </td>
                                         <td>{student.createdAt ? new Date(student.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}</td>
                                         <td>
                                             <div class="td-actions" style="justify-content:flex-end;">
@@ -246,7 +279,7 @@ export function Students() {
                                 ))}
                                 {visibleStudents.length === 0 && (
                                     <tr>
-                                        <td colSpan={7} style="text-align:center;color:var(--text-muted);padding:2.5rem;">
+                                        <td colSpan={10} style="text-align:center;color:var(--text-muted);padding:2.5rem;">
                                             No students match “{search}”.
                                         </td>
                                     </tr>
