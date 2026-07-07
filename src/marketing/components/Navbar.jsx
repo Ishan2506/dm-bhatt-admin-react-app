@@ -64,7 +64,6 @@ export function Navbar({ current = '/' }) {
             ))}
           </div>
           <div class="nav-cta">
-            <a class="btn btn-secondary btn-sm" href={APP.loginUrl} onClick={go(APP.loginUrl)}>Log in</a>
             <a class="btn btn-primary btn-sm" href={APP.playStoreUrl} target="_blank" rel="noopener">
               <Icon.Download size={16} /> Download App
             </a>
@@ -97,7 +96,6 @@ export function Navbar({ current = '/' }) {
           ))}
         </div>
         <div class="mnav-foot">
-          <a class="btn btn-secondary btn-block" href={APP.loginUrl} onClick={go(APP.loginUrl)}>Log in</a>
           <a class="btn btn-primary btn-block" href={APP.playStoreUrl} target="_blank" rel="noopener">
             <Icon.Download size={18} /> Download App
           </a>

@@ -11,7 +11,6 @@ const COLS = [
       ['Features', '/features'],
       ['Courses', '/courses'],
       ['Testimonials', '/testimonials'],
-      ['Log in', '/admin'],
     ],
   },
   {
