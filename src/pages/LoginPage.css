@@ -248,7 +248,7 @@
 }
 
 .signin-btn {
-  background-color: #111827;
+  background-color: #2563eb;
   color: #fff;
   padding: 1rem;
   border-radius: 12px;
@@ -258,11 +258,13 @@
   cursor: pointer;
   transition: all 0.2s;
   margin-top: 1rem;
+  box-shadow: 0 8px 24px rgba(37, 99, 235, 0.28);
 }
 
 .signin-btn:hover {
-  background-color: #1f2937;
+  background-color: #1d4ed8;
   transform: translateY(-1px);
+  box-shadow: 0 12px 28px rgba(37, 99, 235, 0.38);
 }
 
 .signin-btn:active {
