@@ -47,9 +47,45 @@ export function SubscriptionPlans() {
         setShowModal(true);
     };
 
+    const isValidApplePrice = (amount) => {
+        if (amount === 0) return true;
+        
+        const P = amount - 1;
+        
+        // Low Tiers
+        if (P === 29 || P === 49) return true;
+
+        // Standard Tiers (₹50 to ₹299): increments of ₹50
+        if (P >= 99 && P <= 299) {
+            return P % 50 === 49;
+        }
+        
+        // Mid-Range Tiers (₹300 to ₹999): increments of ₹100
+        if (P >= 399 && P <= 999) {
+            return P % 100 === 99;
+        }
+        
+        // Subscription/High Tiers (₹1000 to ₹24999): increments of ₹500 (with ₹1299 special tier)
+        if (P === 1299) return true;
+        if (P >= 1499 && P <= 24999) {
+            return P % 500 === 499;
+        }
+        
+        // Premium Tiers (₹25000+): increments of ₹5000
+        if (P >= 29999) {
+            return P % 5000 === 4999;
+        }
+        
+        return false;
+    };
+
     const handleSave = async () => {
         if (!form.standard || form.amount < 0) {
             alert('Please fill in all required fields correctly');
+            return;
+        }
+        if (!isValidApplePrice(form.amount)) {
+            alert('Invalid amount! The price does not match standard Apple tier guidelines.\n\nExamples of valid prices:\n- ₹30 (displays as ₹29)\n- ₹50 (displays as ₹49)\n- ₹100 (displays as ₹99)\n- ₹150 (displays as ₹149)\n- ₹300 (displays as ₹299)\n- ₹1500 (displays as ₹1499)\n- ₹4500 (displays as ₹4499)\n- ₹5000 (displays as ₹4999)');
             return;
         }
         setSaving(true);
@@ -109,6 +145,9 @@ export function SubscriptionPlans() {
                 <div class="page-header-eyebrow"><Icons.Gear /> Payments</div>
                 <h1>Subscription Plans</h1>
                 <p class="page-subtitle">Manage subscription pricing for each standard.</p>
+                <div style={{ color: '#dc2626', fontSize: '0.85rem', fontWeight: '600', marginTop: '6px' }}>
+                    * Note: The Student App automatically subtracts ₹1 from the set price for psychological charm pricing (e.g. ₹300 here displays as ₹299 to the student, ₹500 displays as ₹499).
+                </div>
                 <div class="header-metrics">
                     <div class="header-metric">
                         <span class="hm-value">{plans.length}</span>
@@ -228,7 +267,10 @@ export function SubscriptionPlans() {
                     class: 'form-control',
                     min: '0',
                     step: '1'
-                })
+                }),
+                h('div', { style: { color: '#dc2626', fontSize: '0.75rem', marginTop: '6px', fontWeight: '600' } },
+                    '* Note: Student app automatically subtracts ₹1. Entered amount must match standard Apple pricing tiers (e.g. 30, 50, 100, 150, 300, 1500, 4500, 5000).'
+                )
             ),
             h('div', { class: 'form-group' },
                 h('label', null, 'Description'),
