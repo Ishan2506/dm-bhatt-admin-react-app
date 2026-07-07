@@ -15,7 +15,7 @@ const NAV = [
 function Brand() {
   return (
     <a class="brand" href="/" onClick={(e) => { e.preventDefault(); route('/'); }}>
-      <span class="mark">P</span>
+      <img src="/assets/logo.png" alt="Padhaku" />
       <span>Padhaku</span>
     </a>
   );

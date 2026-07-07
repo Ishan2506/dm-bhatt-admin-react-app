@@ -51,7 +51,7 @@ export function Footer() {
         <div class="foot-grid">
           <div class="foot-about">
             <a class="brand" href="/" onClick={go('/')}>
-              <span class="mark">P</span>
+              <img src="/assets/logo.png" alt="Padhaku" />
               <span>Padhaku</span>
             </a>
             <p>
