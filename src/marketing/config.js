@@ -4,8 +4,7 @@
  */
 export const APP = {
   name: 'Padhaku',
-  // TODO: paste real store URLs here.
-  playStoreUrl: '#',
+  playStoreUrl: 'https://play.google.com/store/apps/details?id=com.bondbyte.students',
   appStoreUrl: '#',
   // QR code: point this at a generated QR image (or a URL-encoding service).
   // Leaving null renders an elegant placeholder tile instead.
