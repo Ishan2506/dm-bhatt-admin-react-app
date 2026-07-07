@@ -8,7 +8,7 @@ export const APP = {
   appStoreUrl: '#',
   // QR code: point this at a generated QR image (or a URL-encoding service).
   // Leaving null renders an elegant placeholder tile instead.
-  qrImageUrl: null,
+  qrImageUrl: '/assets/qr-playstore.svg',
   loginUrl: '/admin',
   contactEmail: 'padhaku@gmail.com',
   phone: '+91 00000 00000',
