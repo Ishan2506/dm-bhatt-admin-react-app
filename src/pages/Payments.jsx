@@ -3,38 +3,41 @@ import { api } from '../api';
 import { Icons } from '../components/Icons';
 
 export function Payments({ type }) {
-    const [activeTab, setActiveTab] = useState('upgrades');
-    const [data, setData] = useState([]);
+    const activeTab = type === 'purchases' ? 'purchases' : 'upgrades';
+    const [allRows, setAllRows] = useState([]);
     const [loading, setLoading] = useState(true);
     const [page, setPage] = useState(1);
-    const [totalPages, setTotalPages] = useState(1);
 
-    const loadData = () => {
+    const PAGE_SIZE = 15;
+
+    // Both endpoints return a plain array of every row (no server-side paging),
+    // so slice it here.
+    useEffect(() => {
+        let cancelled = false;
         setLoading(true);
-        let endpoint;
-        if (activeTab === 'purchases') endpoint = `/product-purchases?page=${page}&limit=15`;
-        else endpoint = `/plan-upgrades?page=${page}&limit=15`;
+        setPage(1);
+
+        const endpoint = activeTab === 'purchases' ? '/product-purchases' : '/plan-upgrades';
 
         api.get(endpoint)
             .then(res => {
-                if (activeTab === 'purchases') setData(res.purchases);
-                else setData(res.upgrades);
-                setTotalPages(res.totalPages || 1);
+                if (cancelled) return;
+                setAllRows(Array.isArray(res) ? res : []);
             })
-            .catch(console.error)
-            .finally(() => setLoading(false));
-    };
+            .catch(err => {
+                if (cancelled) return;
+                console.error(err);
+                setAllRows([]);
+            })
+            .finally(() => {
+                if (!cancelled) setLoading(false);
+            });
 
-    useEffect(() => { setPage(1); }, [activeTab]);
-    useEffect(() => { loadData(); }, [activeTab, page]);
+        return () => { cancelled = true; };
+    }, [activeTab]);
 
-    useEffect(() => {
-        const typeMap = {
-            'purchases': 'purchases',
-            'upgrades': 'upgrades'
-        };
-        setActiveTab(typeMap[type] || 'upgrades');
-    }, [type]);
+    const totalPages = Math.max(1, Math.ceil(allRows.length / PAGE_SIZE));
+    const data = allRows.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
     const formatAmount = (amt) => '₹' + (amt || 0).toLocaleString('en-IN');
     const formatDate = (d) => d ? new Date(d).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
