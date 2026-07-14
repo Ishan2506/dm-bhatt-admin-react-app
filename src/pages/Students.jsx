@@ -202,7 +202,7 @@ export function Students() {
                                     <th>Phone</th>
                                     <th>Standard</th>
                                     <th>Medium</th>
-                                    <th>Points</th>
+                                    <th style="width:70px;">Points</th>
                                     <th>Status</th>
                                     <th>Amount</th>
                                     <th>Referral/Redeem</th>
@@ -213,7 +213,7 @@ export function Students() {
                             <tbody>
                                 {visibleStudents.map((student) => (
                                     <tr key={student._id}>
-                                        <td style="max-width:200px;">
+                                        <td style="max-width:150px;">
                                             <div class="identity">
                                                 <div class="avatar" style={{ background: avatarColor(student.firstName || '') }}>
                                                     {initials(student.firstName || '')}
