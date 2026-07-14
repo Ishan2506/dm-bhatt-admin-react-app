@@ -26,6 +26,12 @@ export function OnlineExams() {
     const [pageSize, setPageSize] = useState(25);
     const [totalCount, setTotalCount] = useState(0);
 
+    // List filters
+    const [search, setSearch] = useState('');
+    const [filterStd, setFilterStd] = useState('');
+    const [filterSubject, setFilterSubject] = useState('');
+    const [filterMedium, setFilterMedium] = useState('');
+
     // Form State
     const [formData, setFormData] = useState(INITIAL_FORM_DATA);
     const [isManualEntry, setIsManualEntry] = useState(false);
@@ -52,13 +58,15 @@ export function OnlineExams() {
         setEditingExam(null);
     };
 
+    // The API returns every exam as a plain array (it ignores skip/limit), so the
+    // full list is held in state and filtered/paginated on the client.
     const loadExams = (page = 1) => {
         setLoading(true);
-        const skip = (page - 1) * pageSize;
-        api.get(`/exam/all?skip=${skip}&limit=${pageSize}`, { noPrefix: true })
+        api.get('/exam/all', { noPrefix: true })
             .then(response => {
-                setExams(response.data || response);
-                setTotalCount(response.total || response.length);
+                const list = response.data || response || [];
+                setExams(list);
+                setTotalCount(list.length);
                 setCurrentPage(page);
             })
             .catch(err => showToast(err.message, 'error'))
@@ -269,7 +277,35 @@ export function OnlineExams() {
         }
     };
 
-    const totalPages = Math.ceil(totalCount / pageSize);
+    // Dropdown options come from the loaded exams so only real values are offered.
+    const uniqueSorted = (values) => [...new Set(values.filter(Boolean).map(String))].sort();
+    const stdOptions = uniqueSorted(exams.map(e => e.std)).sort((a, b) => (parseInt(a) || 0) - (parseInt(b) || 0));
+    const subjectOptions = uniqueSorted(exams.map(e => e.subject));
+    const mediumOptions = uniqueSorted([...AcademicConstants.mediums, ...exams.map(e => e.medium)]);
+
+    const query = search.trim().toLowerCase();
+    const filteredExams = exams.filter(item => {
+        if (filterStd && String(item.std) !== filterStd) return false;
+        if (filterSubject && item.subject !== filterSubject) return false;
+        if (filterMedium && item.medium !== filterMedium) return false;
+        if (!query) return true;
+        return [item.title, item.subject, item.board, item.unit, item.std, item.medium]
+            .some(v => (v || '').toString().toLowerCase().includes(query));
+    });
+
+    const hasActiveFilters = Boolean(query || filterStd || filterSubject || filterMedium);
+    const filteredCount = filteredExams.length;
+    const totalPages = Math.max(1, Math.ceil(filteredCount / pageSize));
+    const safePage = Math.min(currentPage, totalPages);
+    const visibleExams = filteredExams.slice((safePage - 1) * pageSize, safePage * pageSize);
+
+    const clearFilters = () => {
+        setSearch('');
+        setFilterStd('');
+        setFilterSubject('');
+        setFilterMedium('');
+        setCurrentPage(1);
+    };
 
     const addQuestion = () => {
         setParsedQuestions([...parsedQuestions, { 
@@ -418,22 +454,55 @@ export function OnlineExams() {
                 <div class="table-header">
                     <div class="toolbar" style="width:100%;">
                         <div class="toolbar-group">
-                            <h3 style="font-size:var(--font-md);font-weight:600;">All Exams</h3>
+                            <div class="field-search">
+                                <Icons.Eye />
+                                <input
+                                    class="form-control"
+                                    placeholder="Search exam, subject, unit…"
+                                    value={search}
+                                    onInput={(e) => { setSearch(e.target.value); setCurrentPage(1); }}
+                                />
+                            </div>
+                            <select
+                                class="form-control"
+                                value={filterStd}
+                                onChange={(e) => { setFilterStd(e.target.value); setCurrentPage(1); }}
+                            >
+                                <option value="">All Standards</option>
+                                {stdOptions.map(s => <option value={s}>Std {s}</option>)}
+                            </select>
+                            <select
+                                class="form-control"
+                                value={filterSubject}
+                                onChange={(e) => { setFilterSubject(e.target.value); setCurrentPage(1); }}
+                            >
+                                <option value="">All Subjects</option>
+                                {subjectOptions.map(s => <option value={s}>{s}</option>)}
+                            </select>
+                            <select
+                                class="form-control"
+                                value={filterMedium}
+                                onChange={(e) => { setFilterMedium(e.target.value); setCurrentPage(1); }}
+                            >
+                                <option value="">All Mediums</option>
+                                {mediumOptions.map(m => <option value={m}>{m}</option>)}
+                            </select>
+                            {hasActiveFilters && (
+                                <button class="btn btn-outline btn-sm" onClick={clearFilters}>Clear</button>
+                            )}
                         </div>
                         <div class="toolbar-group">
+                            {hasActiveFilters && (
+                                <span style="font-size:var(--font-xs);color:var(--text-secondary);white-space:nowrap;">
+                                    {filteredCount.toLocaleString()} of {totalCount.toLocaleString()}
+                                </span>
+                            )}
                             <select
                                 class="form-control"
                                 value={pageSize}
                                 onChange={(e) => {
-                                    const newPageSize = parseInt(e.target.value);
-                                    setPageSize(newPageSize);
+                                    setPageSize(parseInt(e.target.value));
                                     setCurrentPage(1);
-                                    api.get(`/exam/all?skip=0&limit=${newPageSize}`, { noPrefix: true })
-                                        .then(response => {
-                                            setExams(response.data || response);
-                                            setTotalCount(response.total || response.length);
-                                        })
-                                        .catch(err => showToast(err.message, 'error'));
                                 }}
                             >
                                 <option value={10}>10 / page</option>
@@ -453,6 +522,13 @@ export function OnlineExams() {
                         <h3>No online exams yet</h3>
                         <p>Add your first exam to make it available in the student app.</p>
                     </div>
+                ) : filteredCount === 0 ? (
+                    <div class="empty-state">
+                        <div class="empty-state-icon"><Icons.Reports /></div>
+                        <h3>No exams match your filters</h3>
+                        <p>Try a different search term, standard, subject, or medium.</p>
+                        <button class="btn btn-outline" onClick={clearFilters}>Clear filters</button>
+                    </div>
                 ) : (
                     <>
                         <div class="table-scroll">
@@ -462,13 +538,14 @@ export function OnlineExams() {
                                     <th>Exam</th>
                                     <th>Subject</th>
                                     <th>Standard</th>
+                                    <th>Medium</th>
                                     <th>Marks</th>
                                     <th>Created</th>
                                     <th style="text-align:right;">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {exams.map(item => (
+                                {visibleExams.map(item => (
                                     <tr key={item._id}>
                                         <td>
                                             <div class="identity">
@@ -481,6 +558,7 @@ export function OnlineExams() {
                                         </td>
                                         <td>{item.subject}</td>
                                         <td><span class="cell-chip">{item.std}</span></td>
+                                        <td>{item.medium || '—'}</td>
                                         <td style="font-weight:600;color:var(--text-primary);">{item.totalMarks}</td>
                                         <td style="font-size:var(--font-xs);">{new Date(item.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</td>
                                         <td>
@@ -500,23 +578,23 @@ export function OnlineExams() {
                         </div>
                         {totalPages > 1 && (
                         <div class="pagination">
-                            <span>Showing {((currentPage - 1) * pageSize) + 1}–{Math.min(currentPage * pageSize, totalCount)} of {totalCount.toLocaleString()}</span>
+                            <span>Showing {((safePage - 1) * pageSize) + 1}–{Math.min(safePage * pageSize, filteredCount)} of {filteredCount.toLocaleString()}</span>
                             <div class="pagination-controls">
-                                <button onClick={() => loadExams(currentPage - 1)} disabled={currentPage === 1}><Icons.ChevronLeft /></button>
+                                <button onClick={() => setCurrentPage(safePage - 1)} disabled={safePage === 1}><Icons.ChevronLeft /></button>
                                 {Array.from({ length: totalPages }, (_, i) => {
                                     const pageNum = i + 1;
-                                    if (pageNum === 1 || pageNum === totalPages || (pageNum >= currentPage - 1 && pageNum <= currentPage + 1)) {
+                                    if (pageNum === 1 || pageNum === totalPages || (pageNum >= safePage - 1 && pageNum <= safePage + 1)) {
                                         return (
-                                            <button key={pageNum} class={pageNum === currentPage ? 'active' : ''} onClick={() => loadExams(pageNum)}>
+                                            <button key={pageNum} class={pageNum === safePage ? 'active' : ''} onClick={() => setCurrentPage(pageNum)}>
                                                 {pageNum}
                                             </button>
                                         );
-                                    } else if ((pageNum === 2 && currentPage > 3) || (pageNum === totalPages - 1 && currentPage < totalPages - 2)) {
+                                    } else if ((pageNum === 2 && safePage > 3) || (pageNum === totalPages - 1 && safePage < totalPages - 2)) {
                                         return <span key={pageNum}>…</span>;
                                     }
                                     return null;
                                 })}
-                                <button onClick={() => loadExams(currentPage + 1)} disabled={currentPage === totalPages}><Icons.ChevronRight /></button>
+                                <button onClick={() => setCurrentPage(safePage + 1)} disabled={safePage === totalPages}><Icons.ChevronRight /></button>
                             </div>
                         </div>
                         )}
