@@ -2,6 +2,7 @@ import { h, Fragment } from 'preact';
 import { useState, useEffect } from 'preact/hooks';
 import { api } from '../api';
 import { Icons } from '../components/Icons';
+import { getFileUrl } from '../fileUrl';
 import { Modal } from '../components/Modal';
 
 export function Products() {
@@ -25,14 +26,7 @@ export function Products() {
     const [file, setFile] = useState(null);
     const [preview, setPreview] = useState('');
 
-    // Construct image URL from path
-    const getImageUrl = (path) => {
-        if (!path) return '';
-        if (path.startsWith('http')) return path;
-        const apiBase = (import.meta.env.API_BASE || 'http://localhost:5000/api').trim();
-        const serverBase = (apiBase || '').replace('/api', '');
-        return `${serverBase}/${path}`;
-    };
+    const getImageUrl = getFileUrl;
 
     const loadProducts = async () => {
         setLoading(true);

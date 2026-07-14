@@ -2,6 +2,7 @@ import { h, Fragment } from 'preact';
 import { useState, useEffect } from 'preact/hooks';
 import { api } from '../api';
 import { Icons } from '../components/Icons';
+import { getFileUrl } from '../fileUrl';
 
 export function ActivityLogs() {
     const [logs, setLogs] = useState([]);
@@ -40,11 +41,7 @@ export function ActivityLogs() {
         }
     };
 
-    const getAvatarUrl = (path) => {
-        if (!path) return null;
-        if (path.startsWith('http')) return path;
-        return `http://103.212.121.139:5000/${path}`;
-    };
+    const getAvatarUrl = (path) => getFileUrl(path) || null;
 
     return (
         <div>

@@ -2,6 +2,7 @@ import { h, Fragment } from 'preact';
 import { useState, useEffect } from 'preact/hooks';
 import { api } from '../api';
 import { Icons } from '../components/Icons';
+import { getFileUrl } from '../fileUrl';
 import { AcademicConstants } from '../utils/constants';
 
 const INITIAL_FORM_DATA = {
@@ -37,14 +38,7 @@ export function TrueFalseExams() {
     const [questions, setQuestions] = useState([]);
     const [activeStandards, setActiveStandards] = useState([]);
 
-    const getImageUrl = (path) => {
-        if (!path) return '';
-        if (path.startsWith('http')) return path;
-        const apiBase = (import.meta.env.API_BASE || 'http://103.212.121.139:5000/api').trim();
-        const serverBase = (apiBase || '').replace('/api', '');
-        const cleanPath = path.replace(/\\/g, '/');
-        return `${serverBase}/${cleanPath.startsWith('/') ? cleanPath.substring(1) : cleanPath}`;
-    };
+    const getImageUrl = getFileUrl;
 
     const showToast = (message, type = 'success') => {
         setToast({ message, type });

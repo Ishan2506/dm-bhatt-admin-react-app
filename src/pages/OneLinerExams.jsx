@@ -3,6 +3,7 @@ import { useState, useEffect } from 'preact/hooks';
 import { api } from '../api';
 import { Icons } from '../components/Icons';
 import { AcademicConstants } from '../utils/constants';
+import { getFileUrl } from '../fileUrl';
 
 const INITIAL_FORM_DATA = {
     title: '',
@@ -411,7 +412,7 @@ export function OneLinerExams() {
                                                     </label>
                                                     {q.questionImage && (
                                                         <div style="display: flex; align-items: center; gap: 4px;">
-                                                            <img src={`http://103.212.121.139:5000/${q.questionImage}`} style="height: 40px; border-radius: 4px;" />
+                                                            <img src={getFileUrl(q.questionImage)} style="height: 40px; border-radius: 4px;" />
                                                             <button class="btn-close-sm" onClick={() => updateQuestion(qIndex, 'questionImage', null)}>&times;</button>
                                                         </div>
                                                     )}

@@ -4,6 +4,7 @@ import { api } from '../api';
 import { AcademicConstants } from '../utils/constants';
 import { Modal } from '../components/Modal';
 import { Icons } from '../components/Icons';
+import { getFileUrl, getFileName, isImage } from '../fileUrl';
 
 export function Materials({ type }) {
     const [activeTab, setActiveTab] = useState('BoardPaper');
@@ -30,25 +31,6 @@ export function Materials({ type }) {
     const showToast = (message, type = 'success') => {
         setToast({ message, type });
         setTimeout(() => setToast(null), 3000);
-    };
-
-    const getFileName = (path) => {
-        if (!path) return '';
-        return path.split('/').pop();
-    };
-
-    const SERVER_ROOT = (import.meta.env?.API_BASE || '').replace('/api', '');
-
-    const getFileUrl = (path) => {
-        if (!path) return '';
-        if (path.startsWith('http')) return path;
-        if (path.startsWith('uploads/')) return `${SERVER_ROOT}/${path}`;
-        return path;
-    };
-
-    const isImage = (path) => {
-        if (!path) return false;
-        return /\.(png|jpe?g|gif|webp|svg)$/i.test(path);
     };
 
     const formatDateTime = (dateStr) => {

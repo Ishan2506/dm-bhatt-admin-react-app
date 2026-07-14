@@ -3,6 +3,7 @@ import { useState, useEffect } from 'preact/hooks';
 import { api } from '../api';
 import { Icons } from '../components/Icons';
 import { AcademicConstants } from '../utils/constants';
+import { getFileUrl } from '../fileUrl';
 
 const INITIAL_FORM_DATA = {
     title: '',
@@ -698,7 +699,7 @@ export function OnlineExams() {
                                                         </label>
                                                         {q.questionImage && (
                                                             <div style="display: flex; align-items: center; gap: 4px;">
-                                                                <img src={q.questionImage.startsWith('http') ? q.questionImage : `http://103.212.121.139:5000/${q.questionImage}`} style="height: 40px; border-radius: 4px;" />
+                                                                <img src={getFileUrl(q.questionImage)} style="height: 40px; border-radius: 4px;" />
                                                                 <button class="btn-close-sm" onClick={() => updateQuestion(qIndex, 'questionImage', null)}>&times;</button>
                                                             </div>
                                                         )}
@@ -730,7 +731,7 @@ export function OnlineExams() {
                                                                 />
                                                                 {opt.image && (
                                                                     <div style="margin-top: 8px; position: relative;">
-                                                                        <img src={opt.image.startsWith('http') ? opt.image : `http://103.212.121.139:5000/${opt.image}`} style="height: 40px; border-radius: 4px;" />
+                                                                        <img src={getFileUrl(opt.image)} style="height: 40px; border-radius: 4px;" />
                                                                         <button class="btn-close-sm" style="position: absolute; top: -8px; right: -8px; background: red; color: white; border-radius: 50%; width: 16px; height: 16px; display: flex; align-items: center; justify-content: center; border: none;" onClick={() => updateQuestion(qIndex, `option_${optKey}_image`, null)}>&times;</button>
                                                                     </div>
                                                                 )}
