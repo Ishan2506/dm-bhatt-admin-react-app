@@ -28,6 +28,8 @@ export function RedeemCodes() {
     const [form, setForm] = useState(emptyForm);
     const [saving, setSaving] = useState(false);
     const [deleteConfirm, setDeleteConfirm] = useState(null);
+    const [revokeConfirm, setRevokeConfirm] = useState(null);
+    const [revoking, setRevoking] = useState(false);
     const [error, setError] = useState('');
 
     const load = () => {
@@ -116,11 +118,24 @@ export function RedeemCodes() {
         }
     };
 
+    const handleRevoke = async (id) => {
+        setRevoking(true);
+        try {
+            await api.put(`/admin/revoke-redeem-code/${id}`, {}, { noPrefix: true });
+            setRevokeConfirm(null);
+            load();
+        } catch (err) {
+            alert(err.message);
+        } finally {
+            setRevoking(false);
+        }
+    };
+
     const activeCodes = codes.filter(c => {
         const isUnlimited = !c.maxUses || c.maxUses <= 0;
         const exhausted = !isUnlimited && (c.usedCount || 0) >= c.maxUses;
         const expired = !!c.expiresAt && new Date(c.expiresAt) <= new Date();
-        return !expired && !exhausted;
+        return !c.revoked && !expired && !exhausted;
     }).length;
 
     return (
@@ -185,7 +200,9 @@ export function RedeemCodes() {
                                     : isUnlimited
                                         ? `${usedCount} used · unlimited`
                                         : `${usedCount} / ${c.maxUses} used`;
-                                const statusLabel = expired ? 'Expired' : exhausted ? 'Exhausted' : 'Available';
+                                const revoked = !!c.revoked;
+                                const statusLabel = revoked ? 'Revoked' : expired ? 'Expired' : exhausted ? 'Exhausted' : 'Available';
+                                const inactive = revoked || expired || exhausted;
                                 const scope = [c.std, c.medium, c.stream].filter(Boolean).join(' · ') || 'Any';
                                 return (
                                     <tr key={c._id}>
@@ -198,15 +215,23 @@ export function RedeemCodes() {
                                         <td class="text-muted" style="font-size:var(--font-xs);">{c.expiresAt ? new Date(c.expiresAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : 'Never'}</td>
                                         <td class="text-muted">{c.createdBy}</td>
                                         <td>
-                                            <span class={`badge ${(expired || exhausted) ? 'badge-danger' : 'badge-success'}`}>
+                                            <span class={`badge ${inactive ? 'badge-danger' : 'badge-success'}`}>
                                                 {statusLabel}
                                             </span>
                                         </td>
                                         <td>
                                             <div class="td-actions" style="justify-content:flex-end;">
+                                                {!revoked && (
+                                                    <button
+                                                        class="btn btn-outline btn-sm"
+                                                        title="Revoke this code so it can no longer be redeemed"
+                                                        onClick={() => setRevokeConfirm(c)}
+                                                    >
+                                                        Revoke
+                                                    </button>
+                                                )}
                                                 <button
                                                     class="icon-btn danger"
-                                                    disabled={usedCount > 0}
                                                     title={usedCount > 0 ? 'Cannot delete a code that has been used' : 'Delete'}
                                                     onClick={() => setDeleteConfirm(c)}
                                                 >
@@ -339,7 +364,42 @@ export function RedeemCodes() {
                 </Modal>
             )}
 
-            {deleteConfirm && (
+            {revokeConfirm && (
+                <Modal
+                    title="Revoke Redeem Code"
+                    onClose={() => setRevokeConfirm(null)}
+                    footer={
+                        <>
+                            <button class="btn btn-outline" onClick={() => setRevokeConfirm(null)}>Cancel</button>
+                            <button class="btn btn-danger" onClick={() => handleRevoke(revokeConfirm._id)} disabled={revoking}>
+                                {revoking ? 'Revoking...' : 'Revoke'}
+                            </button>
+                        </>
+                    }
+                >
+                    <p class="confirm-message">
+                        Revoke redeem code <strong>"{revokeConfirm.code}"</strong>? Nobody will be able to redeem it
+                        again. The code and its usage history stay on record, and students who already used it keep
+                        their discount. This cannot be undone.
+                    </p>
+                </Modal>
+            )}
+
+            {deleteConfirm && (deleteConfirm.usedCount || 0) > 0 ? (
+                <Modal
+                    title="Cannot Delete Redeem Code"
+                    onClose={() => setDeleteConfirm(null)}
+                    footer={
+                        <button class="btn btn-outline" onClick={() => setDeleteConfirm(null)}>Close</button>
+                    }
+                >
+                    <p class="confirm-message">
+                        Redeem code <strong>"{deleteConfirm.code}"</strong> has already been redeemed{' '}
+                        {deleteConfirm.usedCount === 1 ? 'once' : `${deleteConfirm.usedCount} times`}, so it cannot be
+                        deleted. Deleting it would break the discount records of the students who used it.
+                    </p>
+                </Modal>
+            ) : deleteConfirm && (
                 <Modal
                     title="Delete Redeem Code"
                     onClose={() => setDeleteConfirm(null)}
