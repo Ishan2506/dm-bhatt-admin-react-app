@@ -198,7 +198,7 @@ export function Students() {
                         <table>
                             <thead>
                                 <tr>
-                                    <th style="width:150px;max-width:150px;">Student</th>
+                                    <th style="width:170px;max-width:170px;">Student</th>
                                     <th>Phone</th>
                                     <th>Standard</th>
                                     <th>Medium</th>
@@ -213,7 +213,7 @@ export function Students() {
                             <tbody>
                                 {visibleStudents.map((student) => (
                                     <tr key={student._id}>
-                                        <td style="max-width:150px;">
+                                        <td style="max-width:170px;">
                                             <div class="identity">
                                                 <div class="avatar" style={{ background: avatarColor(student.firstName || '') }}>
                                                     {initials(student.firstName || '')}
