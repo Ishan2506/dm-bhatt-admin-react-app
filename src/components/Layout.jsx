@@ -69,12 +69,11 @@ const navigation = [
     },
     {
         title: 'PAYMENTS',
-        roles: ['super admin'],
         items: [
-            { path: '/admin/subscription-plans', label: 'Subscription Plans', icon: <Icons.Gear /> },
+            { path: '/admin/subscription-plans', label: 'Subscription Plans', icon: <Icons.Gear />, roles: ['super admin'] },
             { path: '/admin/redeem-codes', label: 'Redeem Codes', icon: <Icons.Sparkles /> },
-            { path: '/admin/payments/upgrades', label: 'Plan Purchases', icon: <Icons.Payments /> },
-            { path: '/admin/payments/purchases', label: 'Product Purchases', icon: <Icons.Payments /> },
+            { path: '/admin/payments/upgrades', label: 'Plan Purchases', icon: <Icons.Payments />, roles: ['super admin'] },
+            { path: '/admin/payments/purchases', label: 'Product Purchases', icon: <Icons.Payments />, roles: ['super admin'] },
         ]
     },
     {
