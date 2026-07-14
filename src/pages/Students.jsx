@@ -198,7 +198,7 @@ export function Students() {
                         <table>
                             <thead>
                                 <tr>
-                                    <th style="width:200px;max-width:200px;">Student</th>
+                                    <th style="width:150px;max-width:150px;">Student</th>
                                     <th>Phone</th>
                                     <th>Standard</th>
                                     <th>Medium</th>
