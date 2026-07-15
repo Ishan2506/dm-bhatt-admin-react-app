@@ -4,6 +4,7 @@ import { api } from '../api';
 import { Icons } from '../components/Icons';
 import { AcademicConstants } from '../utils/constants';
 import { getFileUrl } from '../fileUrl';
+import { useExamFilters, ExamFilterBar, NoFilterMatches, ExamPagination } from '../components/ExamFilters';
 
 const INITIAL_FORM_DATA = {
     title: '',
@@ -22,9 +23,9 @@ export function OneLinerExams() {
     const [toast, setToast] = useState(null);
     const [deleteConfirm, setDeleteConfirm] = useState(null);
     const [editingExam, setEditingExam] = useState(null);
-    const [currentPage, setCurrentPage] = useState(1);
-    const [pageSize, setPageSize] = useState(25);
-    const [totalCount, setTotalCount] = useState(0);
+
+    const filters = useExamFilters(exams);
+    const totalCount = filters.totalCount;
 
     // Form State
     const [formData, setFormData] = useState(INITIAL_FORM_DATA);
@@ -41,21 +42,18 @@ export function OneLinerExams() {
         setEditingExam(null);
     };
 
-    const loadExams = (page = 1) => {
+    // The API returns every exam as a plain array (it ignores skip/limit), so the
+    // full list is held in state and filtered/paginated on the client.
+    const loadExams = () => {
         setLoading(true);
-        const skip = (page - 1) * pageSize;
-        api.get(`/onelinerexam/all?skip=${skip}&limit=${pageSize}`, { noPrefix: true })
-            .then(response => {
-                setExams(response.data || response);
-                setTotalCount(response.total || response.length);
-                setCurrentPage(page);
-            })
+        api.get('/onelinerexam/all', { noPrefix: true })
+            .then(response => setExams(response.data || response || []))
             .catch(err => showToast(err.message, 'error'))
             .finally(() => setLoading(false));
     };
 
     useEffect(() => {
-        loadExams(1);
+        loadExams();
     }, []);
 
     const handleInputChange = (e) => {
@@ -191,14 +189,12 @@ export function OneLinerExams() {
         try {
             await api.del(`/onelinerexam/${id}`, { noPrefix: true });
             setDeleteConfirm(null);
-            loadExams(currentPage);
+            loadExams();
             showToast('Exam deleted successfully!');
         } catch (err) {
             showToast(err.message, 'error');
         }
     };
-
-    const totalPages = Math.ceil(totalCount / pageSize);
 
     return (
         <div class="materials-page">
@@ -215,7 +211,7 @@ export function OneLinerExams() {
                     </div>
                 </div>
                 <div class="page-header-actions">
-                    <button class="btn btn-outline" onClick={() => loadExams(currentPage)}>
+                    <button class="btn btn-outline" onClick={() => loadExams()}>
                         <Icons.Refresh /> Refresh
                     </button>
                     <button class="btn btn-primary" onClick={() => { resetForm(); setShowAddModal(true); }}>
@@ -225,35 +221,7 @@ export function OneLinerExams() {
             </div>
 
             <div class="table-container">
-                <div class="table-header">
-                    <div class="toolbar" style="width:100%;">
-                        <div class="toolbar-group">
-                            <h3 style="font-size:var(--font-md);font-weight:600;">All Exams</h3>
-                        </div>
-                        <div class="toolbar-group">
-                            <select
-                                class="form-control"
-                                value={pageSize}
-                                onChange={(e) => {
-                                    const newPageSize = parseInt(e.target.value);
-                                    setPageSize(newPageSize);
-                                    setCurrentPage(1);
-                                    api.get(`/onelinerexam/all?skip=0&limit=${newPageSize}`, { noPrefix: true })
-                                        .then(response => {
-                                            setExams(response.data || response);
-                                            setTotalCount(response.total || response.length);
-                                        })
-                                        .catch(err => showToast(err.message, 'error'));
-                                }}
-                            >
-                                <option value={10}>10 / page</option>
-                                <option value={25}>25 / page</option>
-                                <option value={50}>50 / page</option>
-                                <option value={100}>100 / page</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
+                <ExamFilterBar {...filters.bar} searchPlaceholder="Search exam, subject, unit…" />
 
                 {loading ? (
                     <div class="loading-spinner" />
@@ -263,6 +231,8 @@ export function OneLinerExams() {
                         <h3>No one-liner exams yet</h3>
                         <p>Add your first one-liner exam to get started.</p>
                     </div>
+                ) : filters.filteredCount === 0 ? (
+                    <NoFilterMatches onClear={filters.clear} />
                 ) : (
                     <>
                         <div class="table-scroll">
@@ -272,13 +242,14 @@ export function OneLinerExams() {
                                     <th>Exam</th>
                                     <th>Subject</th>
                                     <th>Standard</th>
+                                    <th>Medium</th>
                                     <th>Unit</th>
                                     <th>Questions</th>
                                     <th style="text-align:right;">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {exams.map(item => (
+                                {filters.visible.map(item => (
                                     <tr key={item._id}>
                                         <td>
                                             <div class="identity">
@@ -291,6 +262,7 @@ export function OneLinerExams() {
                                         </td>
                                         <td>{item.subject}</td>
                                         <td><span class="cell-chip">{item.std}</span></td>
+                                        <td>{item.medium || '—'}</td>
                                         <td>{item.unit}</td>
                                         <td><span class="badge badge-neutral">{item.questions?.length || 0} Qs</span></td>
                                         <td>
@@ -308,28 +280,7 @@ export function OneLinerExams() {
                             </tbody>
                         </table>
                         </div>
-                        {totalPages > 1 && (
-                        <div class="pagination">
-                            <span>Showing {((currentPage - 1) * pageSize) + 1}–{Math.min(currentPage * pageSize, totalCount)} of {totalCount.toLocaleString()}</span>
-                            <div class="pagination-controls">
-                                <button onClick={() => loadExams(currentPage - 1)} disabled={currentPage === 1}><Icons.ChevronLeft /></button>
-                                {Array.from({ length: totalPages }, (_, i) => {
-                                    const pageNum = i + 1;
-                                    if (pageNum === 1 || pageNum === totalPages || (pageNum >= currentPage - 1 && pageNum <= currentPage + 1)) {
-                                        return (
-                                            <button key={pageNum} class={pageNum === currentPage ? 'active' : ''} onClick={() => loadExams(pageNum)}>
-                                                {pageNum}
-                                            </button>
-                                        );
-                                    } else if ((pageNum === 2 && currentPage > 3) || (pageNum === totalPages - 1 && currentPage < totalPages - 2)) {
-                                        return <span key={pageNum}>…</span>;
-                                    }
-                                    return null;
-                                })}
-                                <button onClick={() => loadExams(currentPage + 1)} disabled={currentPage === totalPages}><Icons.ChevronRight /></button>
-                            </div>
-                        </div>
-                        )}
+                        <ExamPagination {...filters} setPage={filters.setPage} />
                     </>
                 )}
             </div>

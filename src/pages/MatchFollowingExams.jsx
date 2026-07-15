@@ -3,6 +3,7 @@ import { useState, useEffect } from 'preact/hooks';
 import { api } from '../api';
 import { Icons } from '../components/Icons';
 import { AcademicConstants } from '../utils/constants';
+import { useExamFilters, ExamFilterBar, NoFilterMatches, ExamPagination } from '../components/ExamFilters';
 
 const INITIAL_FORM_DATA = {
     title: '',
@@ -23,6 +24,8 @@ export function MatchFollowingExams() {
     const [deleteConfirm, setDeleteConfirm] = useState(null);
     const [editingExam, setEditingExam] = useState(null);
 
+    const filters = useExamFilters(exams);
+
     const [formData, setFormData] = useState(INITIAL_FORM_DATA);
     const [pairs, setPairs] = useState([{ left: '', right: '' }]);
 
@@ -37,10 +40,12 @@ export function MatchFollowingExams() {
         setEditingExam(null);
     };
 
+    // The API returns every exam as a plain array, so the full list is held in
+    // state and filtered/paginated on the client.
     const loadExams = () => {
         setLoading(true);
         api.get('/matchfollowingexam/all', { noPrefix: true })
-            .then(response => setExams(response.data || response))
+            .then(response => setExams(response.data || response || []))
             .catch(err => showToast(err.message, 'error'))
             .finally(() => setLoading(false));
     };
@@ -148,6 +153,8 @@ export function MatchFollowingExams() {
             </div>
 
             <div class="table-container">
+                <ExamFilterBar {...filters.bar} searchPlaceholder="Search exam, subject, unit…" />
+
                 {loading ? (
                     <div class="loading-spinner" />
                 ) : exams.length === 0 ? (
@@ -156,50 +163,57 @@ export function MatchFollowingExams() {
                         <h3>No match-the-following exams yet</h3>
                         <p>Add your first pairing exam to get started.</p>
                     </div>
+                ) : filters.filteredCount === 0 ? (
+                    <NoFilterMatches onClear={filters.clear} />
                 ) : (
-                    <div class="table-scroll">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Exam</th>
-                                <th>Subject</th>
-                                <th>Standard</th>
-                                <th>Unit</th>
-                                <th>Pairs</th>
-                                <th style="text-align:right;">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {exams.map(item => (
-                                <tr key={item._id}>
-                                    <td>
-                                        <div class="identity">
-                                            <div class="avatar avatar-sm" style={{ background: 'var(--chart-indigo)' }}><Icons.MindMaps /></div>
-                                            <div class="identity-body">
-                                                <div class="identity-name">{item.title}</div>
-                                                <div class="identity-sub">{item.board}</div>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td>{item.subject}</td>
-                                    <td><span class="cell-chip">{item.std}</span></td>
-                                    <td>{item.unit}</td>
-                                    <td><span class="badge badge-neutral">{item.pairs?.length || 0} pairs</span></td>
-                                    <td>
-                                        <div class="td-actions" style="justify-content:flex-end;">
-                                            <button class="icon-btn primary" onClick={() => handleEdit(item)} title="Edit Exam">
-                                                <Icons.Edit />
-                                            </button>
-                                            <button class="icon-btn danger" onClick={() => setDeleteConfirm(item)} title="Delete">
-                                                <Icons.Trash />
-                                            </button>
-                                        </div>
-                                    </td>
+                    <>
+                        <div class="table-scroll">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Exam</th>
+                                    <th>Subject</th>
+                                    <th>Standard</th>
+                                    <th>Medium</th>
+                                    <th>Unit</th>
+                                    <th>Pairs</th>
+                                    <th style="text-align:right;">Actions</th>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                    </div>
+                            </thead>
+                            <tbody>
+                                {filters.visible.map(item => (
+                                    <tr key={item._id}>
+                                        <td>
+                                            <div class="identity">
+                                                <div class="avatar avatar-sm" style={{ background: 'var(--chart-indigo)' }}><Icons.MindMaps /></div>
+                                                <div class="identity-body">
+                                                    <div class="identity-name">{item.title}</div>
+                                                    <div class="identity-sub">{item.board}</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>{item.subject}</td>
+                                        <td><span class="cell-chip">{item.std}</span></td>
+                                        <td>{item.medium || '—'}</td>
+                                        <td>{item.unit}</td>
+                                        <td><span class="badge badge-neutral">{item.pairs?.length || 0} pairs</span></td>
+                                        <td>
+                                            <div class="td-actions" style="justify-content:flex-end;">
+                                                <button class="icon-btn primary" onClick={() => handleEdit(item)} title="Edit Exam">
+                                                    <Icons.Edit />
+                                                </button>
+                                                <button class="icon-btn danger" onClick={() => setDeleteConfirm(item)} title="Delete">
+                                                    <Icons.Trash />
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                        </div>
+                        <ExamPagination {...filters} setPage={filters.setPage} />
+                    </>
                 )}
             </div>
 
