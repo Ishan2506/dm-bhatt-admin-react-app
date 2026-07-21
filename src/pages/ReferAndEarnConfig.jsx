@@ -7,6 +7,7 @@ const defaultForm = {
     pointsPerReferral: [50, 50, 50, 50, 50],
     maxReferralsAllowed: 5,
     pointsPerRupee: 10,
+    maxPointsDiscountPercent: 50,
 };
 
 export function ReferAndEarnConfig() {
@@ -36,7 +37,8 @@ export function ReferAndEarnConfig() {
                     setForm({
                         maxReferralsAllowed: maxAllowed,
                         pointsPerReferral: points,
-                        pointsPerRupee: res.pointsPerRupee !== undefined ? Number(res.pointsPerRupee) : 10
+                        pointsPerRupee: res.pointsPerRupee !== undefined ? Number(res.pointsPerRupee) : 10,
+                        maxPointsDiscountPercent: res.maxPointsDiscountPercent !== undefined ? Number(res.maxPointsDiscountPercent) : 50
                     });
                 }
             })
@@ -73,6 +75,13 @@ export function ReferAndEarnConfig() {
         // Validate points-to-rupee conversion rate
         if (form.pointsPerRupee === "" || isNaN(form.pointsPerRupee) || Number(form.pointsPerRupee) <= 0) {
             alert('Points per ₹1 must be a number greater than 0');
+            return;
+        }
+
+        // Validate max discount cap
+        const cap = Number(form.maxPointsDiscountPercent);
+        if (form.maxPointsDiscountPercent === "" || isNaN(cap) || cap < 0 || cap > 100) {
+            alert('Max points discount must be between 0 and 100 percent');
             return;
         }
 
@@ -196,7 +205,7 @@ export function ReferAndEarnConfig() {
                             <div class="config-section-badge"><Icons.Sparkles /></div>
                             <div>
                                 <h3 class="config-section-title">Points Value</h3>
-                                <p class="config-section-desc">Set how many points equal ₹1. This rate is used to show students the rupee value of their points.</p>
+                                <p class="config-section-desc">Set how many points equal ₹1, and how much of a product's price points are allowed to cover at checkout.</p>
                             </div>
                         </div>
                         <div class="config-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
@@ -215,13 +224,29 @@ export function ReferAndEarnConfig() {
                                     })}
                                 />
                             </div>
-                            <div class="form-group" style="display: flex; flex-direction: column; justify-content: center;">
-                                <span style="font-size: 0.9rem; color: var(--color-text-muted);">
-                                    {form.pointsPerRupee > 0
-                                        ? `₹1 = ${form.pointsPerRupee} points · 1 point = ₹${(1 / form.pointsPerRupee).toFixed(3)}`
-                                        : 'Enter a rate greater than 0'}
-                                </span>
+                            <div class="form-group">
+                                <label>Max Points Discount (% of price)</label>
+                                <input
+                                    class="form-control"
+                                    type="number"
+                                    placeholder="e.g. 50"
+                                    min="0"
+                                    max="100"
+                                    step="1"
+                                    value={form.maxPointsDiscountPercent}
+                                    onInput={(e) => setForm({
+                                        ...form,
+                                        maxPointsDiscountPercent: e.target.value === "" ? "" : Number(e.target.value)
+                                    })}
+                                />
                             </div>
+                        </div>
+                        <div style="margin-top: 1rem; padding: 1rem; border-radius: 8px; background: var(--color-surface-muted, rgba(0,0,0,0.03));">
+                            <span style="font-size: 0.9rem; color: var(--color-text-muted);">
+                                {form.pointsPerRupee > 0
+                                    ? `₹1 = ${form.pointsPerRupee} points. On a ₹500 material, a student can pay at most ₹${Math.floor((500 * (Number(form.maxPointsDiscountPercent) || 0)) / 100)} with points (${Math.ceil(Math.floor((500 * (Number(form.maxPointsDiscountPercent) || 0)) / 100) * form.pointsPerRupee)} points) and pays the rest by card/UPI.`
+                                    : 'Enter a rate greater than 0'}
+                            </span>
                         </div>
                     </div>
 
