@@ -6,6 +6,7 @@ import { Icons } from '../components/Icons';
 const defaultForm = {
     pointsPerReferral: [50, 50, 50, 50, 50],
     maxReferralsAllowed: 5,
+    pointsPerRupee: 10,
 };
 
 export function ReferAndEarnConfig() {
@@ -34,7 +35,8 @@ export function ReferAndEarnConfig() {
                     }
                     setForm({
                         maxReferralsAllowed: maxAllowed,
-                        pointsPerReferral: points
+                        pointsPerReferral: points,
+                        pointsPerRupee: res.pointsPerRupee !== undefined ? Number(res.pointsPerRupee) : 10
                     });
                 }
             })
@@ -66,6 +68,12 @@ export function ReferAndEarnConfig() {
                 alert(`Stage ${i + 1} Points cannot be less than 0 or empty`);
                 return;
             }
+        }
+
+        // Validate points-to-rupee conversion rate
+        if (form.pointsPerRupee === "" || isNaN(form.pointsPerRupee) || Number(form.pointsPerRupee) <= 0) {
+            alert('Points per ₹1 must be a number greater than 0');
+            return;
         }
 
         setSaving(true);
@@ -179,6 +187,40 @@ export function ReferAndEarnConfig() {
                                         />
                                     </div>
                                 ))}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="config-section">
+                        <div class="config-section-head">
+                            <div class="config-section-badge"><Icons.Sparkles /></div>
+                            <div>
+                                <h3 class="config-section-title">Points Value</h3>
+                                <p class="config-section-desc">Set how many points equal ₹1. This rate is used to show students the rupee value of their points.</p>
+                            </div>
+                        </div>
+                        <div class="config-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+                            <div class="form-group">
+                                <label>Points per ₹1</label>
+                                <input
+                                    class="form-control"
+                                    type="number"
+                                    placeholder="e.g. 10"
+                                    min="1"
+                                    step="1"
+                                    value={form.pointsPerRupee}
+                                    onInput={(e) => setForm({
+                                        ...form,
+                                        pointsPerRupee: e.target.value === "" ? "" : Number(e.target.value)
+                                    })}
+                                />
+                            </div>
+                            <div class="form-group" style="display: flex; flex-direction: column; justify-content: center;">
+                                <span style="font-size: 0.9rem; color: var(--color-text-muted);">
+                                    {form.pointsPerRupee > 0
+                                        ? `₹1 = ${form.pointsPerRupee} points · 1 point = ₹${(1 / form.pointsPerRupee).toFixed(3)}`
+                                        : 'Enter a rate greater than 0'}
+                                </span>
                             </div>
                         </div>
                     </div>
