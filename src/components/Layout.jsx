@@ -53,6 +53,7 @@ const navigation = [
                 ]
             },
             { path: '/admin/mindmaps', label: 'Mind Maps', icon: <Icons.MindMaps /> },
+            { path: '/admin/mindgames', label: 'Mind Games', icon: <Icons.Sparkles /> },
             { 
                 label: 'Exams', 
                 icon: <Icons.Reports />,
@@ -98,11 +99,38 @@ const navigation = [
 export function Layout({ children, currentPath, user, onLogout }) {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+    const [expandedMenus, setExpandedMenus] = useState({});
     const userRole = user?.role || 'admin';
 
     useEffect(() => {
         setIsSidebarOpen(false);
     }, [currentPath]);
+
+    useEffect(() => {
+        // Find all items that match current path and mark them as expanded
+        const initialExpanded = { ...expandedMenus };
+        let changed = false;
+        navigation.forEach(section => {
+            section.items.forEach(item => {
+                if (item.children && currentPath.startsWith(item.path) && !initialExpanded[item.label]) {
+                    initialExpanded[item.label] = true;
+                    changed = true;
+                }
+            });
+        });
+        if (changed) {
+            setExpandedMenus(initialExpanded);
+        }
+    }, [currentPath]);
+
+    const toggleSubmenu = (label, e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setExpandedMenus(prev => ({
+            ...prev,
+            [label]: !prev[label]
+        }));
+    };
 
     useEffect(() => {
         const savedCollapsed = localStorage.getItem('sidebarCollapsed');
@@ -162,18 +190,21 @@ export function Layout({ children, currentPath, user, onLogout }) {
                             <div class="nav-label">{section.title}</div>
                             {section.items.map(item => {
                                 const hasChildren = item.children && item.children.length > 0;
-                                const isOpen = currentPath.startsWith(item.path);
+                                const isOpen = hasChildren ? !!expandedMenus[item.label] : false;
                                 const isActive = currentPath === item.path || (hasChildren && currentPath.startsWith(item.path));
 
                                 return (
                                     <div key={item.label}>
                                         <a
-                                            href={hasChildren ? item.children[0].path : item.path}
+                                            href={hasChildren ? '#' : item.path}
                                             class={`nav-item ${isActive ? 'active' : ''} ${hasChildren && isOpen ? 'submenu-open' : ''}`}
                                             onClick={(e) => {
-                                                e.preventDefault();
-                                                const targetPath = hasChildren ? item.children[0].path : item.path;
-                                                route(targetPath);
+                                                if (hasChildren) {
+                                                    toggleSubmenu(item.label, e);
+                                                } else {
+                                                    e.preventDefault();
+                                                    route(item.path);
+                                                }
                                             }}
                                         >
                                             <span class="nav-icon">{item.icon}</span>
