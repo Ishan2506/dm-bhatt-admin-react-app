@@ -16,6 +16,10 @@ export function Students() {
     const [standards, setStandards] = useState([]);
     const [pageSize, setPageSize] = useState(25);
     const [search, setSearch] = useState('');
+    const [activeTab, setActiveTab] = useState('active'); // 'active' | 'deleted'
+    const [deletedStudents, setDeletedStudents] = useState([]);
+    const [loadingDeleted, setLoadingDeleted] = useState(false);
+    const [restoring, setRestoring] = useState(null); // id being restored
 
     // Deterministic avatar color from a name (pure UI helper).
     const avatarColors = ['#2563eb', '#7c3aed', '#16a34a', '#f59e0b', '#dc2626', '#0ea5e9', '#db2777'];
@@ -42,6 +46,14 @@ export function Students() {
             .finally(() => setLoading(false));
     };
 
+    const loadDeleted = () => {
+        setLoadingDeleted(true);
+        api.get('/students/deleted')
+            .then(res => setDeletedStudents(Array.isArray(res) ? res : []))
+            .catch(err => console.error('Failed to fetch deleted students:', err))
+            .finally(() => setLoadingDeleted(false));
+    };
+
     const handleExport = async () => {
         setExporting(true);
         try {
@@ -62,10 +74,18 @@ export function Students() {
         }
     };
 
-    useEffect(() => { 
-        load(); 
+    useEffect(() => {
+        load();
         api.get('/standards').then(setStandards).catch(console.error);
+        // Pre-load deleted count for the badge
+        api.get('/students/deleted')
+            .then(res => setDeletedStudents(Array.isArray(res) ? res : []))
+            .catch(() => {});
     }, []);
+
+    useEffect(() => {
+        if (activeTab === 'deleted') loadDeleted();
+    }, [activeTab]);
 
     const emptyForm = { firstName: '', email: '', phoneNum: '', std: '', medium: '', stream: '', totalRewardPoints: 0, password: '' };
 
@@ -121,6 +141,21 @@ export function Students() {
         }
     };
 
+    const handleRestore = async (student) => {
+        if (!confirm(`Restore account for "${student.firstName}" (${student.phoneNum})?\n\nThey will be able to log in again immediately.`)) return;
+        setRestoring(student._id);
+        try {
+            await api.put(`/students/${student._id}/restore`);
+            alert(`✅ Account restored! ${student.firstName} can now log in again.`);
+            loadDeleted();
+            load(data.page);
+        } catch (err) {
+            alert('Failed to restore account: ' + (err.message || 'Unknown error'));
+        } finally {
+            setRestoring(null);
+        }
+    };
+
     const visibleStudents = search.trim()
         ? data.students.filter(s => {
             const q = search.trim().toLowerCase();
@@ -128,6 +163,14 @@ export function Students() {
                 .some(v => (v || '').toString().toLowerCase().includes(q));
         })
         : data.students;
+
+    const filteredDeleted = search.trim()
+        ? deletedStudents.filter(s => {
+            const q = search.trim().toLowerCase();
+            return [s.firstName, s.email, s.phoneNum, s.std, s.medium]
+                .some(v => (v || '').toString().toLowerCase().includes(q));
+        })
+        : deletedStudents;
 
     return (
         <div>
@@ -145,6 +188,12 @@ export function Students() {
                             <span class="hm-value">{standards.length}</span>
                             <span class="hm-label">Standards</span>
                         </div>
+                        {deletedStudents.length > 0 && (
+                            <div class="header-metric">
+                                <span class="hm-value" style={{ color: '#ef4444' }}>{deletedStudents.length}</span>
+                                <span class="hm-label">Deleted</span>
+                            </div>
+                        )}
                     </div>
                 </div>
                 <div class="page-header-actions">
@@ -155,6 +204,50 @@ export function Students() {
                         <Icons.Plus /> Add Student
                     </button>
                 </div>
+            </div>
+
+            {/* Tabs */}
+            <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem', borderBottom: '2px solid var(--border-color)', paddingBottom: '0' }}>
+                <button
+                    onClick={() => setActiveTab('active')}
+                    style={{
+                        padding: '0.5rem 1.25rem',
+                        border: 'none',
+                        background: 'none',
+                        cursor: 'pointer',
+                        fontWeight: activeTab === 'active' ? '700' : '400',
+                        color: activeTab === 'active' ? 'var(--accent)' : 'var(--text-muted)',
+                        borderBottom: activeTab === 'active' ? '2px solid var(--accent)' : '2px solid transparent',
+                        marginBottom: '-2px',
+                        fontSize: '0.95rem'
+                    }}
+                >
+                    Active Students
+                </button>
+                <button
+                    onClick={() => setActiveTab('deleted')}
+                    style={{
+                        padding: '0.5rem 1.25rem',
+                        border: 'none',
+                        background: 'none',
+                        cursor: 'pointer',
+                        fontWeight: activeTab === 'deleted' ? '700' : '400',
+                        color: activeTab === 'deleted' ? '#ef4444' : 'var(--text-muted)',
+                        borderBottom: activeTab === 'deleted' ? '2px solid #ef4444' : '2px solid transparent',
+                        marginBottom: '-2px',
+                        fontSize: '0.95rem',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.4rem'
+                    }}
+                >
+                    🗑 Deleted / Self-Removed
+                    {deletedStudents.length > 0 && (
+                        <span style={{ background: '#ef4444', color: '#fff', borderRadius: '999px', fontSize: '0.7rem', padding: '0.1rem 0.5rem', fontWeight: '700' }}>
+                            {deletedStudents.length}
+                        </span>
+                    )}
+                </button>
             </div>
 
             <div class="table-container">
@@ -171,169 +264,243 @@ export function Students() {
                                 />
                             </div>
                         </div>
-                        <div class="toolbar-group">
-                            <select
-                                class="form-control"
-                                value={pageSize}
-                                onChange={(e) => { setPageSize(parseInt(e.target.value)); load(1); }}
-                            >
-                                <option value={10}>10 per page</option>
-                                <option value={25}>25 per page</option>
-                                <option value={50}>50 per page</option>
-                                <option value={100}>100 per page</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
-                {loading ? (
-                    <div class="loading-spinner" />
-                ) : data.students.length === 0 ? (
-                    <div class="table-empty">
-                        <div class="empty-icon"><Icons.User /></div>
-                        <p>No students found. Add your first student to get started.</p>
-                    </div>
-                ) : (
-                    <Fragment>
-                        <div class="table-scroll">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th style="width:170px;max-width:170px;">Student</th>
-                                    <th>Phone</th>
-                                    <th>Standard</th>
-                                    <th>Medium</th>
-                                    <th style="width:70px;">Points</th>
-                                    <th>Status</th>
-                                    <th>Amount</th>
-                                    <th>Referral/Redeem</th>
-                                    <th>Joined</th>
-                                    <th style="text-align:right;">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {visibleStudents.map((student) => (
-                                    <tr key={student._id}>
-                                        <td style="max-width:170px;">
-                                            <div class="identity">
-                                                <div class="avatar" style={{ background: avatarColor(student.firstName || '') }}>
-                                                    {initials(student.firstName || '')}
-                                                </div>
-                                                <div class="identity-body">
-                                                    <div class="identity-name">{student.firstName || 'Unnamed'}</div>
-                                                    <div class="identity-sub">{student.email || 'No email'}</div>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td>{student.phoneNum || '—'}</td>
-                                        <td>
-                                            <span class="cell-chip">
-                                                {student.std || '—'}{student.stream ? ` · ${student.stream}` : ''}
-                                            </span>
-                                        </td>
-                                        <td>{student.medium || '—'}</td>
-                                        <td style="font-weight:600;color:var(--text-primary);font-variant-numeric:tabular-nums;">
-                                            {student.totalRewardPoints || 0}
-                                        </td>
-                                        <td>
-                                            {student.isPaid ? (
-                                                <span class="cell-chip" style={{ backgroundColor: '#def7ec', color: '#03543f', fontWeight: 'bold' }}>Paid</span>
-                                            ) : (
-                                                <span class="cell-chip" style={{ backgroundColor: '#fde8e8', color: '#9b1c1c', fontWeight: 'bold' }}>Unpaid</span>
-                                            )}
-                                        </td>
-                                        <td style="font-weight:600;color:var(--text-primary);font-variant-numeric:tabular-nums;">
-                                            {student.isPaid ? `₹${student.paidAmount || 0}` : '—'}
-                                        </td>
-                                        <td>
-                                            {(() => {
-                                                if (student.referrerCode) {
-                                                    return (
-                                                        <div style={{ fontSize: '0.85rem' }}>
-                                                            <strong>{student.referrerCode}</strong>
-                                                            <div style={{ fontSize: '0.75rem', color: '#6b7280' }}>Referred by {student.referrerName || 'User'}</div>
-                                                        </div>
-                                                    );
-                                                } else if (student.redeemCode) {
-                                                    return (
-                                                        <div style={{ fontSize: '0.85rem' }}>
-                                                            <strong>{student.redeemCode}</strong>
-                                                            <div style={{ fontSize: '0.75rem', color: '#6b7280' }}>Created by {student.redeemCodeCreatedBy || 'Admin'}</div>
-                                                        </div>
-                                                    );
-                                                }
-                                                return <span style={{ color: '#9ca3af' }}>—</span>;
-                                            })()}
-                                        </td>
-                                        <td>{student.createdAt ? new Date(student.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}</td>
-                                        <td>
-                                            <div class="td-actions" style="justify-content:flex-end;">
-                                                <button class="icon-btn primary" title="Edit" onClick={() => openEdit(student)}>
-                                                    <Icons.Edit />
-                                                </button>
-                                                <button class="icon-btn danger" title="Delete" onClick={() => setDeleteConfirm(student)}>
-                                                    <Icons.Trash />
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))}
-                                {visibleStudents.length === 0 && (
-                                    <tr>
-                                        <td colSpan={10} style="text-align:center;color:var(--text-muted);padding:2.5rem;">
-                                            No students match “{search}”.
-                                        </td>
-                                    </tr>
-                                )}
-                            </tbody>
-                        </table>
-                        </div>
-
-                        {data.totalPages > 1 && (
-                            <div class="pagination">
-                                <span>
-                                    Showing {((data.page - 1) * pageSize) + 1}–{Math.min(data.page * pageSize, data.total)} of {data.total.toLocaleString()}
-                                </span>
-                                <div class="pagination-controls">
-                                    <button
-                                        onClick={() => load(data.page - 1)}
-                                        disabled={data.page === 1}
-                                    >
-                                        <Icons.ChevronLeft />
-                                    </button>
-                                    {Array.from({ length: data.totalPages }, (_, i) => {
-                                        const pageNum = i + 1;
-                                        if (
-                                            pageNum === 1 ||
-                                            pageNum === data.totalPages ||
-                                            (pageNum >= data.page - 1 && pageNum <= data.page + 1)
-                                        ) {
-                                            return (
-                                                <button
-                                                    key={pageNum}
-                                                    class={pageNum === data.page ? 'active' : ''}
-                                                    onClick={() => load(pageNum)}
-                                                >
-                                                    {pageNum}
-                                                </button>
-                                            );
-                                        } else if (
-                                            (pageNum === 2 && data.page > 3) ||
-                                            (pageNum === data.totalPages - 1 && data.page < data.totalPages - 2)
-                                        ) {
-                                            return <span key={pageNum}>…</span>;
-                                        }
-                                        return null;
-                                    })}
-                                    <button
-                                        onClick={() => load(data.page + 1)}
-                                        disabled={data.page === data.totalPages}
-                                    >
-                                        <Icons.ChevronRight />
-                                    </button>
-                                </div>
+                        {activeTab === 'active' && (
+                            <div class="toolbar-group">
+                                <select
+                                    class="form-control"
+                                    value={pageSize}
+                                    onChange={(e) => { setPageSize(parseInt(e.target.value)); load(1); }}
+                                >
+                                    <option value={10}>10 per page</option>
+                                    <option value={25}>25 per page</option>
+                                    <option value={50}>50 per page</option>
+                                    <option value={100}>100 per page</option>
+                                </select>
                             </div>
                         )}
-                    </Fragment>
+                    </div>
+                </div>
+
+                {/* ── ACTIVE STUDENTS TAB ── */}
+                {activeTab === 'active' && (
+                    loading ? (
+                        <div class="loading-spinner" />
+                    ) : data.students.length === 0 ? (
+                        <div class="table-empty">
+                            <div class="empty-icon"><Icons.User /></div>
+                            <p>No students found. Add your first student to get started.</p>
+                        </div>
+                    ) : (
+                        <Fragment>
+                            <div class="table-scroll">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th style="width:170px;max-width:170px;">Student</th>
+                                        <th>Phone</th>
+                                        <th>Standard</th>
+                                        <th>Medium</th>
+                                        <th style="width:70px;">Points</th>
+                                        <th>Status</th>
+                                        <th>Amount</th>
+                                        <th>Referral/Redeem</th>
+                                        <th>Joined</th>
+                                        <th style="text-align:right;">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {visibleStudents.map((student) => (
+                                        <tr key={student._id}>
+                                            <td style="max-width:170px;">
+                                                <div class="identity">
+                                                    <div class="avatar" style={{ background: avatarColor(student.firstName || '') }}>
+                                                        {initials(student.firstName || '')}
+                                                    </div>
+                                                    <div class="identity-body">
+                                                        <div class="identity-name">{student.firstName || 'Unnamed'}</div>
+                                                        <div class="identity-sub">{student.email || 'No email'}</div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>{student.phoneNum || '—'}</td>
+                                            <td>
+                                                <span class="cell-chip">
+                                                    {student.std || '—'}{student.stream ? ` · ${student.stream}` : ''}
+                                                </span>
+                                            </td>
+                                            <td>{student.medium || '—'}</td>
+                                            <td style="font-weight:600;color:var(--text-primary);font-variant-numeric:tabular-nums;">
+                                                {student.totalRewardPoints || 0}
+                                            </td>
+                                            <td>
+                                                {student.isPaid ? (
+                                                    <span class="cell-chip" style={{ backgroundColor: '#def7ec', color: '#03543f', fontWeight: 'bold' }}>Paid</span>
+                                                ) : (
+                                                    <span class="cell-chip" style={{ backgroundColor: '#fde8e8', color: '#9b1c1c', fontWeight: 'bold' }}>Unpaid</span>
+                                                )}
+                                            </td>
+                                            <td style="font-weight:600;color:var(--text-primary);font-variant-numeric:tabular-nums;">
+                                                {student.isPaid ? `₹${student.paidAmount || 0}` : '—'}
+                                            </td>
+                                            <td>
+                                                {(() => {
+                                                    if (student.referrerCode) {
+                                                        return (
+                                                            <div style={{ fontSize: '0.85rem' }}>
+                                                                <strong>{student.referrerCode}</strong>
+                                                                <div style={{ fontSize: '0.75rem', color: '#6b7280' }}>Referred by {student.referrerName || 'User'}</div>
+                                                            </div>
+                                                        );
+                                                    } else if (student.redeemCode) {
+                                                        return (
+                                                            <div style={{ fontSize: '0.85rem' }}>
+                                                                <strong>{student.redeemCode}</strong>
+                                                                <div style={{ fontSize: '0.75rem', color: '#6b7280' }}>Created by {student.redeemCodeCreatedBy || 'Admin'}</div>
+                                                            </div>
+                                                        );
+                                                    }
+                                                    return <span style={{ color: '#9ca3af' }}>—</span>;
+                                                })()}
+                                            </td>
+                                            <td>{student.createdAt ? new Date(student.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}</td>
+                                            <td>
+                                                <div class="td-actions" style="justify-content:flex-end;">
+                                                    <button class="icon-btn primary" title="Edit" onClick={() => openEdit(student)}>
+                                                        <Icons.Edit />
+                                                    </button>
+                                                    <button class="icon-btn danger" title="Delete" onClick={() => setDeleteConfirm(student)}>
+                                                        <Icons.Trash />
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                    {visibleStudents.length === 0 && (
+                                        <tr>
+                                            <td colSpan={10} style="text-align:center;color:var(--text-muted);padding:2.5rem;">
+                                                No students match "{search}".
+                                            </td>
+                                        </tr>
+                                    )}
+                                </tbody>
+                            </table>
+                            </div>
+
+                            {data.totalPages > 1 && (
+                                <div class="pagination">
+                                    <span>
+                                        Showing {((data.page - 1) * pageSize) + 1}–{Math.min(data.page * pageSize, data.total)} of {data.total.toLocaleString()}
+                                    </span>
+                                    <div class="pagination-controls">
+                                        <button
+                                            onClick={() => load(data.page - 1)}
+                                            disabled={data.page === 1}
+                                        >
+                                            <Icons.ChevronLeft />
+                                        </button>
+                                        {Array.from({ length: data.totalPages }, (_, i) => {
+                                            const pageNum = i + 1;
+                                            if (
+                                                pageNum === 1 ||
+                                                pageNum === data.totalPages ||
+                                                (pageNum >= data.page - 1 && pageNum <= data.page + 1)
+                                            ) {
+                                                return (
+                                                    <button
+                                                        key={pageNum}
+                                                        class={pageNum === data.page ? 'active' : ''}
+                                                        onClick={() => load(pageNum)}
+                                                    >
+                                                        {pageNum}
+                                                    </button>
+                                                );
+                                            } else if (
+                                                (pageNum === 2 && data.page > 3) ||
+                                                (pageNum === data.totalPages - 1 && data.page < data.totalPages - 2)
+                                            ) {
+                                                return <span key={pageNum}>…</span>;
+                                            }
+                                            return null;
+                                        })}
+                                        <button
+                                            onClick={() => load(data.page + 1)}
+                                            disabled={data.page === data.totalPages}
+                                        >
+                                            <Icons.ChevronRight />
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+                        </Fragment>
+                    )
+                )}
+
+                {/* ── DELETED STUDENTS TAB ── */}
+                {activeTab === 'deleted' && (
+                    loadingDeleted ? (
+                        <div class="loading-spinner" />
+                    ) : filteredDeleted.length === 0 ? (
+                        <div class="table-empty">
+                            <div class="empty-icon">🗑</div>
+                            <p>{search ? `No deleted students match "${search}".` : 'No deleted student accounts found.'}</p>
+                        </div>
+                    ) : (
+                        <div class="table-scroll">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th style="width:170px;max-width:170px;">Student</th>
+                                        <th>Phone</th>
+                                        <th>Standard</th>
+                                        <th>Medium</th>
+                                        <th>Joined</th>
+                                        <th>Deleted On</th>
+                                        <th style="text-align:right;">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {filteredDeleted.map((student) => (
+                                        <tr key={student._id} style={{ opacity: 0.85 }}>
+                                            <td style="max-width:170px;">
+                                                <div class="identity">
+                                                    <div class="avatar" style={{ background: '#9ca3af' }}>
+                                                        {initials(student.firstName || '')}
+                                                    </div>
+                                                    <div class="identity-body">
+                                                        <div class="identity-name" style={{ color: 'var(--text-muted)' }}>{student.firstName || 'Unnamed'}</div>
+                                                        <div class="identity-sub">{student.email || 'No email'}</div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>{student.phoneNum || '—'}</td>
+                                            <td>
+                                                <span class="cell-chip">{student.std || '—'}{student.stream ? ` · ${student.stream}` : ''}</span>
+                                            </td>
+                                            <td>{student.medium || '—'}</td>
+                                            <td>{student.createdAt ? new Date(student.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}</td>
+                                            <td>
+                                                <span style={{ color: '#ef4444', fontWeight: '600', fontSize: '0.85rem' }}>
+                                                    {student.deletedAt ? new Date(student.deletedAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <div class="td-actions" style="justify-content:flex-end;">
+                                                    <button
+                                                        class="btn btn-primary"
+                                                        style={{ fontSize: '0.8rem', padding: '0.3rem 0.9rem' }}
+                                                        disabled={restoring === student._id}
+                                                        onClick={() => handleRestore(student)}
+                                                    >
+                                                        {restoring === student._id ? 'Restoring…' : '↩ Restore'}
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    )
                 )}
             </div>
 
