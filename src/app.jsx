@@ -30,6 +30,7 @@ import { ActivityLogs } from './pages/ActivityLogs';
 import { SubscriptionPlans } from './pages/SubscriptionPlans';
 import { RedeemCodes } from './pages/RedeemCodes';
 import { TrueFalseExams } from './pages/TrueFalseExams';
+import { MindGames } from './pages/MindGames';
 import './pages/LoginPage.css';
 
 export function App() {
@@ -134,6 +135,7 @@ export function App() {
           <OneLinerExams path="/admin/exams/oneliner" />
           <TrueFalseExams path="/admin/exams/true-false" />
           <MatchFollowingExams path="/admin/exams/matchfollowing" />
+          <MindGames path="/admin/mindgames" />
           <ReportsPage path="/admin/reports/:section/:type?" key={currentPath} />
         </Router>
       </Layout>
