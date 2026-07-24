@@ -179,8 +179,8 @@ export function Dashboard() {
 
     const cards = [
         { title: 'Total Students', value: (stats?.totalStudents || 0).toLocaleString(), icon: <Icons.User />, color: '#2563eb', trend: '12%', up: true, hint: 'Enrolled learners' },
-        { title: 'Total Products', value: (stats?.totalProducts || 0).toLocaleString(), icon: <Icons.Materials />, color: '#16a34a', trend: '5%', up: true, hint: 'Live in catalogue' },
-        { title: 'Total Chapters', value: (stats?.totalChapters || 0).toLocaleString(), icon: <Icons.Chapters />, color: '#f59e0b', trend: '2%', up: false, hint: 'Published content' },
+        { title: 'Total Paid Students', value: (stats?.totalPaidStudents || 0).toLocaleString(), icon: <Icons.User />, color: '#16a34a', trend: '8%', up: true, hint: 'Paying learners' },
+        { title: 'Total Products', value: (stats?.totalProducts || 0).toLocaleString(), icon: <Icons.Materials />, color: '#f59e0b', trend: '5%', up: true, hint: 'Live in catalogue' },
         { title: 'Total Revenue', value: `₹${totalRevenue.toLocaleString()}`, icon: <Icons.Revenue />, color: '#7c3aed', trend: '25%', up: true, hint: 'Lifetime earnings' },
     ];
 
