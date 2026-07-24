@@ -20,6 +20,8 @@ export function Students() {
     const [deletedStudents, setDeletedStudents] = useState([]);
     const [loadingDeleted, setLoadingDeleted] = useState(false);
     const [restoring, setRestoring] = useState(null); // id being restored
+    const [refundModal, setRefundModal] = useState(null); // { student, payments, upgrades }
+    const [refunding, setRefunding] = useState(false);
 
     // Deterministic avatar color from a name (pure UI helper).
     const avatarColors = ['#2563eb', '#7c3aed', '#16a34a', '#f59e0b', '#dc2626', '#0ea5e9', '#db2777'];
@@ -153,6 +155,33 @@ export function Students() {
             alert('Failed to restore account: ' + (err.message || 'Unknown error'));
         } finally {
             setRestoring(null);
+        }
+    };
+
+    const openRefundModal = async (student) => {
+        try {
+            const data = await api.get(`/students/${student._id}/payments`);
+            setRefundModal({ student, payments: data.payments || [], upgrades: data.upgrades || [] });
+        } catch (err) {
+            alert('Failed to load payment details: ' + (err.message || 'Unknown error'));
+        }
+    };
+
+    const handleRefund = async (paymentId, source) => {
+        if (!refundModal) return;
+        if (!confirm(`Mark this ₹${source === 'payment'
+            ? refundModal.payments.find(p => p._id === paymentId)?.amount
+            : refundModal.upgrades.find(u => u._id === paymentId)?.amount} payment as refunded?`)) return;
+        setRefunding(true);
+        try {
+            const result = await api.put(`/students/${refundModal.student._id}/refund`, { paymentId, source });
+            alert(`✅ Refund recorded. Student is now ${result.isPaid ? 'still Paid' : 'marked Unpaid'}.`);
+            setRefundModal(null);
+            load(data.page);
+        } catch (err) {
+            alert('Refund failed: ' + (err.message || 'Unknown error'));
+        } finally {
+            setRefunding(false);
         }
     };
 
@@ -365,6 +394,16 @@ export function Students() {
                                             <td>{student.createdAt ? new Date(student.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}</td>
                                             <td>
                                                 <div class="td-actions" style="justify-content:flex-end;">
+                                                    {student.isPaid && (
+                                                        <button
+                                                            class="icon-btn"
+                                                            title="Refund Payment"
+                                                            style={{ color: '#f59e0b' }}
+                                                            onClick={() => openRefundModal(student)}
+                                                        >
+                                                            ₹
+                                                        </button>
+                                                    )}
                                                     <button class="icon-btn primary" title="Edit" onClick={() => openEdit(student)}>
                                                         <Icons.Edit />
                                                     </button>
@@ -585,6 +624,92 @@ export function Students() {
                         Are you sure you want to delete the student <strong>"{deleteConfirm.firstName}"</strong>?<br />
                         This action cannot be undone and will remove their login access.
                     </p>
+                </Modal>
+            )}
+
+            {refundModal && (
+                <Modal
+                    title={`Refund Payment — ${refundModal.student.firstName}`}
+                    onClose={() => setRefundModal(null)}
+                    footer={
+                        <button class="btn btn-outline" onClick={() => setRefundModal(null)}>Close</button>
+                    }
+                >
+                    <p style={{ marginBottom: '1rem', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
+                        Select the payment you want to mark as <strong>refunded</strong>. This will reduce the displayed amount and, if no payments remain, mark the student as Unpaid.
+                    </p>
+
+                    {refundModal.payments.length === 0 && refundModal.upgrades.length === 0 && (
+                        <p style={{ color: '#9ca3af', textAlign: 'center', padding: '1rem' }}>No payments found for this student.</p>
+                    )}
+
+                    {refundModal.payments.length > 0 && (
+                        <div style={{ marginBottom: '1rem' }}>
+                            <div style={{ fontWeight: '600', marginBottom: '0.5rem', fontSize: '0.85rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Payments</div>
+                            {refundModal.payments.map(p => (
+                                <div key={p._id} style={{
+                                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                                    padding: '0.75rem 1rem', marginBottom: '0.5rem',
+                                    borderRadius: '8px', border: '1px solid var(--border-color)',
+                                    background: p.status === 'refunded' ? '#fef9f0' : 'var(--bg-secondary)'
+                                }}>
+                                    <div>
+                                        <div style={{ fontWeight: '600', fontSize: '1rem' }}>₹{p.amount}</div>
+                                        <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+                                            {new Date(p.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
+                                            {' · '}{p.razorpayPaymentId}
+                                        </div>
+                                    </div>
+                                    {p.status === 'refunded' ? (
+                                        <span class="cell-chip" style={{ backgroundColor: '#fef3c7', color: '#92400e' }}>Already Refunded</span>
+                                    ) : (
+                                        <button
+                                            class="btn btn-danger"
+                                            style={{ fontSize: '0.8rem', padding: '0.35rem 0.9rem' }}
+                                            disabled={refunding}
+                                            onClick={() => handleRefund(p._id, 'payment')}
+                                        >
+                                            {refunding ? 'Processing…' : 'Refund ₹' + p.amount}
+                                        </button>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    )}
+
+                    {refundModal.upgrades.length > 0 && (
+                        <div>
+                            <div style={{ fontWeight: '600', marginBottom: '0.5rem', fontSize: '0.85rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Plan Upgrades</div>
+                            {refundModal.upgrades.map(u => (
+                                <div key={u._id} style={{
+                                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                                    padding: '0.75rem 1rem', marginBottom: '0.5rem',
+                                    borderRadius: '8px', border: '1px solid var(--border-color)',
+                                    background: u.status === 'refunded' ? '#fef9f0' : 'var(--bg-secondary)'
+                                }}>
+                                    <div>
+                                        <div style={{ fontWeight: '600', fontSize: '1rem' }}>₹{u.amount}</div>
+                                        <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+                                            {new Date(u.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
+                                            {u.fromStandard && u.toStandard ? ` · Std ${u.fromStandard} → ${u.toStandard}` : ''}
+                                        </div>
+                                    </div>
+                                    {u.status === 'refunded' ? (
+                                        <span class="cell-chip" style={{ backgroundColor: '#fef3c7', color: '#92400e' }}>Already Refunded</span>
+                                    ) : (
+                                        <button
+                                            class="btn btn-danger"
+                                            style={{ fontSize: '0.8rem', padding: '0.35rem 0.9rem' }}
+                                            disabled={refunding}
+                                            onClick={() => handleRefund(u._id, 'upgrade')}
+                                        >
+                                            {refunding ? 'Processing…' : 'Refund ₹' + u.amount}
+                                        </button>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    )}
                 </Modal>
             )}
         </div>
