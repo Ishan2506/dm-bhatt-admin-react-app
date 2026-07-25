@@ -22,6 +22,7 @@ export function Materials({ type }) {
     const [filterStandard, setFilterStandard] = useState('');
     const [filterStream, setFilterStream] = useState('');
     const [filterMedium, setFilterMedium] = useState('');
+    const [filterSearch, setFilterSearch] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
     const [pageSize, setPageSize] = useState(25);
     const [totalCount, setTotalCount] = useState(0);
@@ -75,6 +76,7 @@ export function Materials({ type }) {
             standard = filterStandard,
             stream = filterStream,
             medium = filterMedium,
+            search = filterSearch,
             // Scope the list to the active material type.
             type = activeTab || '',
         } = filters;
@@ -86,6 +88,7 @@ export function Materials({ type }) {
         if (stream) url += `&stream=${encodeURIComponent(stream)}`;
         if (medium) url += `&medium=${encodeURIComponent(medium)}`;
         if (type) url += `&type=${encodeURIComponent(type)}`;
+        if (search) url += `&search=${encodeURIComponent(search)}`;
         api.get(url, { noPrefix: true })
             .then(response => {
                 let list = response.data || response || [];
@@ -373,6 +376,17 @@ export function Materials({ type }) {
             <div class="table-header">
                 <div class="toolbar" style="width:100%;">
                     <div class="toolbar-group">
+                        <input
+                            type="text"
+                            placeholder="Search by title..."
+                            value={filterSearch}
+                            onInput={(e) => {
+                                const val = e.target.value;
+                                setFilterSearch(val);
+                                loadMaterials(1, pageSize, { search: val });
+                            }}
+                            style="height:40px;padding:0 0.75rem;border:1px solid var(--border);border-radius:var(--radius-md);background:var(--bg-secondary);color:var(--text-primary);font-size:var(--font-sm);width:200px;"
+                        />
                         <select value={filterStandard} style={selectStyle}
                             onChange={(e) => { const val = e.target.value; setFilterStandard(val); loadMaterials(1, pageSize, { standard: val }); }}>
                             <option value="">All Standards</option>
