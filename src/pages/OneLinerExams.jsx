@@ -13,7 +13,8 @@ const INITIAL_FORM_DATA = {
     medium: 'English',
     stream: 'None',
     subject: '',
-    unit: ''
+    unit: '',
+    orderIndex: 1
 };
 
 export function OneLinerExams() {
@@ -128,7 +129,8 @@ export function OneLinerExams() {
             medium: editableExam.medium || 'English',
             stream: editableExam.stream || 'None',
             subject: editableExam.subject || '',
-            unit: editableExam.unit || ''
+            unit: editableExam.unit || '',
+            orderIndex: editableExam.orderIndex || 1
         });
 
         const mappedQuestions = (editableExam.questions || []).map(q => ({
@@ -303,6 +305,10 @@ export function OneLinerExams() {
                                         <div class="form-group">
                                             <label style="font-weight: 600; font-size: 0.9rem; display: block; margin-bottom: 0.5rem;">Title *</label>
                                             <input type="text" name="title" value={formData.title} onInput={handleInputChange} placeholder="e.g. History Quiz 1" style="width: 100%; padding: 0.75rem 1rem; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-input); color: var(--text-primary); font-size: 0.95rem;" />
+                                        </div>
+                                        <div class="form-group">
+                                            <label style="font-weight: 600; font-size: 0.9rem; display: block; margin-bottom: 0.5rem;">Display Order / Chapter No.</label>
+                                            <input type="number" name="orderIndex" value={formData.orderIndex} onInput={handleInputChange} style="width: 100%; padding: 0.75rem 1rem; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-input); color: var(--text-primary); font-size: 0.95rem;" />
                                         </div>
                                         <div class="form-group">
                                             <label style="font-weight: 600; font-size: 0.9rem; display: block; margin-bottom: 0.5rem;">Board *</label>

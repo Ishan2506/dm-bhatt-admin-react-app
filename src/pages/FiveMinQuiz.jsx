@@ -14,7 +14,8 @@ const INITIAL_FORM_DATA = {
     stream: 'None',
     subject: '',
     unit: '',
-    overview: ''
+    overview: '',
+    orderIndex: 1
 };
 
 export function FiveMinQuiz() {
@@ -256,6 +257,7 @@ export function FiveMinQuiz() {
                 subject: formData.subject,
                 unit: formData.unit,
                 overview: formData.overview,
+                orderIndex: parseInt(formData.orderIndex) || 1,
                 questions: mappedQuestions
             };
 
@@ -305,7 +307,8 @@ export function FiveMinQuiz() {
             stream: editableExam.stream && editableExam.stream !== '-' ? editableExam.stream : 'None',
             subject: editableExam.subject || '',
             unit: editableExam.unit || '',
-            overview: editableExam.overview || ''
+            overview: editableExam.overview || '',
+            orderIndex: editableExam.orderIndex || 1
         });
 
         const normalizeOption = (opt) => {
@@ -547,6 +550,10 @@ export function FiveMinQuiz() {
                                                 <input type="text" name="title" value={formData.title} onInput={handleInputChange} placeholder="e.g. History Quiz 1" style="width: 100%; padding: 0.75rem 1rem; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-input); color: var(--text-primary); font-size: 0.95rem;" />
                                             </div>
                                             <div class="form-group">
+                                                <label style="font-weight: 600; font-size: 0.9rem; display: block; margin-bottom: 0.5rem;">Display Order / Chapter No.</label>
+                                                <input type="number" name="orderIndex" value={formData.orderIndex} onInput={handleInputChange} style="width: 100%; padding: 0.75rem 1rem; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-input); color: var(--text-primary); font-size: 0.95rem;" />
+                                            </div>
+                                            <div class="form-group">
                                                 <label style="font-weight: 600; font-size: 0.9rem; display: block; margin-bottom: 0.5rem;">Board *</label>
                                                 <select name="board" value={formData.board} onChange={handleInputChange} style="width: 100%; padding: 0.75rem 1rem; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-input); color: var(--text-primary); font-size: 0.95rem;">
                                                     {AcademicConstants.boards.map(b => <option value={b}>{b}</option>)}
@@ -645,6 +652,10 @@ export function FiveMinQuiz() {
                                                 <div class="form-group">
                                                     <label style="font-weight: 600; font-size: 0.9rem; display: block; margin-bottom: 0.5rem;">Quiz Title *</label>
                                                     <input type="text" name="title" value={formData.title} onInput={handleInputChange} placeholder="e.g. History Quiz 1" style="width: 100%; padding: 0.75rem 1rem; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-primary); color: var(--text-primary); font-size: 0.95rem;" />
+                                                </div>
+                                                <div class="form-group">
+                                                    <label style="font-weight: 600; font-size: 0.9rem; display: block; margin-bottom: 0.5rem;">Display Order / Chapter No.</label>
+                                                    <input type="number" name="orderIndex" value={formData.orderIndex} onInput={handleInputChange} style="width: 100%; padding: 0.75rem 1rem; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-primary); color: var(--text-primary); font-size: 0.95rem;" />
                                                 </div>
                                                 <div class="form-group">
                                                     <label style="font-weight: 600; font-size: 0.9rem; display: block; margin-bottom: 0.5rem;">Board *</label>

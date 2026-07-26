@@ -13,7 +13,8 @@ const INITIAL_FORM_DATA = {
     stream: 'None',
     subject: '',
     unit: '',
-    overview: ''
+    overview: '',
+    orderIndex: 1
 };
 
 export function MatchFollowingExams() {
@@ -77,7 +78,8 @@ export function MatchFollowingExams() {
             stream: exam.stream || 'None',
             subject: exam.subject || '',
             unit: exam.unit || '',
-            overview: exam.overview || ''
+            overview: exam.overview || '',
+            orderIndex: exam.orderIndex || 1
         });
         setPairs(exam.pairs?.length > 0 ? exam.pairs.map(p => ({ left: p.left, right: p.right })) : [{ left: '', right: '' }]);
         setShowAddModal(true);
@@ -236,6 +238,10 @@ export function MatchFollowingExams() {
                                             <label style="font-weight: 600; font-size: 0.9rem; display: block; margin-bottom: 0.5rem;">Title *</label>
                                             <input type="text" name="title" value={formData.title} onInput={handleInputChange} placeholder="e.g. Match The Following - Unit 1" style="width: 100%; padding: 0.75rem 1rem; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-input); color: var(--text-primary); font-size: 0.95rem;" />
                                         </div>
+                                         <div class="form-group">
+                                             <label style="font-weight: 600; font-size: 0.9rem; display: block; margin-bottom: 0.5rem;">Display Order / Chapter No.</label>
+                                             <input type="number" name="orderIndex" value={formData.orderIndex} onInput={handleInputChange} style="width: 100%; padding: 0.75rem 1rem; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-input); color: var(--text-primary); font-size: 0.95rem;" />
+                                         </div>
                                         <div class="form-group">
                                             <label style="font-weight: 600; font-size: 0.9rem; display: block; margin-bottom: 0.5rem;">Board *</label>
                                             <select name="board" value={formData.board} onChange={handleInputChange} style="width: 100%; padding: 0.75rem 1rem; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-input); color: var(--text-primary); font-size: 0.95rem;">

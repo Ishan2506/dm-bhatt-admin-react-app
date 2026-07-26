@@ -14,7 +14,8 @@ const INITIAL_FORM_DATA = {
     stream: 'None',
     subject: '',
     totalMarks: '20',
-    unit: ''
+    unit: '',
+    orderIndex: 1
 };
 export function OnlineExams() {
     const [exams, setExams] = useState([]);
@@ -238,6 +239,7 @@ export function OnlineExams() {
                 stream: formData.stream === 'None' ? '-' : formData.stream,
                 unit: formData.unit,
                 totalMarks: target,
+                orderIndex: parseInt(formData.orderIndex) || 1,
                 questions: parsedQuestions
             };
 
@@ -324,7 +326,8 @@ export function OnlineExams() {
             stream: editableExam.stream && editableExam.stream !== '-' ? editableExam.stream : 'None',
             subject: editableExam.subject || '',
             unit: editableExam.unit || '',
-            totalMarks: editableExam.totalMarks?.toString() || '20'
+            totalMarks: editableExam.totalMarks?.toString() || '20',
+            orderIndex: editableExam.orderIndex || 1
         });
 
         const normalizeOption = (opt) => {
@@ -496,6 +499,10 @@ export function OnlineExams() {
                                                 <input type="text" name="title" value={formData.title} onInput={handleInputChange} placeholder="e.g. Weekly Test - 1" style="width: 100%; padding: 0.75rem 1rem; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-primary); color: var(--text-primary); font-size: 0.95rem;" />
                                             </div>
                                             <div class="form-group">
+                                                <label style="font-weight: 600; font-size: 0.9rem; display: block; margin-bottom: 0.5rem;">Display Order / Chapter No.</label>
+                                                <input type="number" name="orderIndex" value={formData.orderIndex} onInput={handleInputChange} style="width: 100%; padding: 0.75rem 1rem; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-primary); color: var(--text-primary); font-size: 0.95rem;" />
+                                            </div>
+                                            <div class="form-group">
                                                 <label style="font-weight: 600; font-size: 0.9rem; display: block; margin-bottom: 0.5rem;">Board *</label>
                                                 <select name="board" value={formData.board} onChange={handleInputChange} style="width: 100%; padding: 0.75rem 1rem; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-primary); color: var(--text-primary); font-size: 0.95rem;">
                                                     {AcademicConstants.boards.map(b => <option value={b}>{b}</option>)}
@@ -592,6 +599,10 @@ export function OnlineExams() {
                                                 <div class="form-group">
                                                     <label style="font-weight: 600; font-size: 0.9rem; display: block; margin-bottom: 0.5rem;">Exam Title *</label>
                                                     <input type="text" name="title" value={formData.title} onInput={handleInputChange} placeholder="e.g. Weekly Test - 1" style="width: 100%; padding: 0.75rem 1rem; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-primary); color: var(--text-primary); font-size: 0.95rem;" />
+                                                </div>
+                                                <div class="form-group">
+                                                    <label style="font-weight: 600; font-size: 0.9rem; display: block; margin-bottom: 0.5rem;">Display Order / Chapter No.</label>
+                                                    <input type="number" name="orderIndex" value={formData.orderIndex} onInput={handleInputChange} style="width: 100%; padding: 0.75rem 1rem; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-primary); color: var(--text-primary); font-size: 0.95rem;" />
                                                 </div>
                                                 <div class="form-group">
                                                     <label style="font-weight: 600; font-size: 0.9rem; display: block; margin-bottom: 0.5rem;">Unit / Chapter *</label>

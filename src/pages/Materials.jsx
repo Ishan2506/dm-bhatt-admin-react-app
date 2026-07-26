@@ -58,6 +58,7 @@ export function Materials({ type }) {
         subject: '',
         schoolName: '',
         unit: '',
+        orderIndex: 1,
         file: null
     });
 
@@ -176,6 +177,7 @@ export function Materials({ type }) {
             subject: '',
             schoolName: '',
             unit: '',
+            orderIndex: 1,
             file: null
         });
         setEditing(null);
@@ -248,6 +250,7 @@ export function Materials({ type }) {
             subject: item.subject,
             schoolName: item.schoolName || '',
             unit: item.unit || '',
+            orderIndex: item.orderIndex || 1,
             file: null
         });
         setActiveTab(item.type);
@@ -293,6 +296,10 @@ export function Materials({ type }) {
                         <div class="form-group">
                             <label>Title</label>
                             <input name="title" class="form-control" value={form.title} onInput={handleInputChange} required />
+                        </div>
+                        <div class="form-group">
+                            <label>Display Order / Chapter No.</label>
+                            <input name="orderIndex" class="form-control" type="number" value={form.orderIndex} onInput={handleInputChange} />
                         </div>
                         <div class="form-group">
                             <label>Board</label>

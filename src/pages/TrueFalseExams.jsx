@@ -15,7 +15,8 @@ const INITIAL_FORM_DATA = {
     subject: '',
     unit: '',
     totalMarks: '',
-    overview: ''
+    overview: '',
+    orderIndex: 1
 };
 
 export function TrueFalseExams() {
@@ -170,7 +171,8 @@ export function TrueFalseExams() {
             subject: exam.subject || '',
             unit: exam.unit || '',
             totalMarks: exam.totalMarks || '',
-            overview: exam.overview || ''
+            overview: exam.overview || '',
+            orderIndex: exam.orderIndex || 1
         });
 
         const mappedQuestions = (exam.questions || []).map(q => {
@@ -359,6 +361,10 @@ export function TrueFalseExams() {
                                         <div class="form-group">
                                             <label style="font-weight: 600; font-size: 0.9rem; display: block; margin-bottom: 0.5rem;">Title *</label>
                                             <input type="text" name="title" value={formData.title} onInput={handleInputChange} placeholder="e.g. Science Chapter 1 True False" style="width: 100%; padding: 0.75rem 1rem; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-input); color: var(--text-primary); font-size: 0.95rem;" />
+                                        </div>
+                                        <div class="form-group">
+                                            <label style="font-weight: 600; font-size: 0.9rem; display: block; margin-bottom: 0.5rem;">Display Order / Chapter No.</label>
+                                            <input type="number" name="orderIndex" value={formData.orderIndex} onInput={handleInputChange} style="width: 100%; padding: 0.75rem 1rem; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-input); color: var(--text-primary); font-size: 0.95rem;" />
                                         </div>
                                         <div class="form-group">
                                             <label style="font-weight: 600; font-size: 0.9rem; display: block; margin-bottom: 0.5rem;">Board *</label>
