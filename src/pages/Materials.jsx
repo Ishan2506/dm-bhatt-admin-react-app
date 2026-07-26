@@ -186,8 +186,32 @@ export function Materials({ type }) {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (!form.title || !form.standard || !form.subject || (!form.file && !editing)) {
-            showToast('Please fill all required fields and select a file.', 'error');
+        if (!form.title) {
+            showToast('Title is required.', 'error');
+            return;
+        }
+        if (!form.standard) {
+            showToast('Standard is required.', 'error');
+            return;
+        }
+        if ((form.standard === '11' || form.standard === '12') && (!form.stream || form.stream === 'None')) {
+            showToast('Stream is required for Standard 11 and 12.', 'error');
+            return;
+        }
+        if (!form.subject) {
+            showToast('Subject is required.', 'error');
+            return;
+        }
+        if (activeTab === 'SchoolPaper' && !form.schoolName) {
+            showToast('School Name is required for School Paper.', 'error');
+            return;
+        }
+        if (activeTab === 'ImageMaterial' && !form.unit) {
+            showToast('Unit is required for Image Material.', 'error');
+            return;
+        }
+        if (!form.file && !editing) {
+            showToast('Please select a file to upload.', 'error');
             return;
         }
 

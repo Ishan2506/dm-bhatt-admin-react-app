@@ -196,6 +196,9 @@ export function TrueFalseExams() {
         // Validation
         if (!formData.title) return showToast("Exam Title is required.", "error");
         if (!formData.std) return showToast("Standard is required.", "error");
+        if ((formData.std === '11' || formData.std === '12') && (!formData.stream || formData.stream === 'None')) {
+            return showToast("Stream is required for Standard 11 and 12.", "error");
+        }
         if (!formData.subject) return showToast("Subject is required.", "error");
         if (!formData.unit) return showToast("Unit is required.", "error");
         if (!formData.totalMarks) return showToast("Total Marks is required.", "error");

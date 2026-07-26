@@ -209,6 +209,28 @@ export function OnlineExams() {
 
     const handleSaveExam = async () => {
         // Validation
+        if (!formData.title) {
+            return showToast("Title is required.", "error");
+        }
+        if (!formData.board) {
+            return showToast("Board is required.", "error");
+        }
+        if (!formData.std) {
+            return showToast("Standard is required.", "error");
+        }
+        if ((formData.std === '11' || formData.std === '12') && (!formData.stream || formData.stream === 'None')) {
+            return showToast("Stream is required for Standard 11 and 12.", "error");
+        }
+        if (!formData.medium) {
+            return showToast("Medium is required.", "error");
+        }
+        if (!formData.subject) {
+            return showToast("Subject is required.", "error");
+        }
+        if (!formData.unit) {
+            return showToast("Unit / Chapter name is required.", "error");
+        }
+
         if (parsedQuestions.length === 0) {
             return showToast("Cannot save empty exam.", "error");
         }
