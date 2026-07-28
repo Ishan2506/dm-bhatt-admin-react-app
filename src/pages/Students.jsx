@@ -21,6 +21,8 @@ export function Students() {
     const [loadingDeleted, setLoadingDeleted] = useState(false);
     const [restoring, setRestoring] = useState(null); // id being restored
     const [refundModal, setRefundModal] = useState(null); // { student, payments, upgrades }
+    const [deviceModal, setDeviceModal] = useState(null); // { student, sessions, loading }
+    const [revoking, setRevoking] = useState(false);
     const [refunding, setRefunding] = useState(false);
 
     // Deterministic avatar color from a name (pure UI helper).
@@ -155,6 +157,38 @@ export function Students() {
             alert('Failed to restore account: ' + (err.message || 'Unknown error'));
         } finally {
             setRestoring(null);
+        }
+    };
+
+    const openDeviceModal = async (student) => {
+        setDeviceModal({ student, sessions: [], loading: true });
+        try {
+            const data = await api.get(`/students/${student._id}/sessions`);
+            setDeviceModal({ student, sessions: data.sessions || [], loading: false });
+        } catch (err) {
+            setDeviceModal(null);
+            alert('Failed to load devices: ' + (err.message || 'Unknown error'));
+        }
+    };
+
+    const handleRevokeDevices = async (sessionId) => {
+        if (!deviceModal) return;
+        const msg = sessionId
+            ? 'Log this student out of this device?'
+            : `Log ${deviceModal.student.firstName} out of ALL devices? They will need to sign in again.`;
+        if (!confirm(msg)) return;
+
+        setRevoking(true);
+        try {
+            const query = sessionId ? `?sessionId=${sessionId}` : '';
+            await api.del(`/students/${deviceModal.student._id}/sessions${query}`);
+            // Refresh the list so the admin sees the freed-up slots
+            const data = await api.get(`/students/${deviceModal.student._id}/sessions`);
+            setDeviceModal({ ...deviceModal, sessions: data.sessions || [], loading: false });
+        } catch (err) {
+            alert('Failed to log out device: ' + (err.message || 'Unknown error'));
+        } finally {
+            setRevoking(false);
         }
     };
 
@@ -404,6 +438,14 @@ export function Students() {
                                                             ₹
                                                         </button>
                                                     )}
+                                                    <button
+                                                        class="icon-btn"
+                                                        title="Logged-in devices"
+                                                        style={{ color: '#0ea5e9' }}
+                                                        onClick={() => openDeviceModal(student)}
+                                                    >
+                                                        <Icons.Shield />
+                                                    </button>
                                                     <button class="icon-btn primary" title="Edit" onClick={() => openEdit(student)}>
                                                         <Icons.Edit />
                                                     </button>
@@ -624,6 +666,70 @@ export function Students() {
                         Are you sure you want to delete the student <strong>"{deleteConfirm.firstName}"</strong>?<br />
                         This action cannot be undone and will remove their login access.
                     </p>
+                </Modal>
+            )}
+
+            {deviceModal && (
+                <Modal
+                    title={`Logged-in Devices — ${deviceModal.student.firstName}`}
+                    onClose={() => setDeviceModal(null)}
+                    footer={
+                        <Fragment>
+                            <button class="btn btn-outline" onClick={() => setDeviceModal(null)}>Close</button>
+                            {deviceModal.sessions.length > 0 && (
+                                <button
+                                    class="btn btn-danger"
+                                    disabled={revoking}
+                                    onClick={() => handleRevokeDevices(null)}
+                                >
+                                    {revoking ? 'Logging out…' : 'Logout All Devices'}
+                                </button>
+                            )}
+                        </Fragment>
+                    }
+                >
+                    <p style={{ marginBottom: '1rem', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
+                        Devices this student is currently signed in on. Logging a device out frees up a slot so they can sign in somewhere else.
+                    </p>
+
+                    {deviceModal.loading && (
+                        <p style={{ color: '#9ca3af', textAlign: 'center', padding: '1rem' }}>Loading devices…</p>
+                    )}
+
+                    {!deviceModal.loading && deviceModal.sessions.length === 0 && (
+                        <p style={{ color: '#9ca3af', textAlign: 'center', padding: '1rem' }}>
+                            This student is not logged in on any device.
+                        </p>
+                    )}
+
+                    {deviceModal.sessions.map(s => (
+                        <div key={s._id} style={{
+                            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                            padding: '0.75rem 1rem', marginBottom: '0.5rem',
+                            borderRadius: '8px', border: '1px solid var(--border-color)',
+                            background: 'var(--bg-secondary)'
+                        }}>
+                            <div>
+                                <div style={{ fontWeight: '600', fontSize: '0.95rem' }}>
+                                    {s.deviceName}{s.platform ? ` · ${s.platform}` : ''}
+                                </div>
+                                <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+                                    Last active {s.lastActive ? new Date(s.lastActive).toLocaleString('en-GB', {
+                                        day: '2-digit', month: 'short', year: 'numeric',
+                                        hour: '2-digit', minute: '2-digit'
+                                    }) : '—'}
+                                </div>
+                            </div>
+                            <button
+                                class="btn btn-outline"
+                                disabled={revoking}
+                                style={{ color: '#ef4444', borderColor: '#ef4444' }}
+                                onClick={() => handleRevokeDevices(s._id)}
+                            >
+                                Logout
+                            </button>
+                        </div>
+                    ))}
                 </Modal>
             )}
 

@@ -13,6 +13,7 @@ const defaultForm = {
     adminPlayStoreUrl: 'https://play.store.url',
     adminAppStoreUrl: 'https://app.store.url',
     forceUpdateMessage: 'A new version of the app is available. Please update to continue using the app.',
+    maxDevices: '1',
 };
 
 export function AppConfig() {
@@ -33,7 +34,16 @@ export function AppConfig() {
         setSaving(true);
         setSaved(false);
         try {
-            await api.post('/config/app', form);
+            // Guard the device limit: an empty or zero value would otherwise be
+            // written to config and read by the API as "not configured".
+            const maxDevices = parseInt(form.maxDevices, 10);
+            if (!Number.isFinite(maxDevices) || maxDevices < 1) {
+                alert('Maximum devices per student must be at least 1.');
+                setSaving(false);
+                return;
+            }
+
+            await api.post('/config/app', { ...form, maxDevices });
             setSaved(true);
             setTimeout(() => setSaved(false), 3000);
         } catch (err) {
@@ -56,12 +66,36 @@ export function AppConfig() {
                 <div class="page-header">
                     <div class="page-header-titles">
                         <div class="page-header-eyebrow"><Icons.Gear /> Configuration</div>
-                        <h1>App Version</h1>
-                        <p class="page-subtitle">Manage minimum required app versions and store links for the Student and Admin applications.</p>
+                        <h1>App Settings</h1>
+                        <p class="page-subtitle">Manage device login limits, minimum required app versions, and store links for the Student and Admin applications.</p>
                     </div>
                 </div>
 
                 <form onSubmit={handleSave}>
+                    <div class="config-section">
+                        <div class="config-section-head">
+                            <div class="config-section-badge"><Icons.Shield /></div>
+                            <div>
+                                <h3 class="config-section-title">Device Login Limit</h3>
+                                <p class="config-section-desc">How many devices a student can stay logged in on at the same time. When the limit is reached, logging in on a new device is blocked until they log out elsewhere.</p>
+                            </div>
+                        </div>
+                        <div class="form-group" style="margin-bottom:0;max-width:320px;">
+                            <label>Maximum Devices Per Student</label>
+                            <input
+                                class="form-control"
+                                type="number"
+                                min="1"
+                                max="10"
+                                placeholder="e.g. 2"
+                                {...f('maxDevices')}
+                            />
+                            <small style="display:block;margin-top:0.5rem;color:#6b7280;">
+                                Set to 1 to allow only one device at a time. Existing logins are not affected until those students log out or their session expires. Admins are never limited.
+                            </small>
+                        </div>
+                    </div>
+
                     <div class="config-section">
                         <div class="config-section-head">
                             <div class="config-section-badge"><Icons.User /></div>
