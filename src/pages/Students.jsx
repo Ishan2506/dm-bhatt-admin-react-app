@@ -710,8 +710,18 @@ export function Students() {
                             background: 'var(--bg-secondary)'
                         }}>
                             <div>
-                                <div style={{ fontWeight: '600', fontSize: '0.95rem' }}>
-                                    {s.deviceName}{s.platform ? ` · ${s.platform}` : ''}
+                                <div style={{ fontWeight: '600', fontSize: '0.95rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                                    <span>{s.deviceName}</span>
+                                    {s.platform && (
+                                        <span style={{
+                                            fontSize: '0.68rem', fontWeight: '600', textTransform: 'uppercase',
+                                            letterSpacing: '0.03em', padding: '0.1rem 0.4rem', borderRadius: '4px',
+                                            background: 'var(--bg-secondary)', border: '1px solid var(--border-color)',
+                                            color: 'var(--text-muted)'
+                                        }}>
+                                            {s.platform}
+                                        </span>
+                                    )}
                                 </div>
                                 <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
                                     Last active {s.lastActive ? new Date(s.lastActive).toLocaleString('en-GB', {
