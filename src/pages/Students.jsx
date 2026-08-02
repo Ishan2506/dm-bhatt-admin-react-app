@@ -364,6 +364,7 @@ export function Students() {
                                         <th>Standard</th>
                                         <th>Medium</th>
                                         <th style="width:70px;">Points</th>
+                                        <th style="width:80px;">Devices</th>
                                         <th>Status</th>
                                         <th>Amount</th>
                                         <th>Referral/Redeem</th>
@@ -394,6 +395,9 @@ export function Students() {
                                             <td>{student.medium || '—'}</td>
                                             <td style="font-weight:600;color:var(--text-primary);font-variant-numeric:tabular-nums;">
                                                 {student.totalRewardPoints || 0}
+                                            </td>
+                                            <td style="font-weight:600;color:var(--text-primary);font-variant-numeric:tabular-nums;">
+                                                {student.deviceCount || 0}
                                             </td>
                                             <td>
                                                 {student.isPaid ? (
@@ -458,7 +462,7 @@ export function Students() {
                                     ))}
                                     {visibleStudents.length === 0 && (
                                         <tr>
-                                            <td colSpan={10} style="text-align:center;color:var(--text-muted);padding:2.5rem;">
+                                            <td colSpan={11} style="text-align:center;color:var(--text-muted);padding:2.5rem;">
                                                 No students match "{search}".
                                             </td>
                                         </tr>
