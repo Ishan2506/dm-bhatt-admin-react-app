@@ -49,38 +49,6 @@ export function SubscriptionPlans() {
         setShowModal(true);
     };
 
-    const isValidApplePrice = (amount) => {
-        if (amount === 0) return true;
-        
-        const P = amount - 1;
-        
-        // Low Tiers
-        if (P === 29 || P === 49) return true;
-
-        // Standard Tiers (₹50 to ₹299): increments of ₹50
-        if (P >= 99 && P <= 299) {
-            return P % 50 === 49;
-        }
-        
-        // Mid-Range Tiers (₹300 to ₹999): increments of ₹100
-        if (P >= 399 && P <= 999) {
-            return P % 100 === 99;
-        }
-        
-        // Subscription/High Tiers (₹1000 to ₹24999): increments of ₹500 (with ₹1299 special tier)
-        if (P === 1299) return true;
-        if (P >= 1499 && P <= 24999) {
-            return P % 500 === 499;
-        }
-        
-        // Premium Tiers (₹25000+): increments of ₹5000
-        if (P >= 29999) {
-            return P % 5000 === 4999;
-        }
-        
-        return false;
-    };
-
     const handleSave = async () => {
         if (!form.standard || form.amount < 0) {
             alert('Please fill in all required fields correctly');
@@ -90,13 +58,6 @@ export function SubscriptionPlans() {
         const iosAmount = hasIosOverride ? Number(form.iosAmount) : null;
         if (hasIosOverride && (!Number.isFinite(iosAmount) || iosAmount < 0)) {
             alert('iOS amount must be a non-negative number, or left blank to use the same price as Android.');
-            return;
-        }
-        // Apple tier rules only bind the price actually charged on iOS: the iOS
-        // override when one is set, otherwise the base amount.
-        const applePrice = hasIosOverride ? iosAmount : form.amount;
-        if (!isValidApplePrice(applePrice)) {
-            alert('Invalid iOS price! The price charged on iOS does not match standard Apple tier guidelines.\n\nExamples of valid prices:\n- ₹30 (displays as ₹29)\n- ₹50 (displays as ₹49)\n- ₹100 (displays as ₹99)\n- ₹150 (displays as ₹149)\n- ₹300 (displays as ₹299)\n- ₹1500 (displays as ₹1499)\n- ₹4500 (displays as ₹4499)\n- ₹5000 (displays as ₹4999)');
             return;
         }
         setSaving(true);
@@ -304,7 +265,7 @@ export function SubscriptionPlans() {
                     placeholder: 'Leave blank to use the Android amount'
                 }),
                 h('div', { style: { color: '#dc2626', fontSize: '0.75rem', marginTop: '6px', fontWeight: '600' } },
-                    '* Leave blank and iOS charges the Android amount. When set, this price must match standard Apple pricing tiers (e.g. 30, 50, 100, 150, 300, 1500, 4500, 5000) and must equal the price of the matching App Store product.'
+                    '* Leave blank and iOS uses the Android amount. Student app automatically subtracts ₹1 here too (e.g. 300 displays as ₹299). Make sure this matches the price of the matching App Store product.'
                 )
             ),
             h('div', { class: 'form-group' },
