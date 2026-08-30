@@ -9,7 +9,7 @@ export function SubscriptionPlans() {
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
     const [editing, setEditing] = useState(null);
-    const [form, setForm] = useState({ standard: '', amount: 0, description: '', isActive: true });
+    const [form, setForm] = useState({ standard: '', amount: 0, iosAmount: '', description: '', isActive: true });
     const [saving, setSaving] = useState(false);
     const [deleteConfirm, setDeleteConfirm] = useState(null);
     const [error, setError] = useState('');
@@ -32,7 +32,7 @@ export function SubscriptionPlans() {
 
     const openAdd = () => {
         setEditing(null);
-        setForm({ standard: '', amount: 0, description: '', isActive: true });
+        setForm({ standard: '', amount: 0, iosAmount: '', description: '', isActive: true });
         setShowModal(true);
     };
 
@@ -41,6 +41,8 @@ export function SubscriptionPlans() {
         setForm({
             standard: plan.standard,
             amount: plan.amount,
+            // Blank means "no iOS override" - the iOS app falls back to the base amount.
+            iosAmount: plan.iosAmount === null || plan.iosAmount === undefined ? '' : plan.iosAmount,
             description: plan.description || '',
             isActive: plan.isActive ?? true
         });
@@ -84,13 +86,22 @@ export function SubscriptionPlans() {
             alert('Please fill in all required fields correctly');
             return;
         }
-        if (!isValidApplePrice(form.amount)) {
-            alert('Invalid amount! The price does not match standard Apple tier guidelines.\n\nExamples of valid prices:\n- ₹30 (displays as ₹29)\n- ₹50 (displays as ₹49)\n- ₹100 (displays as ₹99)\n- ₹150 (displays as ₹149)\n- ₹300 (displays as ₹299)\n- ₹1500 (displays as ₹1499)\n- ₹4500 (displays as ₹4499)\n- ₹5000 (displays as ₹4999)');
+        const hasIosOverride = form.iosAmount !== '' && form.iosAmount !== null;
+        const iosAmount = hasIosOverride ? Number(form.iosAmount) : null;
+        if (hasIosOverride && (!Number.isFinite(iosAmount) || iosAmount < 0)) {
+            alert('iOS amount must be a non-negative number, or left blank to use the same price as Android.');
+            return;
+        }
+        // Apple tier rules only bind the price actually charged on iOS: the iOS
+        // override when one is set, otherwise the base amount.
+        const applePrice = hasIosOverride ? iosAmount : form.amount;
+        if (!isValidApplePrice(applePrice)) {
+            alert('Invalid iOS price! The price charged on iOS does not match standard Apple tier guidelines.\n\nExamples of valid prices:\n- ₹30 (displays as ₹29)\n- ₹50 (displays as ₹49)\n- ₹100 (displays as ₹99)\n- ₹150 (displays as ₹149)\n- ₹300 (displays as ₹299)\n- ₹1500 (displays as ₹1499)\n- ₹4500 (displays as ₹4499)\n- ₹5000 (displays as ₹4999)');
             return;
         }
         setSaving(true);
         try {
-            await api.post('/plans', form);
+            await api.post('/plans', { ...form, iosAmount });
             setShowModal(false);
             load();
         } catch (err) {
@@ -129,6 +140,7 @@ export function SubscriptionPlans() {
             await api.post('/plans', {
                 standard: plan.standard,
                 amount: plan.amount,
+                iosAmount: plan.iosAmount ?? null,
                 description: plan.description,
                 isActive: !plan.isActive
             });
@@ -146,7 +158,7 @@ export function SubscriptionPlans() {
                 <h1>Subscription Plans</h1>
                 <p class="page-subtitle">Manage subscription pricing for each standard.</p>
                 <div style={{ color: '#dc2626', fontSize: '0.85rem', fontWeight: '600', marginTop: '6px' }}>
-                    * Note: The Student App automatically subtracts ₹1 from the set price for psychological charm pricing (e.g. ₹300 here displays as ₹299 to the student, ₹500 displays as ₹499).
+                    * Note: The Student App automatically subtracts ₹1 from the set price for psychological charm pricing (e.g. ₹300 here displays as ₹299 to the student, ₹500 displays as ₹499). Set an iOS Amount to charge a different price on iPhone/iPad; leave it blank to use the Android amount on both platforms.
                 </div>
                 <div class="header-metrics">
                     <div class="header-metric">
@@ -186,7 +198,8 @@ export function SubscriptionPlans() {
                         <thead>
                             <tr>
                                 <th>Plan</th>
-                                <th>Amount</th>
+                                <th>Android Amount</th>
+                                <th>iOS Amount</th>
                                 <th>Description</th>
                                 <th>Status</th>
                                 <th style="text-align:right;">Actions</th>
@@ -202,6 +215,13 @@ export function SubscriptionPlans() {
                                         </div>
                                     </td>
                                     <td><span class="amount" style="color:var(--text-primary);">₹{plan.amount}</span></td>
+                                    <td>
+                                        {plan.iosAmount === null || plan.iosAmount === undefined ? (
+                                            <span class="text-muted" title="No iOS override — iOS uses the Android amount">₹{plan.amount} <small>(same)</small></span>
+                                        ) : (
+                                            <span class="amount" style="color:var(--text-primary);">₹{plan.iosAmount}</span>
+                                        )}
+                                    </td>
                                     <td class="text-muted">{plan.description || '—'}</td>
                                     <td>
                                         <span class={`badge ${plan.isActive ? 'badge-success' : 'badge-danger'}`}>
@@ -259,7 +279,7 @@ export function SubscriptionPlans() {
                 )
             ),
             h('div', { class: 'form-group' },
-                h('label', null, 'Amount (₹)'),
+                h('label', null, 'Android Amount (₹)'),
                 h('input', {
                     type: 'number',
                     value: form.amount,
@@ -269,7 +289,22 @@ export function SubscriptionPlans() {
                     step: '1'
                 }),
                 h('div', { style: { color: '#dc2626', fontSize: '0.75rem', marginTop: '6px', fontWeight: '600' } },
-                    '* Note: Student app automatically subtracts ₹1. Entered amount must match standard Apple pricing tiers (e.g. 30, 50, 100, 150, 300, 1500, 4500, 5000).'
+                    '* Note: Student app automatically subtracts ₹1. This price is charged on Android.'
+                )
+            ),
+            h('div', { class: 'form-group' },
+                h('label', null, 'iOS Amount (₹)'),
+                h('input', {
+                    type: 'number',
+                    value: form.iosAmount,
+                    onInput: (e) => setForm({ ...form, iosAmount: e.target.value }),
+                    class: 'form-control',
+                    min: '0',
+                    step: '1',
+                    placeholder: 'Leave blank to use the Android amount'
+                }),
+                h('div', { style: { color: '#dc2626', fontSize: '0.75rem', marginTop: '6px', fontWeight: '600' } },
+                    '* Leave blank and iOS charges the Android amount. When set, this price must match standard Apple pricing tiers (e.g. 30, 50, 100, 150, 300, 1500, 4500, 5000) and must equal the price of the matching App Store product.'
                 )
             ),
             h('div', { class: 'form-group' },
