@@ -645,12 +645,15 @@ export function Students() {
                             <label>Reward Points</label>
                             <input class="form-control" type="number" value={form.totalRewardPoints} onInput={(e) => setForm({ ...form, totalRewardPoints: parseInt(e.target.value) || 0 })} />
                         </div>
-                        {!editing && (
-                            <div class="form-group" style="grid-column: span 2;">
-                                <label>Password / PIN <span style="font-weight:400;color:var(--text-muted);">(optional — defaults to last 4 digits of phone)</span></label>
-                                <input class="form-control" type="text" placeholder="Leave blank for default" value={form.password} onInput={(e) => setForm({ ...form, password: e.target.value })} />
-                            </div>
-                        )}
+                        <div class="form-group" style="grid-column: span 2;">
+                            <label>
+                                {editing ? 'New Password / PIN' : 'Password / PIN'}{' '}
+                                <span style="font-weight:400;color:var(--text-muted);">
+                                    {editing ? '(optional — leave blank to keep current)' : '(optional — defaults to last 4 digits of phone)'}
+                                </span>
+                            </label>
+                            <input class="form-control" type="text" placeholder={editing ? 'Leave blank to keep current password' : 'Leave blank for default'} value={form.password} onInput={(e) => setForm({ ...form, password: e.target.value })} />
+                        </div>
                     </div>
                 </Modal>
             )}
