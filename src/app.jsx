@@ -30,7 +30,7 @@ import { ActivityLogs } from './pages/ActivityLogs';
 import { SubscriptionPlans } from './pages/SubscriptionPlans';
 import { RedeemCodes } from './pages/RedeemCodes';
 import { TrueFalseExams } from './pages/TrueFalseExams';
-import { BoardCrackers } from './pages/BoardCrackers';
+import { ObjectivesTestSeries } from './pages/ObjectivesTestSeries';
 import { MindGames } from './pages/MindGames';
 import { Banners } from './pages/Banners';
 import './pages/LoginPage.css';
@@ -138,7 +138,7 @@ export function App() {
           <OneLinerExams path="/admin/exams/oneliner" />
           <TrueFalseExams path="/admin/exams/true-false" />
           <MatchFollowingExams path="/admin/exams/matchfollowing" />
-          <BoardCrackers path="/admin/exams/board-crackers" />
+          <ObjectivesTestSeries path="/admin/exams/objectives-test-series" />
           <MindGames path="/admin/mindgames" />
           <ReportsPage path="/admin/reports/:section/:type?" key={currentPath} />
         </Router>

@@ -5,6 +5,7 @@ import { Icons } from '../components/Icons';
 import { getFileUrl } from '../fileUrl';
 import { AcademicConstants } from '../utils/constants';
 import { useExamFilters, ExamFilterBar, NoFilterMatches, ExamPagination } from '../components/ExamFilters';
+import { AdvancedDateTimePicker } from '../components/AdvancedDateTimePicker';
 
 const MAX_QUESTIONS = 100;
 const OPTION_KEYS = ['A', 'B', 'C', 'D'];
@@ -18,8 +19,41 @@ const INITIAL_FORM_DATA = {
     stream: 'None',
     subject: '',
     duration: 60,
-    orderIndex: 1
+    orderIndex: 1,
+    // Scheduling (local "YYYY-MM-DDTHH:mm" strings from the picker):
+    // students can only start from startAt; a student's first attempt before
+    // endAt is ranked on the leaderboard, anything after is practice.
+    scheduled: false,
+    startAt: '',
+    hasEnd: false,
+    endAt: ''
 };
+
+/** ISO/UTC date -> local "YYYY-MM-DDTHH:mm" for the date-time picker. */
+const toLocalInput = (iso) => {
+    const d = new Date(iso);
+    if (isNaN(d.getTime())) return '';
+    const pad = (n) => String(n).padStart(2, '0');
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+};
+
+const formatSeconds = (total) => {
+    const t = Math.max(0, Math.round(total || 0));
+    const h = Math.floor(t / 3600);
+    const m = Math.floor((t % 3600) / 60);
+    const sec = String(t % 60).padStart(2, '0');
+    return h ? `${h}:${String(m).padStart(2, '0')}:${sec}` : `${m}:${sec}`;
+};
+
+const STATUS_BADGE = {
+    UPCOMING: { cls: 'badge-warning', label: 'Scheduled' },
+    LIVE: { cls: 'badge-success', label: 'Live · Ranked' },
+    ENDED: { cls: 'badge-neutral', label: 'Ended · Practice' }
+};
+
+const formatStart = (value) => new Date(value).toLocaleString('en-IN', {
+    day: '2-digit', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true
+});
 
 const emptyQuestion = () => ({
     questionText: '',
@@ -32,6 +66,9 @@ const emptyQuestion = () => ({
 const inputStyle = "width: 100%; padding: 0.75rem 1rem; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-input); color: var(--text-primary); font-size: 0.95rem;";
 const labelStyle = "font-weight: 600; font-size: 0.9rem; display: block; margin-bottom: 0.5rem;";
 const sectionStyle = "background: var(--bg-secondary); padding: 1.75rem; border-radius: 12px; border: 1px solid var(--border-color);";
+const radioRowStyle = "display: flex; gap: 1.5rem; flex-wrap: wrap; margin-bottom: 0.75rem;";
+const radioLabelStyle = "display: flex; align-items: center; gap: 0.5rem; cursor: pointer; color: var(--text-primary); font-weight: 500;";
+const hintStyle = "font-size: 0.8rem; color: var(--text-secondary); margin-top: 6px;";
 const sectionTitleStyle = "margin: 0; font-size: 1rem; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 8px;";
 
 const isQuestionComplete = (q) => {
@@ -42,13 +79,15 @@ const isQuestionComplete = (q) => {
     return !!answerOpt && !!(answerOpt.text || answerOpt.image);
 };
 
-export function BoardCrackers() {
+export function ObjectivesTestSeries() {
     const [exams, setExams] = useState([]);
     const [loading, setLoading] = useState(false);
     const [saving, setSaving] = useState(false);
     const [showAddModal, setShowAddModal] = useState(false);
     const [toast, setToast] = useState(null);
     const [deleteConfirm, setDeleteConfirm] = useState(null);
+    // { paper, data, loading } while the leaderboard modal is open.
+    const [leaderboard, setLeaderboard] = useState(null);
     const [editingExam, setEditingExam] = useState(null);
 
     const filters = useExamFilters(exams);
@@ -88,7 +127,7 @@ export function BoardCrackers() {
 
     const loadExams = () => {
         setLoading(true);
-        api.get('/boardcracker/all', { noPrefix: true })
+        api.get('/objectivestestseries/all', { noPrefix: true })
             .then(response => setExams(response.data || response || []))
             .catch(err => showToast(err.message, 'error'))
             .finally(() => setLoading(false));
@@ -114,7 +153,7 @@ export function BoardCrackers() {
             stream: formData.stream || 'None',
         }).toString();
 
-        api.get(`/boardcracker/next-order-index?${query}`, { noPrefix: true })
+        api.get(`/objectivestestseries/next-order-index?${query}`, { noPrefix: true })
             .then(res => {
                 if (orderIndexAutoRef.current) {
                     setFormData(prev => ({ ...prev, orderIndex: res.nextOrderIndex }));
@@ -134,7 +173,7 @@ export function BoardCrackers() {
 
     const addQuestion = () => {
         if (questions.length >= MAX_QUESTIONS) {
-            return showToast(`A Board Cracker paper can have at most ${MAX_QUESTIONS} questions.`, 'error');
+            return showToast(`An Objectives Test Series paper can have at most ${MAX_QUESTIONS} questions.`, 'error');
         }
         setQuestions([...questions, emptyQuestion()]);
     };
@@ -143,7 +182,7 @@ export function BoardCrackers() {
         const room = MAX_QUESTIONS - questions.length;
         const toAdd = Math.min(count, room);
         if (toAdd <= 0) {
-            return showToast(`A Board Cracker paper can have at most ${MAX_QUESTIONS} questions.`, 'error');
+            return showToast(`An Objectives Test Series paper can have at most ${MAX_QUESTIONS} questions.`, 'error');
         }
         setQuestions([...questions, ...Array.from({ length: toAdd }, emptyQuestion)]);
     };
@@ -191,7 +230,7 @@ export function BoardCrackers() {
         uploadData.append('file', pdfFile);
 
         try {
-            const response = await api.post('/boardcracker/upload-pdf', uploadData, { noPrefix: true, isMultipart: true });
+            const response = await api.post('/objectivestestseries/upload-pdf', uploadData, { noPrefix: true, isMultipart: true });
             const parsed = response.questions || [];
             if (parsed.length === 0) {
                 return showToast('No MCQs found in the PDF. Check the format and try again.', 'error');
@@ -225,7 +264,7 @@ export function BoardCrackers() {
 
     const handleEdit = async (exam) => {
         try {
-            const full = await api.get(`/boardcracker/${exam._id}?original=true`, { noPrefix: true });
+            const full = await api.get(`/objectivestestseries/${exam._id}?original=true`, { noPrefix: true });
             setEditingExam(full._id);
             setOrderIndexAuto(false);
             orderIndexAutoRef.current = false;
@@ -238,6 +277,10 @@ export function BoardCrackers() {
                 stream: full.stream || 'None',
                 subject: full.subject || '',
                 duration: full.duration ?? 60,
+                scheduled: !!full.startAt,
+                startAt: full.startAt ? toLocalInput(full.startAt) : '',
+                hasEnd: !!full.endAt,
+                endAt: full.endAt ? toLocalInput(full.endAt) : '',
                 orderIndex: full.orderIndex || 1
             });
             setQuestions((full.questions || []).map(q => ({
@@ -261,6 +304,11 @@ export function BoardCrackers() {
             return showToast('Stream is required for Standard 11 and 12.', 'error');
         }
         if (!formData.subject) return showToast('Subject is required.', 'error');
+        if (formData.scheduled && !formData.startAt) return showToast('Pick a start date & time, or make the paper available immediately.', 'error');
+        if (formData.hasEnd && !formData.endAt) return showToast('Pick an end date & time, or choose "No end date".', 'error');
+        if (formData.scheduled && formData.hasEnd && new Date(formData.endAt) <= new Date(formData.startAt)) {
+            return showToast('End date & time must be after the start date & time.', 'error');
+        }
         if (questions.length === 0) return showToast('Please add at least one question.', 'error');
 
         const incomplete = questions.findIndex(q => !isQuestionComplete(q));
@@ -269,8 +317,12 @@ export function BoardCrackers() {
             return showToast(`Question ${incomplete + 1} needs text, options A & B, and a correct answer.`, 'error');
         }
 
+        const { scheduled, startAt, hasEnd, endAt, ...details } = formData;
         const payload = {
-            ...formData,
+            ...details,
+            // Sent as UTC; the server compares against its own clock.
+            startAt: scheduled && startAt ? new Date(startAt).toISOString() : null,
+            endAt: hasEnd && endAt ? new Date(endAt).toISOString() : null,
             duration: parseInt(formData.duration) || 0,
             orderIndex: parseInt(formData.orderIndex) || 1,
             questions: questions.map(q => {
@@ -292,11 +344,11 @@ export function BoardCrackers() {
         setSaving(true);
         try {
             if (editingExam) {
-                await api.put(`/boardcracker/update/${editingExam}`, payload, { noPrefix: true });
-                showToast('Board Cracker paper updated successfully!');
+                await api.put(`/objectivestestseries/update/${editingExam}`, payload, { noPrefix: true });
+                showToast('Objectives Test Series paper updated successfully!');
             } else {
-                await api.post('/boardcracker/create', payload, { noPrefix: true });
-                showToast('Board Cracker paper created successfully!');
+                await api.post('/objectivestestseries/create', payload, { noPrefix: true });
+                showToast('Objectives Test Series paper created successfully!');
             }
             closeModal();
             loadExams();
@@ -309,12 +361,23 @@ export function BoardCrackers() {
 
     const handleDelete = async (id) => {
         try {
-            await api.del(`/boardcracker/delete/${id}`, { noPrefix: true });
+            await api.del(`/objectivestestseries/delete/${id}`, { noPrefix: true });
             setDeleteConfirm(null);
             loadExams();
             showToast('Paper deleted successfully!');
         } catch (err) {
             showToast(err.message, 'error');
+        }
+    };
+
+    const openLeaderboard = async (paper) => {
+        setLeaderboard({ paper, data: null, loading: true });
+        try {
+            const data = await api.get(`/objectivestestseries/${paper._id}/leaderboard`, { noPrefix: true });
+            setLeaderboard({ paper, data, loading: false });
+        } catch (err) {
+            showToast('Could not load leaderboard: ' + err.message, 'error');
+            setLeaderboard(null);
         }
     };
 
@@ -325,7 +388,7 @@ export function BoardCrackers() {
             <div class="page-header">
                 <div class="page-header-titles">
                     <div class="page-header-eyebrow"><Icons.Reports /> Exams</div>
-                    <h1>Board Crackers</h1>
+                    <h1>Objectives Test Series</h1>
                     <p class="page-subtitle">Board-pattern MCQ papers — up to {MAX_QUESTIONS} questions each.</p>
                     <div class="header-metrics">
                         <div class="header-metric">
@@ -352,7 +415,7 @@ export function BoardCrackers() {
                 ) : exams.length === 0 ? (
                     <div class="empty-state">
                         <div class="empty-state-icon"><Icons.Reports /></div>
-                        <h3>No Board Cracker papers yet</h3>
+                        <h3>No Objectives Test Series papers yet</h3>
                         <p>Add your first board-pattern MCQ paper to get started.</p>
                     </div>
                 ) : filters.filteredCount === 0 ? (
@@ -369,6 +432,7 @@ export function BoardCrackers() {
                                     <th>Medium</th>
                                     <th>Order</th>
                                     <th>Duration</th>
+                                    <th>Schedule</th>
                                     <th>Questions</th>
                                     <th style="text-align:right;">Actions</th>
                                 </tr>
@@ -390,9 +454,21 @@ export function BoardCrackers() {
                                         <td>{item.medium || '—'}</td>
                                         <td>{item.orderIndex}</td>
                                         <td>{item.duration ? `${item.duration} min` : 'Untimed'}</td>
+                                        <td>
+                                            <div style="display: flex; flex-direction: column; gap: 2px; font-size: var(--font-xs);">
+                                                <span>From: {item.startAt ? formatStart(item.startAt) : 'Immediately'}</span>
+                                                <span>Ranked until: {item.endAt ? formatStart(item.endAt) : 'No end'}</span>
+                                                <span class={`badge ${(STATUS_BADGE[item.status] || STATUS_BADGE.LIVE).cls}`} style="width: fit-content; margin-top: 2px;">
+                                                    {(STATUS_BADGE[item.status] || STATUS_BADGE.LIVE).label}
+                                                </span>
+                                            </div>
+                                        </td>
                                         <td><span class="badge badge-neutral">{item.questionCount || 0} MCQs</span></td>
                                         <td>
                                             <div class="td-actions" style="justify-content:flex-end;">
+                                                <button class="icon-btn" onClick={() => openLeaderboard(item)} title="Leaderboard" disabled={item.status === 'UPCOMING'}>
+                                                    <Icons.TrendUp />
+                                                </button>
                                                 <button class="icon-btn primary" onClick={() => handleEdit(item)} title="Edit Paper">
                                                     <Icons.Edit />
                                                 </button>
@@ -415,7 +491,7 @@ export function BoardCrackers() {
                 <div class="modal-overlay">
                     <div class="modal modal-lg">
                         <div class="modal-header">
-                            <h3>{editingExam ? 'Edit Board Cracker Paper' : 'Add Board Cracker Paper'}</h3>
+                            <h3>{editingExam ? 'Edit Objectives Test Series Paper' : 'Add Objectives Test Series Paper'}</h3>
                             <button class="modal-close" onClick={closeModal}>&times;</button>
                         </div>
                         <div class="modal-body">
@@ -428,7 +504,7 @@ export function BoardCrackers() {
                                     <div class="form-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
                                         <div class="form-group">
                                             <label style={labelStyle}>Paper Title *</label>
-                                            <input type="text" name="title" value={formData.title} onInput={handleInputChange} placeholder="e.g. Science Board Cracker – Paper 1" style={inputStyle} />
+                                            <input type="text" name="title" value={formData.title} onInput={handleInputChange} placeholder="e.g. Science Test Series – Paper 1" style={inputStyle} />
                                         </div>
                                         <div class="form-group">
                                             <label style={labelStyle}>Display Order</label>
@@ -479,6 +555,62 @@ export function BoardCrackers() {
                                             <label style={labelStyle}>Time Limit (minutes)</label>
                                             <input type="number" min="0" name="duration" value={formData.duration} onInput={handleInputChange} style={inputStyle} />
                                             <p style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 4px;">Set 0 for no time limit.</p>
+                                        </div>
+                                        <div class="form-group" style="grid-column: span 2;">
+                                            <label style={labelStyle}>Start</label>
+                                            <div style={radioRowStyle}>
+                                                <label style={radioLabelStyle}>
+                                                    <input type="radio" checked={!formData.scheduled} onChange={() => setFormData(prev => ({ ...prev, scheduled: false }))} />
+                                                    Available immediately
+                                                </label>
+                                                <label style={radioLabelStyle}>
+                                                    <input type="radio" checked={formData.scheduled} onChange={() => setFormData(prev => ({ ...prev, scheduled: true }))} />
+                                                    Schedule start time
+                                                </label>
+                                            </div>
+                                            {formData.scheduled && (
+                                                <>
+                                                    <AdvancedDateTimePicker
+                                                        value={formData.startAt}
+                                                        onChange={(value) => setFormData(prev => ({ ...prev, startAt: value }))}
+                                                        label="Opens for students at"
+                                                    />
+                                                    <p style={hintStyle}>
+                                                        {formData.startAt
+                                                            ? (new Date(formData.startAt) > new Date()
+                                                                ? `Locked with a countdown until ${formatStart(formData.startAt)}.`
+                                                                : 'This time has already passed — the paper will be open straight away.')
+                                                            : 'Students see the paper as locked, with a countdown, until this time.'}
+                                                    </p>
+                                                </>
+                                            )}
+                                        </div>
+                                        <div class="form-group" style="grid-column: span 2;">
+                                            <label style={labelStyle}>End of ranked window</label>
+                                            <div style={radioRowStyle}>
+                                                <label style={radioLabelStyle}>
+                                                    <input type="radio" checked={!formData.hasEnd} onChange={() => setFormData(prev => ({ ...prev, hasEnd: false }))} />
+                                                    No end date
+                                                </label>
+                                                <label style={radioLabelStyle}>
+                                                    <input type="radio" checked={formData.hasEnd} onChange={() => setFormData(prev => ({ ...prev, hasEnd: true }))} />
+                                                    Set end date & time
+                                                </label>
+                                            </div>
+                                            {formData.hasEnd && (
+                                                <AdvancedDateTimePicker
+                                                    value={formData.endAt}
+                                                    onChange={(value) => setFormData(prev => ({ ...prev, endAt: value }))}
+                                                    label="Ranked window closes at"
+                                                />
+                                            )}
+                                            <p style={hintStyle}>
+                                                {formData.hasEnd && formData.endAt
+                                                    ? (new Date(formData.endAt) > new Date()
+                                                        ? `A student's first attempt before ${formatStart(formData.endAt)} counts on the leaderboard. After that the paper stays open for practice only.`
+                                                        : 'This time has already passed — every attempt will be practice and nothing will be ranked.')
+                                                    : "Each student's first attempt counts on the leaderboard. Retakes are always practice."}
+                                            </p>
                                         </div>
                                         <div class="form-group" style="grid-column: span 2;">
                                             <label style={labelStyle}>Description</label>
@@ -631,6 +763,64 @@ Explanation: 1 N = 1 kg·m/s² (optional)`}</pre>
                                     {saving ? 'Saving...' : (editingExam ? 'Update Paper' : 'Save Paper')}
                                 </button>
                             )}
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {leaderboard && (
+                <div class="modal-overlay">
+                    <div class="modal modal-lg">
+                        <div class="modal-header">
+                            <h3>Leaderboard — {leaderboard.paper.title}</h3>
+                            <button class="modal-close" onClick={() => setLeaderboard(null)}>&times;</button>
+                        </div>
+                        <div class="modal-body">
+                            {leaderboard.loading ? (
+                                <div class="loading-spinner" />
+                            ) : leaderboard.data.entries.length === 0 ? (
+                                <div class="empty-state">
+                                    <h3>No ranked attempts yet</h3>
+                                    <p>Students' first attempts inside the ranked window will appear here.</p>
+                                </div>
+                            ) : (
+                                <>
+                                    <p style="color: var(--text-secondary); margin: 0 0 1rem;">
+                                        {leaderboard.data.totalParticipants} ranked participant{leaderboard.data.totalParticipants === 1 ? '' : 's'}
+                                        {leaderboard.data.totalParticipants > leaderboard.data.entries.length ? ` · showing top ${leaderboard.data.entries.length}` : ''}
+                                        {' · '}ranked by marks, then time taken. Practice attempts are not included.
+                                    </p>
+                                    <div class="table-scroll">
+                                        <table>
+                                            <thead>
+                                                <tr>
+                                                    <th>Rank</th>
+                                                    <th>Student</th>
+                                                    <th>Marks</th>
+                                                    <th>Accuracy</th>
+                                                    <th>Time</th>
+                                                    <th>Submitted</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {leaderboard.data.entries.map(e => (
+                                                    <tr key={e.studentId}>
+                                                        <td style="font-weight: 700;">#{e.rank}</td>
+                                                        <td>{e.name}</td>
+                                                        <td style="font-weight: 600;">{e.obtainedMarks} / {e.totalMarks}</td>
+                                                        <td>{e.accuracy ?? 0}%</td>
+                                                        <td>{formatSeconds(e.timeTakenSeconds)}</td>
+                                                        <td style="font-size: var(--font-xs);">{formatStart(e.submittedAt)}</td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </>
+                            )}
+                        </div>
+                        <div class="modal-footer">
+                            <button class="btn btn-outline" onClick={() => setLeaderboard(null)}>Close</button>
                         </div>
                     </div>
                 </div>

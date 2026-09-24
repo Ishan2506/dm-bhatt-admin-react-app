@@ -65,7 +65,7 @@ const navigation = [
                     { path: '/admin/exams/oneliner', label: 'One Liner Exams' },
                     { path: '/admin/exams/true-false', label: 'True/False Exams' },
                     { path: '/admin/exams/matchfollowing', label: 'Match The Following' },
-                    { path: '/admin/exams/board-crackers', label: 'Board Crackers' },
+                    { path: '/admin/exams/objectives-test-series', label: 'Objectives Test Series' },
                 ]
             },
         ]
