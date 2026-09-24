@@ -83,7 +83,9 @@ export function ObjectivesTestSeries() {
     const [exams, setExams] = useState([]);
     const [loading, setLoading] = useState(false);
     const [saving, setSaving] = useState(false);
-    const [showAddModal, setShowAddModal] = useState(false);
+    // When true the add/edit form replaces the list as a full page.
+    const [showForm, setShowForm] = useState(false);
+    const pageRef = useRef(null);
     const [toast, setToast] = useState(null);
     const [deleteConfirm, setDeleteConfirm] = useState(null);
     // { paper, data, loading } while the leaderboard modal is open.
@@ -120,8 +122,8 @@ export function ObjectivesTestSeries() {
         orderIndexAutoRef.current = true;
     };
 
-    const closeModal = () => {
-        setShowAddModal(false);
+    const closeForm = () => {
+        setShowForm(false);
         resetForm();
     };
 
@@ -139,6 +141,11 @@ export function ObjectivesTestSeries() {
             .then(res => setActiveStandards(res))
             .catch(err => console.error('Failed to load standards:', err));
     }, []);
+
+    // Switching between list and form swaps the whole page, so start at its top.
+    useEffect(() => {
+        pageRef.current?.scrollIntoView({ block: 'start' });
+    }, [showForm]);
 
     useEffect(() => {
         if (editingExam || !orderIndexAuto) return;
@@ -291,7 +298,7 @@ export function ObjectivesTestSeries() {
                 explanation: q.explanation || ''
             })));
             setIsPdfMode(false);
-            setShowAddModal(true);
+            setShowForm(true);
         } catch (err) {
             showToast('Could not load paper: ' + err.message, 'error');
         }
@@ -350,7 +357,7 @@ export function ObjectivesTestSeries() {
                 await api.post('/objectivestestseries/create', payload, { noPrefix: true });
                 showToast('Objectives Test Series paper created successfully!');
             }
-            closeModal();
+            closeForm();
             loadExams();
         } catch (err) {
             showToast(err.message, 'error');
@@ -384,387 +391,393 @@ export function ObjectivesTestSeries() {
     const completeCount = questions.filter(isQuestionComplete).length;
 
     return (
-        <div class="materials-page">
+        <div class="materials-page" ref={pageRef}>
             <div class="page-header">
                 <div class="page-header-titles">
                     <div class="page-header-eyebrow"><Icons.Reports /> Exams</div>
-                    <h1>Objectives Test Series</h1>
-                    <p class="page-subtitle">Board-pattern MCQ papers — up to {MAX_QUESTIONS} questions each.</p>
-                    <div class="header-metrics">
-                        <div class="header-metric">
-                            <span class="hm-value">{totalCount.toLocaleString()}</span>
-                            <span class="hm-label">Total Papers</span>
+                    <h1>{showForm ? (editingExam ? 'Edit Objectives Test Series Paper' : 'Add Objectives Test Series Paper') : 'Objectives Test Series'}</h1>
+                    <p class="page-subtitle">
+                        {showForm
+                            ? `Fill in the paper details and add up to ${MAX_QUESTIONS} MCQs.`
+                            : `Board-pattern MCQ papers — up to ${MAX_QUESTIONS} questions each.`}
+                    </p>
+                    {!showForm && (
+                        <div class="header-metrics">
+                            <div class="header-metric">
+                                <span class="hm-value">{totalCount.toLocaleString()}</span>
+                                <span class="hm-label">Total Papers</span>
+                            </div>
                         </div>
-                    </div>
+                    )}
                 </div>
                 <div class="page-header-actions">
-                    <button class="btn btn-outline" onClick={() => loadExams()}>
-                        <Icons.Refresh /> Refresh
-                    </button>
-                    <button class="btn btn-primary" onClick={() => { resetForm(); setShowAddModal(true); }}>
-                        <Icons.Plus /> Add New Paper
-                    </button>
+                    {showForm ? (
+                        <button class="btn btn-outline" onClick={closeForm}>
+                            <Icons.ChevronLeft /> Back to list
+                        </button>
+                    ) : (
+                        <>
+                            <button class="btn btn-outline" onClick={() => loadExams()}>
+                                <Icons.Refresh /> Refresh
+                            </button>
+                            <button class="btn btn-primary" onClick={() => { resetForm(); setShowForm(true); }}>
+                                <Icons.Plus /> Add New Paper
+                            </button>
+                        </>
+                    )}
                 </div>
             </div>
 
-            <div class="table-container">
-                <ExamFilterBar {...filters.bar} searchPlaceholder="Search paper, subject…" />
-
-                {loading ? (
-                    <div class="loading-spinner" />
-                ) : exams.length === 0 ? (
-                    <div class="empty-state">
-                        <div class="empty-state-icon"><Icons.Reports /></div>
-                        <h3>No Objectives Test Series papers yet</h3>
-                        <p>Add your first board-pattern MCQ paper to get started.</p>
-                    </div>
-                ) : filters.filteredCount === 0 ? (
-                    <NoFilterMatches onClear={filters.clear} />
-                ) : (
-                    <>
-                        <div class="table-scroll">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Paper</th>
-                                    <th>Subject</th>
-                                    <th>Standard</th>
-                                    <th>Medium</th>
-                                    <th>Order</th>
-                                    <th>Duration</th>
-                                    <th>Schedule</th>
-                                    <th>Questions</th>
-                                    <th style="text-align:right;">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {filters.visible.map(item => (
-                                    <tr key={item._id}>
-                                        <td>
-                                            <div class="identity">
-                                                <div class="avatar avatar-sm" style={{ background: 'var(--accent)' }}><Icons.Sparkles /></div>
-                                                <div class="identity-body">
-                                                    <div class="identity-name">{item.title}</div>
-                                                    <div class="identity-sub">{item.board}{item.stream && item.stream !== 'None' ? ` · ${item.stream}` : ''}</div>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td>{item.subject}</td>
-                                        <td><span class="cell-chip">{item.std}</span></td>
-                                        <td>{item.medium || '—'}</td>
-                                        <td>{item.orderIndex}</td>
-                                        <td>{item.duration ? `${item.duration} min` : 'Untimed'}</td>
-                                        <td>
-                                            <div style="display: flex; flex-direction: column; gap: 2px; font-size: var(--font-xs);">
-                                                <span>From: {item.startAt ? formatStart(item.startAt) : 'Immediately'}</span>
-                                                <span>Ranked until: {item.endAt ? formatStart(item.endAt) : 'No end'}</span>
-                                                <span class={`badge ${(STATUS_BADGE[item.status] || STATUS_BADGE.LIVE).cls}`} style="width: fit-content; margin-top: 2px;">
-                                                    {(STATUS_BADGE[item.status] || STATUS_BADGE.LIVE).label}
-                                                </span>
-                                            </div>
-                                        </td>
-                                        <td><span class="badge badge-neutral">{item.questionCount || 0} MCQs</span></td>
-                                        <td>
-                                            <div class="td-actions" style="justify-content:flex-end;">
-                                                <button class="icon-btn" onClick={() => openLeaderboard(item)} title="Leaderboard" disabled={item.status === 'UPCOMING'}>
-                                                    <Icons.TrendUp />
-                                                </button>
-                                                <button class="icon-btn primary" onClick={() => handleEdit(item)} title="Edit Paper">
-                                                    <Icons.Edit />
-                                                </button>
-                                                <button class="icon-btn danger" onClick={() => setDeleteConfirm(item)} title="Delete">
-                                                    <Icons.Trash />
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                        </div>
-                        <ExamPagination {...filters} setPage={filters.setPage} />
-                    </>
-                )}
-            </div>
-
-            {showAddModal && (
-                <div class="modal-overlay">
-                    <div class="modal modal-lg">
-                        <div class="modal-header">
-                            <h3>{editingExam ? 'Edit Objectives Test Series Paper' : 'Add Objectives Test Series Paper'}</h3>
-                            <button class="modal-close" onClick={closeModal}>&times;</button>
-                        </div>
-                        <div class="modal-body">
-                            <div class="exam-form" style="display: flex; flex-direction: column; gap: 2rem;">
-                                <div style={sectionStyle}>
-                                    <h4 style={sectionTitleStyle + ' margin-bottom: 1.5rem;'}>
-                                        <span style="width: 4px; height: 24px; background: var(--accent); border-radius: 2px;"></span>
-                                        Paper Details
-                                    </h4>
-                                    <div class="form-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
-                                        <div class="form-group">
-                                            <label style={labelStyle}>Paper Title *</label>
-                                            <input type="text" name="title" value={formData.title} onInput={handleInputChange} placeholder="e.g. Science Test Series – Paper 1" style={inputStyle} />
-                                        </div>
-                                        <div class="form-group">
-                                            <label style={labelStyle}>Display Order</label>
-                                            <input type="number" name="orderIndex" value={formData.orderIndex} onInput={handleInputChange} style={inputStyle} />
-                                            {!editingExam && orderIndexAuto && (
-                                                <p style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 4px;">Suggested next order for this Standard/Subject/Medium — edit if needed.</p>
-                                            )}
-                                        </div>
-                                        <div class="form-group">
-                                            <label style={labelStyle}>Board *</label>
-                                            <select name="board" value={formData.board} onChange={handleInputChange} style={inputStyle}>
-                                                {AcademicConstants.boards.map(b => <option value={b}>{b}</option>)}
-                                            </select>
-                                        </div>
-                                        <div class="form-group">
-                                            <label style={labelStyle}>Standard *</label>
-                                            <select name="std" value={formData.std} onChange={handleInputChange} style={inputStyle}>
-                                                <option value="">Select Standard</option>
-                                                {activeStandards.map(s => <option key={s._id} value={s.name}>{s.name}</option>)}
-                                            </select>
-                                        </div>
-                                        <div class="form-group">
-                                            <label style={labelStyle}>Medium *</label>
-                                            <select name="medium" value={formData.medium} onChange={handleInputChange} style={inputStyle}>
-                                                {AcademicConstants.mediums.map(m => <option value={m}>{m}</option>)}
-                                            </select>
-                                        </div>
-                                        {(formData.std === '11' || formData.std === '12') && (
-                                            <div class="form-group">
-                                                <label style={labelStyle}>Stream *</label>
-                                                <select name="stream" value={formData.stream} onChange={handleInputChange} style={inputStyle}>
-                                                    {AcademicConstants.streams.map(s => <option value={s}>{s}</option>)}
-                                                </select>
-                                            </div>
-                                        )}
-                                        <div class="form-group">
-                                            <label style={labelStyle}>Subject *</label>
-                                            <select name="subject" value={formData.subject} onChange={handleInputChange} style={inputStyle}>
-                                                <option value="">Select Subject</option>
-                                                {(() => {
-                                                    let subjectKey = `${formData.board}-${formData.std}`;
-                                                    if (formData.std === '11' || formData.std === '12') subjectKey += `-${formData.stream}`;
-                                                    return (AcademicConstants.subjects[subjectKey] || []).map(sub => <option value={sub}>{sub}</option>);
-                                                })()}
-                                            </select>
-                                        </div>
-                                        <div class="form-group">
-                                            <label style={labelStyle}>Time Limit (minutes)</label>
-                                            <input type="number" min="0" name="duration" value={formData.duration} onInput={handleInputChange} style={inputStyle} />
-                                            <p style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 4px;">Set 0 for no time limit.</p>
-                                        </div>
-                                        <div class="form-group" style="grid-column: span 2;">
-                                            <label style={labelStyle}>Start</label>
-                                            <div style={radioRowStyle}>
-                                                <label style={radioLabelStyle}>
-                                                    <input type="radio" checked={!formData.scheduled} onChange={() => setFormData(prev => ({ ...prev, scheduled: false }))} />
-                                                    Available immediately
-                                                </label>
-                                                <label style={radioLabelStyle}>
-                                                    <input type="radio" checked={formData.scheduled} onChange={() => setFormData(prev => ({ ...prev, scheduled: true }))} />
-                                                    Schedule start time
-                                                </label>
-                                            </div>
-                                            {formData.scheduled && (
-                                                <>
-                                                    <AdvancedDateTimePicker
-                                                        value={formData.startAt}
-                                                        onChange={(value) => setFormData(prev => ({ ...prev, startAt: value }))}
-                                                        label="Opens for students at"
-                                                    />
-                                                    <p style={hintStyle}>
-                                                        {formData.startAt
-                                                            ? (new Date(formData.startAt) > new Date()
-                                                                ? `Locked with a countdown until ${formatStart(formData.startAt)}.`
-                                                                : 'This time has already passed — the paper will be open straight away.')
-                                                            : 'Students see the paper as locked, with a countdown, until this time.'}
-                                                    </p>
-                                                </>
-                                            )}
-                                        </div>
-                                        <div class="form-group" style="grid-column: span 2;">
-                                            <label style={labelStyle}>End of ranked window</label>
-                                            <div style={radioRowStyle}>
-                                                <label style={radioLabelStyle}>
-                                                    <input type="radio" checked={!formData.hasEnd} onChange={() => setFormData(prev => ({ ...prev, hasEnd: false }))} />
-                                                    No end date
-                                                </label>
-                                                <label style={radioLabelStyle}>
-                                                    <input type="radio" checked={formData.hasEnd} onChange={() => setFormData(prev => ({ ...prev, hasEnd: true }))} />
-                                                    Set end date & time
-                                                </label>
-                                            </div>
-                                            {formData.hasEnd && (
-                                                <AdvancedDateTimePicker
-                                                    value={formData.endAt}
-                                                    onChange={(value) => setFormData(prev => ({ ...prev, endAt: value }))}
-                                                    label="Ranked window closes at"
-                                                />
-                                            )}
-                                            <p style={hintStyle}>
-                                                {formData.hasEnd && formData.endAt
-                                                    ? (new Date(formData.endAt) > new Date()
-                                                        ? `A student's first attempt before ${formatStart(formData.endAt)} counts on the leaderboard. After that the paper stays open for practice only.`
-                                                        : 'This time has already passed — every attempt will be practice and nothing will be ranked.')
-                                                    : "Each student's first attempt counts on the leaderboard. Retakes are always practice."}
-                                            </p>
-                                        </div>
-                                        <div class="form-group" style="grid-column: span 2;">
-                                            <label style={labelStyle}>Description</label>
-                                            <textarea name="description" value={formData.description} onInput={handleInputChange} placeholder="Shown to students before they start, e.g. syllabus covered or instructions." style={inputStyle + ' min-height: 80px;'} />
-                                        </div>
-                                    </div>
+            {showForm ? (
+                <>
+                    <div class="exam-form" style="display: flex; flex-direction: column; gap: 2rem;">
+                        <div style={sectionStyle}>
+                            <h4 style={sectionTitleStyle + ' margin-bottom: 1.5rem;'}>
+                                <span style="width: 4px; height: 24px; background: var(--accent); border-radius: 2px;"></span>
+                                Paper Details
+                            </h4>
+                            <div class="form-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+                                <div class="form-group">
+                                    <label style={labelStyle}>Paper Title *</label>
+                                    <input type="text" name="title" value={formData.title} onInput={handleInputChange} placeholder="e.g. Science Test Series – Paper 1" style={inputStyle} />
                                 </div>
-
-                                <div style={sectionStyle}>
-                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
-                                        <h4 style={sectionTitleStyle}>
-                                            <span style="width: 4px; height: 24px; background: var(--accent); border-radius: 2px;"></span>
-                                            MCQ Questions
-                                            <span class="badge badge-neutral" style="margin-left: 4px;">{questions.length} / {MAX_QUESTIONS}</span>
-                                        </h4>
-                                        <div style="display: flex; gap: 1rem; align-items: center;">
-                                            <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; color: var(--text-primary); font-weight: 500;">
-                                                <input type="radio" checked={!isPdfMode} onChange={() => setIsPdfMode(false)} />
-                                                Manual Entry
-                                            </label>
-                                            <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; color: var(--text-primary); font-weight: 500;">
-                                                <input type="radio" checked={isPdfMode} onChange={() => setIsPdfMode(true)} />
-                                                Upload PDF
-                                            </label>
-                                        </div>
+                                <div class="form-group">
+                                    <label style={labelStyle}>Display Order</label>
+                                    <input type="number" name="orderIndex" value={formData.orderIndex} onInput={handleInputChange} style={inputStyle} />
+                                    {!editingExam && orderIndexAuto && (
+                                        <p style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 4px;">Suggested next order for this Standard/Subject/Medium — edit if needed.</p>
+                                    )}
+                                </div>
+                                <div class="form-group">
+                                    <label style={labelStyle}>Board *</label>
+                                    <select name="board" value={formData.board} onChange={handleInputChange} style={inputStyle}>
+                                        {AcademicConstants.boards.map(b => <option value={b}>{b}</option>)}
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label style={labelStyle}>Standard *</label>
+                                    <select name="std" value={formData.std} onChange={handleInputChange} style={inputStyle}>
+                                        <option value="">Select Standard</option>
+                                        {activeStandards.map(s => <option key={s._id} value={s.name}>{s.name}</option>)}
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label style={labelStyle}>Medium *</label>
+                                    <select name="medium" value={formData.medium} onChange={handleInputChange} style={inputStyle}>
+                                        {AcademicConstants.mediums.map(m => <option value={m}>{m}</option>)}
+                                    </select>
+                                </div>
+                                {(formData.std === '11' || formData.std === '12') && (
+                                    <div class="form-group">
+                                        <label style={labelStyle}>Stream *</label>
+                                        <select name="stream" value={formData.stream} onChange={handleInputChange} style={inputStyle}>
+                                            {AcademicConstants.streams.map(s => <option value={s}>{s}</option>)}
+                                        </select>
                                     </div>
-
-                                    {isPdfMode ? (
-                                        <div style="padding: 2rem; border: 2px dashed var(--border-color); border-radius: 12px; text-align: center; background: var(--bg-primary);">
-                                            <h5 style="margin-bottom: 1rem;">Upload MCQ PDF</h5>
-                                            <p style="color: var(--text-secondary); margin-bottom: 1rem; font-size: 0.9rem;">
-                                                Numbered questions, each with options A–D and an answer line.
-                                                An "Answer Key" section at the end also works.
-                                            </p>
-                                            <pre style="text-align: left; display: inline-block; font-size: 0.8rem; background: var(--bg-secondary); padding: 0.75rem 1rem; border-radius: 8px; margin: 0 0 1.5rem;">{`1. The SI unit of force is
-A. Joule   B. Newton   C. Watt   D. Pascal
-Ans: B
-Explanation: 1 N = 1 kg·m/s² (optional)`}</pre>
-                                            <br />
-                                            <input type="file" accept=".pdf" onChange={(e) => setPdfFile(e.target.files[0])} style="margin-bottom: 1rem; width: 100%; max-width: 300px;" />
-                                            <br />
-                                            <button class="btn btn-primary" onClick={handlePdfUpload} disabled={!pdfFile || pdfLoading}>
-                                                {pdfLoading ? 'Processing PDF...' : 'Process PDF'}
-                                            </button>
-                                        </div>
-                                    ) : (
+                                )}
+                                <div class="form-group">
+                                    <label style={labelStyle}>Subject *</label>
+                                    <select name="subject" value={formData.subject} onChange={handleInputChange} style={inputStyle}>
+                                        <option value="">Select Subject</option>
+                                        {(() => {
+                                            let subjectKey = `${formData.board}-${formData.std}`;
+                                            if (formData.std === '11' || formData.std === '12') subjectKey += `-${formData.stream}`;
+                                            return (AcademicConstants.subjects[subjectKey] || []).map(sub => <option value={sub}>{sub}</option>);
+                                        })()}
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label style={labelStyle}>Time Limit (minutes)</label>
+                                    <input type="number" min="0" name="duration" value={formData.duration} onInput={handleInputChange} style={inputStyle} />
+                                    <p style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 4px;">Set 0 for no time limit.</p>
+                                </div>
+                                <div class="form-group" style="grid-column: span 2;">
+                                    <label style={labelStyle}>Start</label>
+                                    <div style={radioRowStyle}>
+                                        <label style={radioLabelStyle}>
+                                            <input type="radio" checked={!formData.scheduled} onChange={() => setFormData(prev => ({ ...prev, scheduled: false }))} />
+                                            Available immediately
+                                        </label>
+                                        <label style={radioLabelStyle}>
+                                            <input type="radio" checked={formData.scheduled} onChange={() => setFormData(prev => ({ ...prev, scheduled: true }))} />
+                                            Schedule start time
+                                        </label>
+                                    </div>
+                                    {formData.scheduled && (
                                         <>
-                                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.75rem;">
-                                                <span style="font-size: 0.9rem; color: var(--text-secondary);">
-                                                    {questions.length === 0 ? 'No questions yet.' : `${completeCount} of ${questions.length} complete`}
-                                                </span>
-                                                <div style="display: flex; gap: 0.5rem;">
-                                                    <button class="btn btn-sm btn-outline" onClick={() => addBlankQuestions(MAX_QUESTIONS)} disabled={questions.length >= MAX_QUESTIONS} title="Fill the paper up to 100 blank questions">
-                                                        <Icons.Plus /> Add {MAX_QUESTIONS}
-                                                    </button>
-                                                    <button class="btn btn-sm btn-outline" onClick={addQuestion}><Icons.Plus /> Add Question</button>
-                                                </div>
-                                            </div>
-
-                                            <div style="max-height: 55vh; overflow-y: auto;">
-                                                {questions.map((q, qIndex) => (
-                                                    <div key={qIndex} id={`bc-q-${qIndex}`} style={`padding: 1.5rem; border: 1px solid ${isQuestionComplete(q) ? 'var(--border-color)' : 'var(--warning)'}; border-radius: 12px; margin-bottom: 1.25rem; background: var(--bg-primary);`}>
-                                                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                                                            <strong style="font-size: 1.05rem; color: var(--primary-color);">Question {qIndex + 1}</strong>
-                                                            <button class="btn btn-sm btn-outline-danger" onClick={() => removeQuestion(qIndex)} title="Remove question"><Icons.Trash /></button>
-                                                        </div>
-                                                        <textarea
-                                                            class="form-control"
-                                                            placeholder="Enter question text..."
-                                                            style="width: 100%; min-height: 64px; background: var(--bg-input); color: var(--text-primary); border: 1px solid var(--border-color);"
-                                                            value={q.questionText}
-                                                            onInput={(e) => updateQuestion(qIndex, 'questionText', e.target.value)}
-                                                        />
-                                                        <div style="display: flex; align-items: center; gap: 1rem; margin: 0.75rem 0;">
-                                                            <label class="btn btn-sm btn-outline" style="cursor: pointer; display: flex; align-items: center; gap: 4px;">
-                                                                <Icons.Image /> {q.questionImage ? 'Change Image' : 'Add Image'}
-                                                                <input type="file" hidden accept="image/*" onChange={async (e) => {
-                                                                    const url = await handleImageUpload(e.target.files[0]);
-                                                                    if (url) updateQuestion(qIndex, 'questionImage', url);
-                                                                }} />
-                                                            </label>
-                                                            {q.questionImage && (
-                                                                <div style="display: flex; align-items: center; gap: 4px;">
-                                                                    <img src={getFileUrl(q.questionImage)} style="height: 40px; border-radius: 4px;" />
-                                                                    <button class="btn-close-sm" onClick={() => updateQuestion(qIndex, 'questionImage', null)}>&times;</button>
-                                                                </div>
-                                                            )}
-                                                        </div>
-
-                                                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
-                                                            {q.options.map((opt, oIndex) => {
-                                                                const isCorrect = q.correctAnswer === opt.key;
-                                                                return (
-                                                                    <div key={opt.key} style={`padding: 0.75rem; border-radius: 8px; border: 1px solid ${isCorrect ? 'var(--success)' : 'var(--border-color)'}; background: var(--bg-secondary);`}>
-                                                                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
-                                                                            <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-weight: 600;" title="Mark as correct answer">
-                                                                                <input type="radio" name={`bc-ans-${qIndex}`} checked={isCorrect} onChange={() => updateQuestion(qIndex, 'correctAnswer', opt.key)} />
-                                                                                Option {opt.key}{oIndex < 2 ? ' *' : ''}
-                                                                            </label>
-                                                                            <label style="cursor: pointer; color: var(--accent);" title="Add option image">
-                                                                                <Icons.Image />
-                                                                                <input type="file" hidden accept="image/*" onChange={async (e) => {
-                                                                                    const url = await handleImageUpload(e.target.files[0]);
-                                                                                    if (url) updateOption(qIndex, oIndex, 'image', url);
-                                                                                }} />
-                                                                            </label>
-                                                                        </div>
-                                                                        <input
-                                                                            type="text"
-                                                                            class="form-control"
-                                                                            placeholder={`Option ${opt.key}`}
-                                                                            style="background: var(--bg-input); color: var(--text-primary); border: 1px solid var(--border-color);"
-                                                                            value={opt.text}
-                                                                            onInput={(e) => updateOption(qIndex, oIndex, 'text', e.target.value)}
-                                                                        />
-                                                                        {opt.image && (
-                                                                            <div style="margin-top: 8px; display: flex; align-items: center; gap: 4px;">
-                                                                                <img src={getFileUrl(opt.image)} style="height: 40px; border-radius: 4px;" />
-                                                                                <button class="btn-close-sm" onClick={() => updateOption(qIndex, oIndex, 'image', null)}>&times;</button>
-                                                                            </div>
-                                                                        )}
-                                                                    </div>
-                                                                );
-                                                            })}
-                                                        </div>
-                                                        {!q.correctAnswer && (
-                                                            <p style="font-size: 0.8rem; color: var(--warning); margin: 0.5rem 0 0;">Select the correct option.</p>
-                                                        )}
-
-                                                        <input
-                                                            type="text"
-                                                            class="form-control"
-                                                            placeholder="Explanation (optional) — shown to students after they submit"
-                                                            style="margin-top: 0.75rem; background: var(--bg-input); color: var(--text-primary); border: 1px solid var(--border-color);"
-                                                            value={q.explanation}
-                                                            onInput={(e) => updateQuestion(qIndex, 'explanation', e.target.value)}
-                                                        />
-                                                    </div>
-                                                ))}
-                                            </div>
+                                            <AdvancedDateTimePicker
+                                                value={formData.startAt}
+                                                onChange={(value) => setFormData(prev => ({ ...prev, startAt: value }))}
+                                                label="Opens for students at"
+                                            />
+                                            <p style={hintStyle}>
+                                                {formData.startAt
+                                                    ? (new Date(formData.startAt) > new Date()
+                                                        ? `Locked with a countdown until ${formatStart(formData.startAt)}. ${formData.std ? `Std ${formData.std}` : 'The selected standard\'s'} students get a push notification at that time.`
+                                                        : 'This time has already passed — the paper will be open straight away.')
+                                                    : 'Students see the paper as locked, with a countdown, until this time.'}
+                                            </p>
                                         </>
                                     )}
                                 </div>
+                                <div class="form-group" style="grid-column: span 2;">
+                                    <label style={labelStyle}>End of ranked window</label>
+                                    <div style={radioRowStyle}>
+                                        <label style={radioLabelStyle}>
+                                            <input type="radio" checked={!formData.hasEnd} onChange={() => setFormData(prev => ({ ...prev, hasEnd: false }))} />
+                                            No end date
+                                        </label>
+                                        <label style={radioLabelStyle}>
+                                            <input type="radio" checked={formData.hasEnd} onChange={() => setFormData(prev => ({ ...prev, hasEnd: true }))} />
+                                            Set end date & time
+                                        </label>
+                                    </div>
+                                    {formData.hasEnd && (
+                                        <AdvancedDateTimePicker
+                                            value={formData.endAt}
+                                            onChange={(value) => setFormData(prev => ({ ...prev, endAt: value }))}
+                                            label="Ranked window closes at"
+                                        />
+                                    )}
+                                    <p style={hintStyle}>
+                                        {formData.hasEnd && formData.endAt
+                                            ? (new Date(formData.endAt) > new Date()
+                                                ? `A student's first attempt before ${formatStart(formData.endAt)} counts on the leaderboard. After that the paper stays open for practice only.`
+                                                : 'This time has already passed — every attempt will be practice and nothing will be ranked.')
+                                            : "Each student's first attempt counts on the leaderboard. Retakes are always practice."}
+                                    </p>
+                                </div>
+                                <div class="form-group" style="grid-column: span 2;">
+                                    <label style={labelStyle}>Description</label>
+                                    <textarea name="description" value={formData.description} onInput={handleInputChange} placeholder="Shown to students before they start, e.g. syllabus covered or instructions." style={inputStyle + ' min-height: 80px;'} />
+                                </div>
                             </div>
                         </div>
-                        <div class="modal-footer">
-                            <button class="btn btn-outline" onClick={closeModal}>Cancel</button>
-                            {!isPdfMode && (
-                                <button class="btn btn-primary" onClick={handleSave} disabled={saving}>
-                                    {saving ? 'Saving...' : (editingExam ? 'Update Paper' : 'Save Paper')}
-                                </button>
+
+                        <div style={sectionStyle}>
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+                                <h4 style={sectionTitleStyle}>
+                                    <span style="width: 4px; height: 24px; background: var(--accent); border-radius: 2px;"></span>
+                                    MCQ Questions
+                                    <span class="badge badge-neutral" style="margin-left: 4px;">{questions.length} / {MAX_QUESTIONS}</span>
+                                </h4>
+                                <div style="display: flex; gap: 1rem; align-items: center;">
+                                    <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; color: var(--text-primary); font-weight: 500;">
+                                        <input type="radio" checked={!isPdfMode} onChange={() => setIsPdfMode(false)} />
+                                        Manual Entry
+                                    </label>
+                                    <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; color: var(--text-primary); font-weight: 500;">
+                                        <input type="radio" checked={isPdfMode} onChange={() => setIsPdfMode(true)} />
+                                        Upload PDF
+                                    </label>
+                                </div>
+                            </div>
+
+                            {isPdfMode ? (
+                                <div style="padding: 2rem; border: 2px dashed var(--border-color); border-radius: 12px; text-align: center; background: var(--bg-primary);">
+                                    <h5 style="margin-bottom: 1rem;">Upload MCQ PDF</h5>
+                                    <p style="color: var(--text-secondary); margin-bottom: 1rem; font-size: 0.9rem;">
+                                        Numbered questions, each with options A–D and an answer line.
+                                        An "Answer Key" section at the end also works.
+                                    </p>
+                                    <pre style="text-align: left; display: inline-block; font-size: 0.8rem; background: var(--bg-secondary); padding: 0.75rem 1rem; border-radius: 8px; margin: 0 0 1.5rem;">{`1. The SI unit of force is
+    A. Joule   B. Newton   C. Watt   D. Pascal
+    Ans: B
+    Explanation: 1 N = 1 kg·m/s² (optional)`}</pre>
+                                    <br />
+                                    <input type="file" accept=".pdf" onChange={(e) => setPdfFile(e.target.files[0])} style="margin-bottom: 1rem; width: 100%; max-width: 300px;" />
+                                    <br />
+                                    <button class="btn btn-primary" onClick={handlePdfUpload} disabled={!pdfFile || pdfLoading}>
+                                        {pdfLoading ? 'Processing PDF...' : 'Process PDF'}
+                                    </button>
+                                </div>
+                            ) : (
+                                <>
+                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.75rem;">
+                                        <span style="font-size: 0.9rem; color: var(--text-secondary);">
+                                            {questions.length === 0 ? 'No questions yet.' : `${completeCount} of ${questions.length} complete`}
+                                        </span>
+                                        <div style="display: flex; gap: 0.5rem;">
+                                            <button class="btn btn-sm btn-outline" onClick={() => addBlankQuestions(MAX_QUESTIONS)} disabled={questions.length >= MAX_QUESTIONS} title="Fill the paper up to 100 blank questions">
+                                                <Icons.Plus /> Add {MAX_QUESTIONS}
+                                            </button>
+                                            <button class="btn btn-sm btn-outline" onClick={addQuestion}><Icons.Plus /> Add Question</button>
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        {questions.map((q, qIndex) => (
+                                            <div key={qIndex} id={`bc-q-${qIndex}`} style={`padding: 1.5rem; border: 1px solid ${isQuestionComplete(q) ? 'var(--border-color)' : 'var(--warning)'}; border-radius: 12px; margin-bottom: 1.25rem; background: var(--bg-primary);`}>
+                                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                                                    <strong style="font-size: 1.05rem; color: var(--primary-color);">Question {qIndex + 1}</strong>
+                                                    <button class="btn btn-sm btn-outline-danger" onClick={() => removeQuestion(qIndex)} title="Remove question"><Icons.Trash /></button>
+                                                </div>
+                                                <textarea
+                                                    class="form-control"
+                                                    placeholder="Enter question text..."
+                                                    style="width: 100%; min-height: 64px; background: var(--bg-input); color: var(--text-primary); border: 1px solid var(--border-color);"
+                                                    value={q.questionText}
+                                                    onInput={(e) => updateQuestion(qIndex, 'questionText', e.target.value)}
+                                                />
+                                                <div style="display: flex; align-items: center; gap: 1rem; margin: 0.75rem 0;">
+                                                    <label class="btn btn-sm btn-outline" style="cursor: pointer; display: flex; align-items: center; gap: 4px;">
+                                                        <Icons.Image /> {q.questionImage ? 'Change Image' : 'Add Image'}
+                                                        <input type="file" hidden accept="image/*" onChange={async (e) => {
+                                                            const url = await handleImageUpload(e.target.files[0]);
+                                                            if (url) updateQuestion(qIndex, 'questionImage', url);
+                                                        }} />
+                                                    </label>
+                                                    {q.questionImage && (
+                                                        <div style="display: flex; align-items: center; gap: 4px;">
+                                                            <img src={getFileUrl(q.questionImage)} style="height: 40px; border-radius: 4px;" />
+                                                            <button class="btn-close-sm" onClick={() => updateQuestion(qIndex, 'questionImage', null)}>&times;</button>
+                                                        </div>
+                                                    )}
+                                                </div>
+
+                                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+                                                    {q.options.map((opt, oIndex) => {
+                                                        const isCorrect = q.correctAnswer === opt.key;
+                                                        return (
+                                                            <div key={opt.key} style={`padding: 0.75rem; border-radius: 8px; border: 1px solid ${isCorrect ? 'var(--success)' : 'var(--border-color)'}; background: var(--bg-secondary);`}>
+                                                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                                                                    <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-weight: 600;" title="Mark as correct answer">
+                                                                        <input type="radio" name={`bc-ans-${qIndex}`} checked={isCorrect} onChange={() => updateQuestion(qIndex, 'correctAnswer', opt.key)} />
+                                                                        Option {opt.key}{oIndex < 2 ? ' *' : ''}
+                                                                    </label>
+                                                                    <label style="cursor: pointer; color: var(--accent);" title="Add option image">
+                                                                        <Icons.Image />
+                                                                        <input type="file" hidden accept="image/*" onChange={async (e) => {
+                                                                            const url = await handleImageUpload(e.target.files[0]);
+                                                                            if (url) updateOption(qIndex, oIndex, 'image', url);
+                                                                        }} />
+                                                                    </label>
+                                                                </div>
+                                                                <input
+                                                                    type="text"
+                                                                    class="form-control"
+                                                                    placeholder={`Option ${opt.key}`}
+                                                                    style="background: var(--bg-input); color: var(--text-primary); border: 1px solid var(--border-color);"
+                                                                    value={opt.text}
+                                                                    onInput={(e) => updateOption(qIndex, oIndex, 'text', e.target.value)}
+                                                                />
+                                                                {opt.image && (
+                                                                    <div style="margin-top: 8px; display: flex; align-items: center; gap: 4px;">
+                                                                        <img src={getFileUrl(opt.image)} style="height: 40px; border-radius: 4px;" />
+                                                                        <button class="btn-close-sm" onClick={() => updateOption(qIndex, oIndex, 'image', null)}>&times;</button>
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </div>
+                                                {!q.correctAnswer && (
+                                                    <p style="font-size: 0.8rem; color: var(--warning); margin: 0.5rem 0 0;">Select the correct option.</p>
+                                                )}
+
+                                                <input
+                                                    type="text"
+                                                    class="form-control"
+                                                    placeholder="Explanation (optional) — shown to students after they submit"
+                                                    style="margin-top: 0.75rem; background: var(--bg-input); color: var(--text-primary); border: 1px solid var(--border-color);"
+                                                    value={q.explanation}
+                                                    onInput={(e) => updateQuestion(qIndex, 'explanation', e.target.value)}
+                                                />
+                                            </div>
+                                        ))}
+                                    </div>
+                                </>
                             )}
                         </div>
                     </div>
+                    <div style="position: sticky; bottom: 0; z-index: 5; display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1.5rem; padding: 1rem 0; background: var(--bg-primary); border-top: 1px solid var(--border-color);">
+                        <button class="btn btn-outline" onClick={closeForm}>Cancel</button>
+                        {!isPdfMode && (
+                            <button class="btn btn-primary" onClick={handleSave} disabled={saving}>
+                                {saving ? 'Saving...' : (editingExam ? 'Update Paper' : 'Save Paper')}
+                            </button>
+                        )}
+                    </div>
+                </>
+            ) : (
+                <div class="table-container">
+                    <ExamFilterBar {...filters.bar} searchPlaceholder="Search paper, subject…" />
+
+                    {loading ? (
+                        <div class="loading-spinner" />
+                    ) : exams.length === 0 ? (
+                        <div class="empty-state">
+                            <div class="empty-state-icon"><Icons.Reports /></div>
+                            <h3>No Objectives Test Series papers yet</h3>
+                            <p>Add your first board-pattern MCQ paper to get started.</p>
+                        </div>
+                    ) : filters.filteredCount === 0 ? (
+                        <NoFilterMatches onClear={filters.clear} />
+                    ) : (
+                        <>
+                            <div class="table-scroll">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Paper</th>
+                                        <th>Subject</th>
+                                        <th>Standard</th>
+                                        <th>Medium</th>
+                                        <th>Order</th>
+                                        <th>Duration</th>
+                                        <th>Schedule</th>
+                                        <th>Questions</th>
+                                        <th style="text-align:right;">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {filters.visible.map(item => (
+                                        <tr key={item._id}>
+                                            <td>
+                                                <div class="identity">
+                                                    <div class="avatar avatar-sm" style={{ background: 'var(--accent)' }}><Icons.Sparkles /></div>
+                                                    <div class="identity-body">
+                                                        <div class="identity-name">{item.title}</div>
+                                                        <div class="identity-sub">{item.board}{item.stream && item.stream !== 'None' ? ` · ${item.stream}` : ''}</div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>{item.subject}</td>
+                                            <td><span class="cell-chip">{item.std}</span></td>
+                                            <td>{item.medium || '—'}</td>
+                                            <td>{item.orderIndex}</td>
+                                            <td>{item.duration ? `${item.duration} min` : 'Untimed'}</td>
+                                            <td>
+                                                <div style="display: flex; flex-direction: column; gap: 2px; font-size: var(--font-xs);">
+                                                    <span>From: {item.startAt ? formatStart(item.startAt) : 'Immediately'}</span>
+                                                    <span>Ranked until: {item.endAt ? formatStart(item.endAt) : 'No end'}</span>
+                                                    <span class={`badge ${(STATUS_BADGE[item.status] || STATUS_BADGE.LIVE).cls}`} style="width: fit-content; margin-top: 2px;">
+                                                        {(STATUS_BADGE[item.status] || STATUS_BADGE.LIVE).label}
+                                                    </span>
+                                                </div>
+                                            </td>
+                                            <td><span class="badge badge-neutral">{item.questionCount || 0} MCQs</span></td>
+                                            <td>
+                                                <div class="td-actions" style="justify-content:flex-end;">
+                                                    <button class="icon-btn" onClick={() => openLeaderboard(item)} title="Leaderboard" disabled={item.status === 'UPCOMING'}>
+                                                        <Icons.TrendUp />
+                                                    </button>
+                                                    <button class="icon-btn primary" onClick={() => handleEdit(item)} title="Edit Paper">
+                                                        <Icons.Edit />
+                                                    </button>
+                                                    <button class="icon-btn danger" onClick={() => setDeleteConfirm(item)} title="Delete">
+                                                        <Icons.Trash />
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                            </div>
+                            <ExamPagination {...filters} setPage={filters.setPage} />
+                        </>
+                    )}
                 </div>
             )}
 
