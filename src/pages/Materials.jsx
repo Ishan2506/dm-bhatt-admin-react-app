@@ -153,11 +153,14 @@ export function Materials({ type }) {
 
     // Suggest the next free Display Order for the current type/standard/subject/
     // medium/board/stream group while adding (not editing), unless the user has
-    // already typed a value of their own into the field.
+    // already typed a value of their own into the field. For Board Paper and
+    // School Paper, Year is also part of the group (each year gets its own
+    // independent 1,2,3... sequence), so changing Year re-fetches too.
     useEffect(() => {
         if (editing || !orderIndexAuto) return;
         if (!activeTab || !form.standard || !form.subject || !form.medium) return;
         if ((form.standard === '11' || form.standard === '12') && (!form.stream || form.stream === 'None')) return;
+        if ((activeTab === 'BoardPaper' || activeTab === 'SchoolPaper') && !form.year) return;
 
         const query = new URLSearchParams({
             type: activeTab,
@@ -166,6 +169,7 @@ export function Materials({ type }) {
             medium: form.medium,
             board: form.board || 'GSEB',
             stream: form.stream || 'None',
+            year: form.year || '',
         }).toString();
 
         api.get(`/material/next-order-index?${query}`, { noPrefix: true })
@@ -175,7 +179,7 @@ export function Materials({ type }) {
                 }
             })
             .catch(console.error);
-    }, [activeTab, form.standard, form.subject, form.medium, form.board, form.stream, editing, orderIndexAuto]);
+    }, [activeTab, form.standard, form.subject, form.medium, form.board, form.stream, form.year, editing, orderIndexAuto]);
 
     useEffect(() => {
         // Switching tabs always returns to the list view for that type.
