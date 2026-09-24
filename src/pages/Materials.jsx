@@ -28,6 +28,12 @@ export function Materials({ type }) {
     const [totalCount, setTotalCount] = useState(0);
     // 'list' shows existing items for the active tab; 'form' shows the upload form.
     const [view, setView] = useState('list');
+    // Tracks whether Display Order is still following the auto-suggestion,
+    // or was overridden by the user typing into that field directly.
+    const [orderIndexAuto, setOrderIndexAuto] = useState(true);
+    // Mirrors orderIndexAuto for the in-flight suggestion fetch below, so a
+    // response that resolves after the user starts typing doesn't clobber it.
+    const orderIndexAutoRef = useRef(true);
 
     const showToast = (message, type = 'success') => {
         setToast({ message, type });
@@ -145,6 +151,32 @@ export function Materials({ type }) {
         }
     }, [form.standard, form.stream, standards]);
 
+    // Suggest the next free Display Order for the current type/standard/subject/
+    // medium/board/stream group while adding (not editing), unless the user has
+    // already typed a value of their own into the field.
+    useEffect(() => {
+        if (editing || !orderIndexAuto) return;
+        if (!activeTab || !form.standard || !form.subject || !form.medium) return;
+        if ((form.standard === '11' || form.standard === '12') && (!form.stream || form.stream === 'None')) return;
+
+        const query = new URLSearchParams({
+            type: activeTab,
+            standard: form.standard,
+            subject: form.subject,
+            medium: form.medium,
+            board: form.board || 'GSEB',
+            stream: form.stream || 'None',
+        }).toString();
+
+        api.get(`/material/next-order-index?${query}`, { noPrefix: true })
+            .then(res => {
+                if (orderIndexAutoRef.current) {
+                    setForm(prev => ({ ...prev, orderIndex: res.nextOrderIndex }));
+                }
+            })
+            .catch(console.error);
+    }, [activeTab, form.standard, form.subject, form.medium, form.board, form.stream, editing, orderIndexAuto]);
+
     useEffect(() => {
         // Switching tabs always returns to the list view for that type.
         // (Skip the reset when we're mid-edit — handleEdit sets activeTab then opens the form.)
@@ -159,6 +191,11 @@ export function Materials({ type }) {
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
+        if (name === 'orderIndex') {
+            // Once the user types into it directly, stop overwriting it with suggestions.
+            setOrderIndexAuto(false);
+            orderIndexAutoRef.current = false;
+        }
         setForm(prev => ({ ...prev, [name]: value }));
     };
 
@@ -181,6 +218,8 @@ export function Materials({ type }) {
             file: null
         });
         setEditing(null);
+        setOrderIndexAuto(true);
+        orderIndexAutoRef.current = true;
         if (fileInputRef.current) fileInputRef.current.value = '';
     };
 
@@ -277,6 +316,9 @@ export function Materials({ type }) {
             orderIndex: item.orderIndex || 1,
             file: null
         });
+        // Editing keeps the item's own order; don't overwrite it with a suggestion.
+        setOrderIndexAuto(false);
+        orderIndexAutoRef.current = false;
         setActiveTab(item.type);
         setView('form');
     };
@@ -324,6 +366,11 @@ export function Materials({ type }) {
                         <div class="form-group">
                             <label>Display Order / Chapter No.</label>
                             <input name="orderIndex" class="form-control" type="number" value={form.orderIndex} onInput={handleInputChange} />
+                            {!editing && orderIndexAuto && (
+                                <p style="font-size: var(--font-xs); color: var(--text-secondary); margin-top: 4px;">
+                                    Suggested next order for this Standard/Subject/Medium — edit if needed.
+                                </p>
+                            )}
                         </div>
                         <div class="form-group">
                             <label>Board</label>
