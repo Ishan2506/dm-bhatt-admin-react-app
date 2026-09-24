@@ -31,6 +31,7 @@ import { SubscriptionPlans } from './pages/SubscriptionPlans';
 import { RedeemCodes } from './pages/RedeemCodes';
 import { TrueFalseExams } from './pages/TrueFalseExams';
 import { MindGames } from './pages/MindGames';
+import { Banners } from './pages/Banners';
 import './pages/LoginPage.css';
 
 export function App() {
@@ -127,6 +128,7 @@ export function App() {
           <Subjects path="/admin/subjects" />
           <Chapters path="/admin/chapters" />
           <Products path="/admin/products" />
+          <Banners path="/admin/banners" />
           <Materials path="/admin/materials/:type?" />
           <MindMaps path="/admin/mindmaps" />
           <Exams path="/admin/exams" />

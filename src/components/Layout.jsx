@@ -9,6 +9,7 @@ const navigation = [
             { path: '/admin', label: 'Dashboard', icon: <Icons.Dashboard />, roles: ['super admin'] },
             { path: '/admin/standards', label: 'Standards', icon: <Icons.Standards /> },
             { path: '/admin/products', label: 'Products', icon: <Icons.Materials /> },
+            { path: '/admin/banners', label: 'App Banners', icon: <Icons.Image /> },
             { path: '/admin/subjects', label: 'Subjects', icon: <Icons.Subjects /> },
             { path: '/admin/chapters', label: 'Chapters', icon: <Icons.Chapters /> },
         ]
