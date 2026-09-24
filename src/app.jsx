@@ -31,6 +31,13 @@ import { SubscriptionPlans } from './pages/SubscriptionPlans';
 import { RedeemCodes } from './pages/RedeemCodes';
 import { TrueFalseExams } from './pages/TrueFalseExams';
 import { MindGames } from './pages/MindGames';
+// Lazy so the realtime client (socket.io) only loads when Live Arena is opened.
+const LiveExams = lazy(() => import('./pages/LiveExams.jsx').then((m) => ({ default: m.LiveExams })));
+const LiveExamsRoute = () => (
+  <Suspense fallback={<div class="loading-spinner" />}>
+    <LiveExams />
+  </Suspense>
+);
 import './pages/LoginPage.css';
 
 export function App() {
@@ -135,6 +142,7 @@ export function App() {
           <OneLinerExams path="/admin/exams/oneliner" />
           <TrueFalseExams path="/admin/exams/true-false" />
           <MatchFollowingExams path="/admin/exams/matchfollowing" />
+          <LiveExamsRoute path="/admin/exams/live" />
           <MindGames path="/admin/mindgames" />
           <ReportsPage path="/admin/reports/:section/:type?" key={currentPath} />
         </Router>
