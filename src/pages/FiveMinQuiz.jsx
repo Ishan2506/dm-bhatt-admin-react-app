@@ -1,5 +1,5 @@
 import { h, Fragment } from 'preact';
-import { useState, useEffect } from 'preact/hooks';
+import { useState, useEffect, useRef } from 'preact/hooks';
 import { api } from '../api';
 import { Icons } from '../components/Icons';
 import { AcademicConstants } from '../utils/constants';
@@ -36,6 +36,12 @@ export function FiveMinQuiz() {
     const [isUploading, setIsUploading] = useState(false);
     const [parsedQuestions, setParsedQuestions] = useState([]);
     const [reviewMode, setReviewMode] = useState(false);
+    // Tracks whether Display Order is still following the auto-suggestion,
+    // or was overridden by the user typing into that field directly.
+    const [orderIndexAuto, setOrderIndexAuto] = useState(true);
+    // Mirrors orderIndexAuto for the in-flight suggestion fetch below, so a
+    // response that resolves after the user starts typing doesn't clobber it.
+    const orderIndexAutoRef = useRef(true);
 
     const showToast = (message, type = 'success') => {
         setToast({ message, type });
@@ -50,6 +56,8 @@ export function FiveMinQuiz() {
         setReviewMode(false);
         setIsUploading(false);
         setEditingExam(null);
+        setOrderIndexAuto(true);
+        orderIndexAutoRef.current = true;
     };
 
     // The API returns every quiz as a plain array (it ignores skip/limit), so the
@@ -66,8 +74,38 @@ export function FiveMinQuiz() {
         loadExams();
     }, []);
 
+    // Suggest the next free Display Order for the current std/subject/medium/
+    // board/stream group while adding (not editing), unless the user has
+    // already typed a value of their own into the field.
+    useEffect(() => {
+        if (editingExam || !orderIndexAuto) return;
+        if (!formData.std || !formData.subject || !formData.medium) return;
+        if ((formData.std === '11' || formData.std === '12') && (!formData.stream || formData.stream === 'None')) return;
+
+        const query = new URLSearchParams({
+            std: formData.std,
+            subject: formData.subject,
+            medium: formData.medium,
+            board: formData.board || 'GSEB',
+            stream: formData.stream || 'None',
+        }).toString();
+
+        api.get(`/fiveMinTest/next-order-index?${query}`, { noPrefix: true })
+            .then(res => {
+                if (orderIndexAutoRef.current) {
+                    setFormData(prev => ({ ...prev, orderIndex: res.nextOrderIndex }));
+                }
+            })
+            .catch(console.error);
+    }, [formData.std, formData.subject, formData.medium, formData.board, formData.stream, editingExam, orderIndexAuto]);
+
     const handleInputChange = (e) => {
         const { name, value } = e.target;
+        if (name === 'orderIndex') {
+            // Once the user types into it directly, stop overwriting it with suggestions.
+            setOrderIndexAuto(false);
+            orderIndexAutoRef.current = false;
+        }
         setFormData(prev => ({ ...prev, [name]: value }));
         if (name === 'board') {
              setFormData(prev => ({ ...prev, std: '', subject: '' }));
@@ -321,6 +359,9 @@ export function FiveMinQuiz() {
         }
 
         setEditingExam(editableExam._id);
+        // Editing keeps the item's own order; don't overwrite it with a suggestion.
+        setOrderIndexAuto(false);
+        orderIndexAutoRef.current = false;
         setFormData({
             title: editableExam.title || '',
             board: editableExam.board || 'GSEB',
@@ -574,6 +615,9 @@ export function FiveMinQuiz() {
                                             <div class="form-group">
                                                 <label style="font-weight: 600; font-size: 0.9rem; display: block; margin-bottom: 0.5rem;">Display Order / Chapter No.</label>
                                                 <input type="number" name="orderIndex" value={formData.orderIndex} onInput={handleInputChange} style="width: 100%; padding: 0.75rem 1rem; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-input); color: var(--text-primary); font-size: 0.95rem;" />
+                                                {!editingExam && orderIndexAuto && (
+                                                    <p style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 4px;">Suggested next order for this Standard/Subject/Medium — edit if needed.</p>
+                                                )}
                                             </div>
                                             <div class="form-group">
                                                 <label style="font-weight: 600; font-size: 0.9rem; display: block; margin-bottom: 0.5rem;">Board *</label>
