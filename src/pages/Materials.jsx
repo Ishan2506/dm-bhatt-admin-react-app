@@ -73,6 +73,8 @@ export function Materials({ type }) {
     const tabs = [
         { id: 'BoardPaper', label: 'Board Paper', icon: <Icons.Paper /> },
         { id: 'SchoolPaper', label: 'School Paper', icon: <Icons.Standards /> },
+        { id: 'PhantomPaper', label: 'Phantom Paper', icon: <Icons.Paper /> },
+        { id: 'ImpNotes', label: 'IMP Notes', icon: <Icons.Subjects /> },
         { id: 'Notes', label: 'Notes', icon: <Icons.Subjects /> },
         { id: 'ImageMaterial', label: 'Images', icon: <Icons.Image /> },
     ];
@@ -120,6 +122,8 @@ export function Materials({ type }) {
         const typeMap = {
             'board-paper': 'BoardPaper',
             'school-paper': 'SchoolPaper',
+            'phantom-paper': 'PhantomPaper',
+            'imp-notes': 'ImpNotes',
             'notes': 'Notes',
             'images': 'ImageMaterial',
         };
@@ -280,6 +284,8 @@ export function Materials({ type }) {
                 if (activeTab === 'BoardPaper') endpoint = `/material/upload-board-paper`;
                 else if (activeTab === 'SchoolPaper') endpoint = `/material/upload-school-paper`;
                 else if (activeTab === 'Notes') endpoint = `/material/upload-notes`;
+                else if (activeTab === 'ImpNotes') endpoint = `/material/upload-imp-notes`;
+                else if (activeTab === 'PhantomPaper') endpoint = `/material/upload-phantom-paper`;
                 else if (activeTab === 'ImageMaterial') endpoint = `/material/upload-image-material`;
 
                 await api.post(endpoint, formData, { noPrefix: true });

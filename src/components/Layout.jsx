@@ -49,6 +49,8 @@ const navigation = [
                 children: [
                     { path: '/admin/materials/board-paper', label: 'Board Paper' },
                     { path: '/admin/materials/school-paper', label: 'School Paper' },
+                    { path: '/admin/materials/phantom-paper', label: 'Phantom Paper' },
+                    { path: '/admin/materials/imp-notes', label: 'IMP Notes' },
                     { path: '/admin/materials/notes', label: 'Notes' },
                     { path: '/admin/materials/images', label: 'Images' },
                 ]
