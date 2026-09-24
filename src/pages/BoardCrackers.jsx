@@ -531,7 +531,9 @@ Explanation: 1 N = 1 kg·m/s² (optional)`}</pre>
                                                     {questions.length === 0 ? 'No questions yet.' : `${completeCount} of ${questions.length} complete`}
                                                 </span>
                                                 <div style="display: flex; gap: 0.5rem;">
-                                                    <button class="btn btn-sm btn-outline" onClick={() => addBlankQuestions(10)}><Icons.Plus /> Add 10</button>
+                                                    <button class="btn btn-sm btn-outline" onClick={() => addBlankQuestions(MAX_QUESTIONS)} disabled={questions.length >= MAX_QUESTIONS} title="Fill the paper up to 100 blank questions">
+                                                        <Icons.Plus /> Add {MAX_QUESTIONS}
+                                                    </button>
                                                     <button class="btn btn-sm btn-outline" onClick={addQuestion}><Icons.Plus /> Add Question</button>
                                                 </div>
                                             </div>
